@@ -1,42 +1,24 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Security.Cryptography;
-using System.Text;
-using ActionGame.Chara;
-using ActionGame.Chara.Mover;
-using ADV;
-using ADV.Commands.Base;
-using ADV.Commands.Camera;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
-using KKAPI;
 using KKAPI.MainGame;
-using KKAPI.Utilities;
-using KoikatuVR;
-using Unity.Linq;
 using UnityEngine;
-using Valve.VR;
-using VRGIN;
-using static HSceneProc;
-using static Illusion.Component.ShortcutKey;
-using static Illusion.Utils;
-using static SteamVR_Controller;
-using static UnityEngine.Experimental.Director.FrameData;
 
 namespace KK_SensibleH
 {
-    [BepInPlugin(GUID, PluginName, Version)]
+    [BepInPlugin(GUID, "KK_SensibleH", Version)]
+    [BepInProcess("Koikatu")]
+    [BepInDependency("marco.kkapi")]
+    [BepInDependency("mosirnik.kk-main-game-vr")]
+    [BepInDependency("MK.KK_BetterSquirt")] // TODO use unmodified version, without "forced" start.
+    [BepInDependency("KK_Fix_ResourceUnloadOptimizations")]
     public class SensibleH : BaseUnityPlugin
     {
         public const string GUID = "kk.sensible.h";
-        public const string PluginName = "KK_SensibleH";
-        public const string Version = "1.0.0";
+        public const string Version = "0.1";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<AutoModeKind> AutoMode { get; set; }
@@ -261,7 +243,7 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HMasturbation), nameof(HMasturbation.Proc))]
             public static void HMasturbationProc(HMasturbation __instance)
             {
-                if (!__instance.flags.nowAnimStateName.StartsWith("O") && __instance.flags.timeMasturbation.IsIdleTime())
+                if (!__instance.flags.nowAnimStateName.StartsWith("O", System.StringComparison.Ordinal) && __instance.flags.timeMasturbation.IsIdleTime())
                 {
                     if (__instance.flags.gaugeFemale < 40f)
                         __instance.flags.voice.playVoices[0] = 402;
@@ -279,18 +261,14 @@ namespace KK_SensibleH
             /// We check for non Orgasm, OrgasmAfter loops and run the timer that by default is being used only for action restart after the finish.
             /// </summary>
             [HarmonyPostfix]
-
             [HarmonyPatch(typeof(HLesbian), nameof(HLesbian.Proc))]
             public static void HLesbianProc(HLesbian __instance)
             {
-                if (!__instance.flags.nowAnimStateName.StartsWith("O") && __instance.flags.timeLesbian.IsIdleTime())
+                if (!__instance.flags.nowAnimStateName.StartsWith("O", System.StringComparison.Ordinal) && __instance.flags.timeLesbian.IsIdleTime())
                 {
                     __instance.speek = false;
                 }
             }
-
-            
-
             /// <summary>
             /// We catch the voiceProc to, perhaps, interrupt it and run it at the latter time.
             /// </summary>
@@ -692,12 +670,12 @@ namespace KK_SensibleH
             {
                 if (__instance.hand.actionUseItem == -1
                     && __instance.voice.nowVoices[0].state != HVoiceCtrl.VoiceKind.voice
-                    && !__instance.flags.nowAnimStateName.StartsWith("I") 
-                    && (__instance.flags.nowAnimStateName.Contains("Idle") || __instance.flags.nowAnimStateName.EndsWith("A")))
+                    && (__instance.flags.nowAnimStateName.EndsWith("_Idle", System.StringComparison.Ordinal) 
+                    || __instance.flags.nowAnimStateName.EndsWith("A", System.StringComparison.Ordinal)))
                 {
                     if (__instance.flags.voice.timeAibu.IsIdleTime()
                         && UnityEngine.Random.value < 0.75f)
-                        if (__instance.flags.nowAnimStateName.EndsWith("A"))
+                        if (__instance.flags.nowAnimStateName.EndsWith("A", System.StringComparison.Ordinal))
                         {
                             // We run after orgasm voice.
                             __instance.flags.voice.isAfterVoicePlay = false;

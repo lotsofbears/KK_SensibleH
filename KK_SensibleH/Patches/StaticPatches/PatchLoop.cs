@@ -8,7 +8,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Reflection;
 
-namespace KK_SensibleH.Patches
+namespace KK_SensibleH.Patches.StaticPatches
 {
     internal class PatchLoop
     {

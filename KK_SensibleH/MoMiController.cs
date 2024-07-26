@@ -8,14 +8,15 @@ using System.Collections;
 using System.Linq;
 using System;
 using Illusion.Game;
-using KK_SensibleH.Patches;
+using KK_SensibleH.Patches.DynamicPatches;
 using VRGIN.Core;
 using VRGIN.Helpers;
 using VRGIN.Controls;
 using KoikatuVR;
 using KoikatuVR.Caress;
 using static SteamVR_Controller;
-using ADV.Commands.Base;
+using KK_SensibleH.Caress;
+using static KK_SensibleH.LoopParameters;
 
 namespace KK_SensibleH
 {
@@ -47,9 +48,11 @@ namespace KK_SensibleH
         class LickItem
         {
             public string path;
-            public float itemForward;
-            public float itemUp;
-            public float poiUp;
+            public float itemOffsetForward;
+            public float itemOffsetUp;
+            public float poiOffsetUp;
+            public float directionUp;
+            public float directionForward;
         }
         public static string[] FakePrefix = new string[3];
         public static string[] FakePostfix = new string[3];
@@ -63,13 +66,13 @@ namespace KK_SensibleH
         private float[] _postfixTimers = new float[3];
         private bool _endLickCo;
         private bool _moMiCo;
-        private bool _circleHelper;
         private bool _fakeTag;
         private bool _vr;
         private bool _judgeCooldown;
         private bool _touchAnim;
         private bool _mousePressDown;
 
+        private List<MoMiCircles> _circles = new List<MoMiCircles>();
         private SteamVR_Controller.Device _device;
         private SteamVR_Controller.Device _device1;
         private Controller _controller;
@@ -87,8 +90,12 @@ namespace KK_SensibleH
         private void Awake()
         {
             Instance = this;
-            _gameCursor = Singleton<GameCursor>.Instance; // FindObjectOfType<GameCursor>();
+            _gameCursor = GameCursor.Instance; // FindObjectOfType<GameCursor>();
             _vr = UnityEngine.VR.VRSettings.enabled;
+            for (var i = 0; i < 3; i++)
+            {
+                _circles.Add(new MoMiCircles());
+            }
             if (_vr)
             {
                 _eyes = _chaControl[0].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
@@ -125,7 +132,7 @@ namespace KK_SensibleH
             _moMiCo = true;
             _activeCoroutines.Add(StartCoroutine(MoMiCo()));
         }
-        private void Halt()
+        private void Halt(bool disengage = true)
         {
             SensibleH.Logger.LogDebug($"MoMi[HaltReason][Button = {UnityEngine.Input.GetMouseButtonDown(0)}] [Item = {_handCtrl.actionUseItem != -1}] [Kiss = {_handCtrl.isKiss}]");
             foreach (var coroutine in _activeCoroutines)
@@ -149,7 +156,7 @@ namespace KK_SensibleH
 
             if (_vr)
             {
-                if (_kissCo || _lickCo)
+                if (disengage && (_kissCo || _lickCo))
                 {
                     if (!_endKissCo)
                         _activeCoroutines.Add(StartCoroutine(EndKissCo()));
@@ -183,44 +190,56 @@ namespace KK_SensibleH
                 return DirectionNeck.UpRightFar;
             else
             {
-                if (Vector3.Distance(_shoulders.position + _shoulders.up, head.position) < 0.85f)
-                    return DirectionNeck.UpMid;
-                else
+                //if (Vector3.Distance(_shoulders.position + _shoulders.up, head.position) < 0.85f)
+                //    return DirectionNeck.UpMid;
+                //else
+                // Reasonable UP direction only after proper rework of eyeNeck.
                     return DirectionNeck.Pose;
             }
         }
-        public static void StartVrAction(bool isKiss)
+        public static void StartVrAction(HandCtrl.AibuColliderKind colliderKind)
         {
-            SensibleH.Logger.LogDebug($"StartVrAction");
-
-            if (_lickCo || _kissCo)
-                return;
             if (_endKissCo)
             {
-                Instance.Halt();
+                SensibleH.Logger.LogDebug($"StartVrAction[EndKissCo]");
+                Instance.Halt(disengage: false);
                 _endKissCo = false;
             }
-            if (isKiss)
+            if (!_kissCo)
             {
-                Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.KissCo()));
-            }
-            else
-            {
-                if (_hFlag.mode == HFlag.EMode.aibu)
-                    _hFlag.click = (HFlag.ClickKind)(_handCtrl.selectKindTouch + 14);
-                //SensibleH.Logger.LogDebug($"LickCoStart[Click: {_hFlag.click}]");
-                Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.LickCo()));
+                if (colliderKind == HandCtrl.AibuColliderKind.mouth)
+                {
+                    SensibleH.Logger.LogDebug($"StartVrAction[KissCo]");
+                    if (_lickCo)
+                    {
+                        Instance.Halt(disengage: false);
+                    }
+                    Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.KissCo()));
+                }
+                else if (!_lickCo)
+                {
+                    SensibleH.Logger.LogDebug($"StartVrAction[LickCo]");
+                    if (_kissCo)
+                    {
+                        Instance.Halt(disengage: false);
+                    }
+                    if (_hFlag.mode == HFlag.EMode.aibu)
+                        _hFlag.click = (HFlag.ClickKind)colliderKind; //(_handCtrl.selectKindTouch + 14);
+                    //SensibleH.Logger.LogDebug($"LickCoStart[Click: {_hFlag.click}]");
+                    Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.LickCo(colliderKind)));
+                }
             }
         }
         private IEnumerator KissCo()
         {
             SensibleH.Logger.LogDebug($"KissCo[Start]");
+            yield return new WaitForEndOfFrame();
             _kissCo = true;
             _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchKiss)));
             _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchSteamVR)));
             var origin = VR.Camera.Origin;
             var head = VR.Camera.Head;
-
+            
             var neck = GetKissStartPosition();
             _girlController[0].OnKissStart(neck);
 
@@ -292,10 +311,11 @@ namespace KK_SensibleH
             //    yield return new WaitForEndOfFrame();
             //}
             var step = 0.05f;
+            // Girl sways considerably during kiss, and it's especially noticeable in side angles, so we make camera's follow more aggressive to compensate.
             if (neck == DirectionNeck.UpRightFar || neck == DirectionNeck.UpLeft)
                 step = 0.13f;
             var inPosition = false;
-            while (timer > Time.time)
+            while (true)//(timer > Time.time)
             {
                 // Glue Method.
                 var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
@@ -317,9 +337,13 @@ namespace KK_SensibleH
                 {
                     moveTowards = targetPos;
                     steps += Time.deltaTime * step;
+                    if (steps > startDistance || timer < Time.time)
+                    {
+                        break;
+                    }
                 }
 
-                var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight) + _eyes.forward * -0.1f);
+                var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight)); // + _eyes.forward * -0.1f);
                 origin.rotation = Quaternion.RotateTowards(origin.rotation, lookRotation, Time.deltaTime * 90f);
                 origin.position += moveTowards - head.position;
                 yield return new WaitForEndOfFrame();
@@ -438,30 +462,37 @@ namespace KK_SensibleH
             _hFlag.click = HFlag.ClickKind.de_muneL;
             SensibleH.Logger.LogDebug($"EndKissCo[End]");
         }
-        private IEnumerator LickCo()
+        private IEnumerator LickCo(HandCtrl.AibuColliderKind colliderKind)
         {
             SensibleH.Logger.LogDebug($"LickCo[Start]");
             _lickCo = true;
-            _activeCoroutines.Add(StartCoroutine(AttachCo()));
+            _activeCoroutines.Add(StartCoroutine(AttachCo(colliderKind)));
             yield return CaressUtil.ClickCo();
-            yield return new WaitUntil(() => !_hFlag.nowAnimStateName.Contains("Touch"));
-            
+            yield return new WaitUntil(() => !IsTouch);
+
             _mousePressDown = true;
             HandCtrlHooks.InjectMouseButtonDown(0);
+            MoMiActive = true;
+            yield return new WaitUntil(() => GameCursor.isLock);
 
+            // Most likely somebody along the line wants this wait badly.
+            yield return new WaitForEndOfFrame();
             if (!_moMiCo)
             {
                 //SensibleH.Logger.LogDebug($"LickCo[AddMoMiCo]");
                 _moMiCo = true;
-                _activeCoroutines.Add(StartCoroutine(MoMiCo(skipWait: false)));
+                _activeCoroutines.Add(StartCoroutine(MoMiCo(skipWait: true)));
             }
-            MoMiActive = true;
-            yield return new WaitUntil(() => GameCursor.isLock);
             JudgeProc(2, fakeIt: true);
         }
 
-        private IEnumerator AttachCo()
+        private IEnumerator AttachCo(HandCtrl.AibuColliderKind colliderKind)
         {
+            var dic = PoI[colliderKind];
+            var poi = _chaControl[0].objBodyBone.transform.Find(dic.path);
+
+            var origin = VR.Camera.Origin;
+            var head = VR.Camera.Head;
             //var dicItem = PoI[_handCtrl.selectKindTouch];
             //SensibleH.Logger.LogDebug($"AttachCo[selectKindTouch = {_handCtrl.selectKindTouch}]");
             //var tempItem = _chaControl[0].objBodyBone.transform.Find(dicItem.path);
@@ -480,19 +511,26 @@ namespace KK_SensibleH
             //    origin.position += moveVec;
             //    yield return new WaitForEndOfFrame();
             //}
-            while (_handCtrl.useItems[2] == null)
+            var prevPoiPosition = poi.position;
+            // We check parameter as more often then not, update doesn't run check just yet.
+            while (IsTouch || _handCtrl.useItems[2] == null)
             {
-                // Should be about 1 - 2 frames with CrossFader.
+                // We move together with point of interest during "Touch" animation
+                origin.position += poi.position - prevPoiPosition;
+                prevPoiPosition = poi.position;
                 yield return new WaitForEndOfFrame();
             }
             SensibleH.Logger.LogDebug($"AttachCo[Start]");
-            var origin = VR.Camera.Origin;
-            var head = VR.Camera.Head;
-            var dic = PoI[_handCtrl.useItems[2].kindTouch];
+            //var dic = PoI[_handCtrl.useItems[2].kindTouch];
             var item = _handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
-            var poi = _chaControl[0].objBodyBone.transform.Find(dic.path);
+            //var poi = _chaControl[0].objBodyBone.transform.Find(dic.path); 
+            SensibleH.Logger.LogDebug($"AttachCo[Start] {poi.rotation.eulerAngles.x}");
+            if (poi.rotation.eulerAngles.x > 30f && poi.rotation.eulerAngles.x < 90f)
+            {
+                dic = PoI[HandCtrl.AibuColliderKind.none];
+            }
 
-            while (Vector3.Distance(item.position + item.forward * dic.itemForward + item.up * dic.itemUp, head.position) > 0.002f)
+            while (Vector3.Distance(item.position + item.forward * dic.itemOffsetForward + item.up * dic.itemOffsetUp, head.position) > 0.002f)
             {
                 if (_handCtrl.useItems[2] == null)
                 {
@@ -500,17 +538,17 @@ namespace KK_SensibleH
                     yield break;
                 }
                 //SensibleH.Logger.LogDebug($"AttachCo[MoveToItem]");
-                var adjustedItem = item.position + item.forward * dic.itemForward + item.up * dic.itemUp;
-                var moveTo = Vector3.MoveTowards(head.position, adjustedItem, Time.deltaTime * 0.1f);
-                var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiUp - moveTo, poi.up);
-                origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, Time.deltaTime * 25f);
+                var adjustedItem = item.position + item.forward * dic.itemOffsetForward + item.up * dic.itemOffsetUp;
+                var moveTo = Vector3.MoveTowards(head.position, adjustedItem, Time.deltaTime * 0.2f);
+                var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiOffsetUp - moveTo, poi.up * dic.directionUp + poi.forward * dic.directionForward);
+                origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, Time.deltaTime * 60f);
                 origin.position += moveTo - head.position;
                 yield return new WaitForEndOfFrame();
             }
             UpdateDevices();
             while (true)
             {
-                if (_handCtrl.useItems[2] == null || _device.GetPressUp(ButtonMask.Trigger) || _device1.GetPressUp(ButtonMask.Trigger))
+                if (_device.GetPressUp(ButtonMask.Trigger) || _device1.GetPressUp(ButtonMask.Trigger)) //_handCtrl.useItems[2] == null || 
                 {
                     break;
                 }
@@ -522,10 +560,10 @@ namespace KK_SensibleH
                 else
                 {
                     //SensibleH.Logger.LogDebug($"AttachCo[Action][{_handCtrl.actionUseItem == 2}]");
-                    var targetPos = item.position + (item.forward * dic.itemForward) + (item.up * dic.itemUp);
+                    var targetPos = item.position + (item.forward * dic.itemOffsetForward) + (item.up * dic.itemOffsetUp);
                     var moveTo = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.05f);
-                    var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiUp - moveTo, poi.up);
-                    origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, Time.deltaTime * 25f);
+                    var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiOffsetUp - moveTo, poi.up * dic.directionUp + poi.forward * dic.directionForward);
+                    origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, Time.deltaTime * 15f);
                     origin.position += moveTo - head.position;
                 }
                 yield return new WaitForEndOfFrame();
@@ -535,7 +573,6 @@ namespace KK_SensibleH
 
         }
         /*
-         * 
          * cf_j_tangroot.transform.
          *     forward+ (All subsequent measurements are done relative to the girl)
          *         boobs - vec.up
@@ -550,73 +587,97 @@ namespace KK_SensibleH
          */
         private Dictionary<HandCtrl.AibuColliderKind, LickItem> PoI = new Dictionary<HandCtrl.AibuColliderKind, LickItem>()
         {
+            // There are inconsistencies depending on the pose. Not fixed: ass, anal.
             {
                 HandCtrl.AibuColliderKind.muneL, new LickItem {
                 path = "cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_bust00/cf_s_bust00_L/cf_d_bust01_L" +
                     "/cf_j_bust01_L/cf_d_bust02_L/cf_j_bust02_L/cf_d_bust03_L/cf_j_bust03_L/cf_s_bust03_L/k_f_mune03L_02",
-                itemForward = 0.08f, 
-                itemUp = 0f,//-0.04f, 
-                poiUp = 0.05f,
+                itemOffsetForward = 0.08f,
+                itemOffsetUp = 0f,//-0.04f, 
+                poiOffsetUp = 0.05f,
+                directionUp = 1f,
+                directionForward = 0f
                 }
             },
             {
                 HandCtrl.AibuColliderKind.muneR, new LickItem {
                 path = "cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_bust00/cf_s_bust00_R/cf_d_bust01_R" +
                     "/cf_j_bust01_R/cf_d_bust02_R/cf_j_bust02_R/cf_d_bust03_R/cf_j_bust03_R/cf_s_bust03_R/k_f_mune03R_02",
-                itemForward = 0.08f,
-                itemUp = 0f,
-                poiUp = 0.05f
+                itemOffsetForward = 0.08f,
+                itemOffsetUp = 0f,
+                poiOffsetUp = 0.05f,
+                directionUp = 1f,
+                directionForward = 0f
                 }
             },
             {
                 HandCtrl.AibuColliderKind.kokan, new LickItem {
                 path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02",
-                itemForward = 0.02f,
-                itemUp = 0.04f,
-                poiUp = 0f
+                itemOffsetForward = 0.06f,
+                itemOffsetUp = 0.03f,
+                poiOffsetUp = 0f,
+                directionUp = 0.5f,
+                directionForward = 0.5f
                 }
             },
             {
                 HandCtrl.AibuColliderKind.anal, new LickItem {
                 path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02",
-                itemForward = -0.05f,//-0.06f, 
-                itemUp = -0.06f, // -0.05f
-                poiUp = 0f
+                itemOffsetForward = -0.05f,//-0.06f, 
+                itemOffsetUp = -0.08f, // -0.06f
+                poiOffsetUp = 0f,
+                directionUp = 1f,
+                directionForward = 0f
                 }
             },
             {
                 HandCtrl.AibuColliderKind.siriL, new LickItem {
                 path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/aibu_hit_siri_L",
-                itemForward = -0.04f,
-                itemUp = 0.04f,
-                poiUp = 0.2f
+                itemOffsetForward = -0.04f, // -0.06f
+                itemOffsetUp = 0.04f,
+                poiOffsetUp = 0.2f,
+                directionUp = 1f,
+                directionForward = 0f
                 }
             },
             {
                 HandCtrl.AibuColliderKind.siriR, new LickItem {
                 path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/aibu_hit_siri_R",
-                itemForward = -0.04f,
-                itemUp = 0.04f,
-                poiUp = 0.2f
+                itemOffsetForward = -0.04f, // -0.06f
+                itemOffsetUp = 0.04f,
+                poiOffsetUp = 0.2f,
+                directionUp = 1f,
+                directionForward = 0f
                 }
-            }
+            },
+            {
+                HandCtrl.AibuColliderKind.none, new LickItem {
+                path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02",
+                itemOffsetForward = -0.07f, // -0.01
+                itemOffsetUp = -0.01f,
+                poiOffsetUp = 0f,
+                directionUp = 0f,
+                directionForward = -1f
+                }
+            },
+
 
         };
-        private void RangeTest()
-        {
-            var origin = VR.Camera.Origin;
-            var head = VR.Camera.Head;
-            var item = _handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
-            var poi = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02");
-            var moveTo = item.position + (item.forward * itmFrwrd) + (item.up * itmUp);
-            var lookAt = Quaternion.LookRotation(poi.position + poi.up * 0.05f - moveTo, poi.up);
-            origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, 30f);
-            origin.position += moveTo - head.position;
-        }
-        private bool frwrdHelper;
-        private bool upHelper;
-        private float itmFrwrd = 0f;
-        private float itmUp = 0f;
+        //private void RangeTest()
+        //{
+        //    var origin = VR.Camera.Origin;
+        //    var head = VR.Camera.Head;
+        //    var item = _handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
+        //    var poi = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02");
+        //    var moveTo = item.position + (item.forward * itmFrwrd) + (item.up * itmUp);
+        //    var lookAt = Quaternion.LookRotation(poi.position + poi.up * 0.05f - moveTo, -poi.forward);
+        //    origin.rotation = lookAt;
+        //    origin.position += moveTo - head.position;
+        //}
+        //private bool frwrdHelper;
+        //private bool upHelper;
+        //private float itmFrwrd = 0f;
+        //private float itmUp = 0f;
         private float FindRollDelta()
         {
             var headsetRoll = Mathf.DeltaAngle(VR.Camera.Head.eulerAngles.z, 0f);
@@ -643,7 +704,8 @@ namespace KK_SensibleH
             }
             else if (_moMiCo)
             {
-                if (UnityEngine.Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.isKiss))
+                _touchAnim = IsTouch;
+                if (!_touchAnim && (UnityEngine.Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.isKiss)))
                 {
                     Halt();
                 }
@@ -664,7 +726,6 @@ namespace KK_SensibleH
                         _judgeCooldown = false;
                     }
                 }
-                _touchAnim = _hFlag.nowAnimStateName.Contains("Touch");
             }
             if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
@@ -672,11 +733,10 @@ namespace KK_SensibleH
                 // t
                 //SensibleH.Logger.LogDebug($"Hotkey[1]{SignedAngle(VR.Camera.Head.position - _shoulders.position, _shoulders.forward, _shoulders.right)}");
                 //SensibleH.Logger.LogDebug($"Hotkey[2]{SignedAngle(VR.Camera.Head.position - _shoulders.position, _shoulders.forward, _shoulders.up)}");
-                GetKissStartPosition();
+                //RangeTest();
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-                // Yaw works SensibleH.Logger.LogDebug($"Hotkey[2]{SignedAngle(VR.Camera.Head.position - _shoulders.position, _shoulders.forward, _shoulders.up)}");
                 //if (frwrdHelper)
                 //{
                 //    itmFrwrd -= 0.01f;
@@ -754,31 +814,32 @@ namespace KK_SensibleH
         {
             if (!skipWait)
             {
-                _touchAnim = _hFlag.nowAnimStateName.EndsWith("Touch");
+                _touchAnim = IsTouch;
                 yield return new WaitUntil(() => !_touchAnim);
-                yield return new WaitForSeconds(1f);
-            }
+                yield return new WaitForSeconds(1f); 
 
-            var kiss = _handCtrl.isKiss;
-            if (!kiss && _handCtrl.actionUseItem == -1)
-            {
-                //SensibleH.Logger.LogDebug($"MoMiCo[Break][NoItems]]");
-                Halt();
-                yield break;
+                if (!_handCtrl.isKiss && _handCtrl.actionUseItem == -1)
+                {
+                    //SensibleH.Logger.LogDebug($"MoMiCo[Break][NoItems]]");
+                    Halt();
+                    yield break;
+                }
             }
+            var kiss = _handCtrl.isKiss;
+            
             SensibleH.Logger.LogDebug($"MoMiCo[Start] kiss[{kiss}] vr[{_vr}]");
             MoMiActive = true;
             if (!kiss)
             {
-                //SensibleH.Logger.LogDebug($"MoMiCo[Patch] HandCtrl");
+                SensibleH.Logger.LogDebug($"MoMiCo[PatchMoMi]");
                 _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchMoMi)));
                 if (!_lickCo)
                 {
+                    Utils.Sound.Play(SystemSE.ok_l);
                     if (_vr)
                     {
-                        Utils.Sound.Play(SystemSE.ok_l);
                         UpdateDevices();
-                        //SensibleH.Logger.LogDebug($"MoMiCo[Patch] VR");
+                        //SensibleH.Logger.LogDebug($"MoMiCo[PatchKoikatuVR]");
                         _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchKoikatuVR)));
 
                         if (_device.GetPress(ButtonMask.Trigger))
@@ -787,14 +848,13 @@ namespace KK_SensibleH
                     }
                     else
                     {
-                        Utils.Sound.Play(SystemSE.ok_l);
                         if (UnityEngine.Input.GetMouseButton(0))
                         {
                             yield return new WaitUntil(() => UnityEngine.Input.GetMouseButtonUp(0));
                         }
                         else
                         {
-                            SensibleH.Logger.LogDebug($"MoMiCo[Halt] Mouse button was released too soon");
+                            //SensibleH.Logger.LogDebug($"MoMiCo[Halt] Mouse button was released too soon");
                             _moMiCo = false;
                             yield break;
                         }
@@ -813,7 +873,7 @@ namespace KK_SensibleH
                             pattern = -1
                         });
             }
-            SensibleH.Logger.LogDebug($"MoMiCo[AddItem] {_items.Count} _items added");
+            //SensibleH.Logger.LogDebug($"MoMiCo[AddItem] {_items.Count} _items added");
             foreach (var item in _items)
             {
                 if (item.Value.area == 0 || item.Value.area == 4)
@@ -823,7 +883,7 @@ namespace KK_SensibleH
                         .FirstOrDefault();
                     if (otherItem != null)
                     {
-                        SensibleH.Logger.LogDebug($"Found a pair[{item.Value.area}][{otherItem.area}] in _items");
+                        SensibleH.Logger.LogDebug($"Found the pair[{item.Value.area}][{otherItem.area}] in _items");
                         item.Value.hasPair = true;
                         otherItem.hasPair = true;
                     }
@@ -832,11 +892,12 @@ namespace KK_SensibleH
             }
             SensibleH.Logger.LogDebug($"MoMiCo[Finish]");
         }
-        private IEnumerator ItemCo(bool kiss, int idUse)
+        private IEnumerator ItemCo(bool kiss, int itemId)
         {
-            SensibleH.Logger.LogDebug($"ItemCo[{idUse}][Online]");
+            SensibleH.Logger.LogDebug($"ItemCo[{itemId}][Online]");
             var judgeProc = !kiss;
-            var item = _items[idUse];
+            var item = _items[itemId];
+            var midPos = new Vector2(0.5f, 0.5f);
             while (true)
             {
                 //SensibleH.Logger.LogDebug($"ItemCo[{idUse}][LoopStart]");
@@ -846,20 +907,25 @@ namespace KK_SensibleH
 
                 if (item.startPair || Random.value < 0.5f)
                 {
-                    if (!judgeProc && IsAdjustmentNeeded(idUse))
+                    if (!judgeProc && IsAdjustmentNeeded(itemId))
                     {
                         //SensibleH.Logger.LogDebug($"ItemCo[{idUse}][MoveToCenter]");
                         // Move item to the center.
-                        var steps = Random.Range(0.25f, 0.75f) / Time.deltaTime;
-                        var curPos = GetPosition(item.pattern, item.deg,  item.step, item.intensity, item.peak, item.range, out item.deg);
-                        _hFlag.xy[item.area] = curPos;
-                        var deltaPos = (new Vector2(0.5f, 0.5f) - curPos) / steps;
-                        while (steps > 0)
+                        var currentPos = _circles[itemId].GetPosition(item.pattern, item.deg,  item.step, item.intensity, item.peak, item.range, out item.deg);
+                        var deltaPos = midPos - currentPos;
+                        var step = 0.6667f * Time.deltaTime;
+                        var allSteps = deltaPos.magnitude / step;
+                        var stepVec = deltaPos / allSteps;
+
+                        while (allSteps-- > 1)
                         {
                             if (_touchAnim)
+                            {
                                 yield return new WaitUntil(() => !_touchAnim);
-                            _hFlag.xy[item.area] = curPos += deltaPos;
-                            steps -= 1;
+                                //yield return new WaitForEndOfFrame();
+                            }
+                            // There are cases when the game "helps" us with wrong vector.
+                            _hFlag.xy[item.area] = currentPos += stepVec;
                             yield return new WaitForEndOfFrame();
                         }
                         yield return new WaitForSeconds(0.1f);
@@ -869,7 +935,7 @@ namespace KK_SensibleH
                     // Otherwise we'll get a bad state and premature Halt().
                     // Proper wait after judgeProc is within the range 0.55f - 0.60f, 0.55f looks well and doesn't fall off all that often.
                     judgeProc = true;
-                    if (JudgeProc(idUse))
+                    if (JudgeProc(itemId))
                     {
                         yield return new WaitForSeconds(0.4f);
 
@@ -881,7 +947,7 @@ namespace KK_SensibleH
                             if (Random.value < 0.5f)
                             {
                                 //_girlController[0].PlayShort();
-                                wait = CaressAreaReaction(idUse);
+                                wait = CaressAreaReaction(itemId);
                                 _girlController[0].LookAway();
                             }
                             else
@@ -899,13 +965,13 @@ namespace KK_SensibleH
                             {
                                 yield return new WaitForSeconds(wait);
                                 wait = 0f;
-                                if (JudgeProc(idUse))
+                                if (JudgeProc(itemId))
                                     yield return new WaitForSeconds(0.55f);
                                 else
                                     break;
                             }
 
-                            JudgeProc(idUse);
+                            JudgeProc(itemId);
                             if (Random.value < num / 2f)
                             {
                                 yield return new WaitForSeconds(0.4f);
@@ -923,23 +989,24 @@ namespace KK_SensibleH
                     
                 }
 
-                OrganizeDictionary(idUse, judgeProc);
+                OrganizeDictionary(itemId, judgeProc);
 
-                if (judgeProc && IsAdjustmentNeeded(idUse) && item.pattern != -1)
+                if (judgeProc && IsAdjustmentNeeded(itemId) && item.pattern != -1)
                 {
                     //SensibleH.Logger.LogDebug($"ItemCo[{idUse}][MoveToPos]");
                     // Move item from center to its initial position.
-                    var steps = (item.startPair ? 0.5f : Random.Range(0.25f, 0.75f)) / Time.deltaTime;
-                    var curPos = new Vector2(0.5f, 0.5f);
-                    var tarPos = GetPosition(item.pattern, item.deg, item.step, item.intensity, item.peak, item.range, out item.deg);
-                    var deltaPos = (tarPos - curPos) / steps;
-                    while (steps > 0)
+                    var targetPos = _circles[itemId].GetPosition(item.pattern, item.deg, item.step, item.intensity, item.peak, item.range, out item.deg);
+                    var currentPos = midPos;
+                    var deltaPos = targetPos - currentPos;
+                    var step = 0.6667f * Time.deltaTime;
+                    var allSteps = deltaPos.magnitude / step;
+                    var stepVec = deltaPos / allSteps;
+
+                    while (allSteps-- > 1)
                     {
-                        curPos += deltaPos;
                         if (_touchAnim)
                             yield return new WaitUntil(() => !_touchAnim);
-                        _hFlag.xy[item.area] = curPos += deltaPos;
-                        steps -= 1;
+                        _hFlag.xy[item.area] = currentPos += stepVec;
                         yield return new WaitForEndOfFrame();
                     }
                     judgeProc = false;
@@ -949,7 +1016,7 @@ namespace KK_SensibleH
                 {
                     if (judgeProc)
                     {
-                        if (JudgeProc(idUse))
+                        if (JudgeProc(itemId))
                             yield return new WaitForSeconds(0.55f);
                         else
                             break;
@@ -958,7 +1025,7 @@ namespace KK_SensibleH
                     {
                         if (!_touchAnim)
                         {
-                            _hFlag.xy[item.area] = GetPosition(item.pattern, item.deg, item.step, item.intensity, item.peak, item.range, out item.deg);
+                            _hFlag.xy[item.area] = _circles[itemId].GetPosition(item.pattern, item.deg, item.step, item.intensity, item.peak, item.range, out item.deg);
                             if (FakeDragLength == Vector2.zero)
                                 FakeDragLength = _hFlag.xy[item.area];
                         }
@@ -1049,20 +1116,30 @@ namespace KK_SensibleH
         }
         private bool IsAdjustmentNeeded(int idUse)
         {
-            var area = _handCtrl.useItems[idUse].kindTouch;
-            return area != HandCtrl.AibuColliderKind.kokan && area != HandCtrl.AibuColliderKind.anal;
+            return true;
+            //if (idUse == 2 && _lickCo)
+            //{
+            //    return true;
+            //}
+            //else
+            //{
+            //    var area = _handCtrl.useItems[idUse].kindTouch;
+            //    return area != HandCtrl.AibuColliderKind.kokan && area != HandCtrl.AibuColliderKind.anal;
+            //}
         }
         private bool JudgeProc(int item, bool fakeIt = false)
         {
-            // It's way too much trouble to keep "JudgeProc()" during lick/kiss action, especially given that the player will hardly see them at all.
-            if (!fakeIt && (_kissCo || _lickCo || (_judgeCooldown && FakePostfix[item] == null)))
+            // It's way too much trouble to keep "JudgeProc()" during lick/kiss action, especially given that the player will hardly see/like it at all.
+            if (!fakeIt && (_kissCo || (_judgeCooldown && FakePostfix[item] == null))) //(_kissCo || _lickCo || 
                 return false;
             else
             {
-                FakePrefix[item] = String.Empty;
                 if (!fakeIt)
+                {
+                    FakePrefix[item] = String.Empty;
                     _handCtrl.JudgeProc();
-                FakePrefix[item] = null;
+                    FakePrefix[item] = null;
+                }
                 FakePostfix[item] = String.Empty;
 
                 // Ideally timing will be between 0.57f and 0.59f, but on random stutter it can go a bit higher.
@@ -1139,78 +1216,9 @@ namespace KK_SensibleH
             Asymmetrical, // Mirroring each other but flipped? start/peak. 
             None
         }
-        private Vector2 GetPosition(int ptn, float deg, float step, float intensity, int peak, int range, out float modDeg)
-        {
-            Vector2 vector;
-                //vector = MankoSideToSideFast(deg, step, intensity, out modDeg);
-            switch (ptn)
-            {
-                case 0:
-                    vector = CircleClock(deg, step, intensity, out modDeg);
-                    break;
-                case 1:
-                    vector = CircleClockAccel(deg, step, intensity, peak, range, out modDeg);
-                    break;
-                case 2:
-                    vector = CircleCounterClock(deg, step, intensity, out modDeg);
-                    break;
-                case 3:
-                    vector = CircleCounterClockAccel(deg, step, intensity, peak, range, out modDeg);
-                    break;
-                case 4:
-                    vector = OvalVerticalClock(deg, step, intensity, out modDeg);
-                    break;
-                case 5:
-                    vector = OvalVerticalClockAccel(deg, step, intensity, peak, range, out modDeg);
-                    break;
-                case 6:
-                    vector = OvalVerticalCounterClock(deg, step, intensity, out modDeg);
-                    break;
-                case 7:
-                    vector = OvalVerticalCounterClockAccel(deg, step, intensity, peak, range, out modDeg);
-                    break;
-                case 8:
-                    vector = OvalHorizontalClock(deg, step, intensity, out modDeg);
-                    break;
-                case 9:
-                    vector = OvalHorizontalClockAccel(deg, step, intensity, peak, range, out modDeg);
-                    break;
-                case 10:
-                    vector = OvalHorizontalCounterClock(deg, step, intensity, out modDeg);
-                    break;
-                case 11:
-                    vector = OvalHorizontalCounterClockAccel(deg, step, intensity, peak, range, out modDeg);
-                    break;
-                case 12:
-                    vector = PartCircle(deg, step, intensity, peak, range, out modDeg);
-                    break;
-                case 13:
-                    vector = MankoVerticalOval(deg, step, intensity, out modDeg);
-                    break;
-                case 14:
-                    vector = MankoCircle(deg, step, intensity, out modDeg);
-                    break;
-                case 15:
-                    vector = MankoHorizontalOval(deg, step, intensity, out modDeg);
-                    break;
-                case 16:
-                    vector = MankoSideToSide(deg, step, intensity, out modDeg);
-                    break;
-                case 17:
-                    vector = MankoSideToSideFast(deg, step, intensity, out modDeg);
-                    break;
-                default:
-                    vector = Vector2.zero;
-                    modDeg = deg;
-                    break;
-            }
-
-            //SensibleH.Logger.LogDebug($"[{ptn}] int[{intensity}] deg[{deg}] step[{step}] pos:[{vector.x}][{vector.y}]");
-            return vector;
-        }
         private float CaressAreaReaction(int target)
         {
-            if (_hFlag.nowAnimStateName.Contains("Touch") || _hFlag.mode != HFlag.EMode.aibu)
+            if (IsTouch || _hFlag.mode != HFlag.EMode.aibu)
                 return 0f;
 
             HFlag.ClickKind click;
@@ -1261,239 +1269,6 @@ namespace KK_SensibleH
             _girlController[0].SquirtHandler();
             return waitTime;
         }
-        private float GetCos(float deg, float intensity) => Mathf.Cos(deg * Mathf.Deg2Rad) / (2f * intensity) + 0.5f;
-        private float GetSin(float deg, float intensity) => Mathf.Sin(deg * Mathf.Deg2Rad) / (2f * intensity) + 0.5f;
-        private float NormalizeDeg(float deg, int peak)
-        {
-            if (deg > peak + 180)
-                deg = peak - 180 + (deg - (peak + 180));
-            else if (deg < peak - 180)
-                deg = peak + 180 + (deg - (peak - 180));
-            return deg;
-        }
-        private Vector2 CircleClock(float deg, float step, float intensity, out float newDeg)
-        {
-            // 0.
-            deg = Mathf.Repeat(deg, 360f);
-            deg -= step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity));
-
-        }
-        private Vector2 CircleClockAccel(float deg, float step, float intensity, int peak, int range, out float newDeg)
-        {
-            // 1.
-            deg = NormalizeDeg(deg, peak);
-
-            if (deg < peak + range && deg > peak)
-                deg -= step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((deg - peak) / range));
-            else if (deg > peak - range && deg < peak)
-                deg -= step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((peak - deg) / range));
-            else
-                deg -= step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity));
-        }
-        private Vector2 CircleCounterClock(float deg, float step, float intensity, out float newDeg)
-        {
-            // 2.
-            deg = Mathf.Repeat(deg, 360f);
-            deg += step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity));
-
-        }
-        private Vector2 CircleCounterClockAccel(float deg, float step, float intensity, int peak, int range, out float newDeg)
-        {
-
-            // 3.
-            deg = NormalizeDeg(deg, peak);
-
-            if (deg < peak + range && deg > peak)
-                deg += step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((deg - peak) / range));
-            else if (deg > peak - range && deg < peak)
-                deg += step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((peak - deg) / range));
-            else
-                deg += step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity));
-        }
-        private Vector2 OvalVerticalClock(float deg, float step, float intensity, out float newDeg)
-        {
-            // 4.
-            deg = Mathf.Repeat(deg, 360f);
-            deg -= step;
-            newDeg = deg;
-            //return new Vector2(DividePos(GetCos(deg, intensity), 2f), GetSin(deg, intensity));
-            return new Vector2(GetCos(deg, intensity * 2f), GetSin(deg, intensity));
-
-        }
-        private Vector2 OvalVerticalClockAccel(float deg, float step, float intensity, int peak, int range, out float newDeg)
-        {
-
-            // 5.
-            deg = NormalizeDeg(deg, peak);
-
-            if (deg < peak + range && deg > peak)
-                deg -= step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((deg - peak) / range));
-            else if (deg > peak - range && deg < peak)
-                deg -= step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((peak - deg) / range));
-            else
-                deg -= step;
-            newDeg = deg;
-            //return new Vector2(DividePos(GetCos(deg, intensity), 2f), GetSin(deg, intensity));
-            return new Vector2(GetCos(deg, intensity * 2f), GetSin(deg, intensity));
-        }
-        private Vector2 OvalVerticalCounterClock(float deg, float step, float intensity, out float newDeg)
-        {
-            // 6.
-            deg = Mathf.Repeat(deg, 360f);
-            deg += step;
-            newDeg = deg;
-            //return new Vector2(DividePos(GetCos(deg, intensity), 2f), GetSin(deg, intensity));
-            return new Vector2(GetCos(deg, intensity * 2f), GetSin(deg, intensity));
-
-        }
-        private Vector2 OvalVerticalCounterClockAccel(float deg, float step, float intensity, int peak, int range, out float newDeg)
-        {
-
-            // 7.
-            deg = NormalizeDeg(deg, peak);
-
-            if (deg < peak + range && deg > peak)
-                deg += step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((deg - peak) / range));
-            else if (deg > peak - range && deg < peak)
-                deg += step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((peak - deg) / range));
-            else
-                deg += step;
-            newDeg = deg;
-            //return new Vector2(DividePos(GetCos(deg, intensity), 2f), GetSin(deg, intensity));
-            return new Vector2(GetCos(deg, intensity * 2f), GetSin(deg, intensity));
-        }
-        private Vector2 OvalHorizontalClock(float deg, float step, float intensity, out float newDeg)
-        {
-            // 8.
-            deg = Mathf.Repeat(deg, 360f);
-            deg -= step;
-            newDeg = deg;
-            //return new Vector2(GetCos(deg, intensity), DividePos(GetSin(deg, intensity), 2f));
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity * 2f));
-
-        }
-        private Vector2 OvalHorizontalClockAccel(float deg, float step, float intensity, int peak, int range, out float newDeg)
-        {
-
-            // 9.
-            deg = NormalizeDeg(deg, peak);
-
-            if (deg < peak + range && deg > peak)
-                deg -= step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((deg - peak) / range));
-            else if (deg > peak - range && deg < peak)
-                deg -= step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((peak - deg) / range));
-            else
-                deg -= step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity * 2f));
-        }
-        private Vector2 OvalHorizontalCounterClock(float deg, float step, float intensity, out float newDeg)
-        {
-            // 10.
-            deg = Mathf.Repeat(deg, 360f);
-            deg += step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity * 2f));
-
-        }
-        private Vector2 OvalHorizontalCounterClockAccel(float deg, float step, float intensity, int peak, int range, out float newDeg)
-        {
-
-            // 11.
-            deg = NormalizeDeg(deg, peak);
-
-            if (deg < peak + range && deg > peak)
-                deg += step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((deg - peak) / range));
-            else if (deg > peak - range && deg < peak)
-                deg += step + step * Mathf.Lerp(1f, 0f, Mathf.Abs((peak - deg) / range));
-            else
-                deg += step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity * 2f));
-        }
-        private Vector2 PartCircle(float deg, float step, float intensity, int peak, int range, out float newDeg)
-        {
-            // 12.
-            deg = NormalizeDeg(deg, peak);
-
-
-            if (deg < peak - range)
-            {
-                if (_circleHelper)
-                    _circleHelper = false;
-                deg += step;
-            }
-            else if (_circleHelper || deg > peak + range)
-            {
-                if (!_circleHelper)
-                    _circleHelper = true;
-                deg -= step;
-            }
-            else
-                deg += step;
-            newDeg = deg;
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity));
-        }
-        private Vector2 MankoVerticalOval(float deg, float step, float intensity, out float newDeg)
-        {
-            // 13.
-            deg = Mathf.Repeat(deg, 360);
-            newDeg = deg += step * intensity;
-
-            //return new Vector2(DividePos(GetCos(deg , intensity), 4f), GetSin(deg, intensity));
-            return new Vector2(GetCos(deg, intensity * 4f), GetSin(deg, intensity));
-        }
-        //private Vector2 MankoBackForth2(float _degrees, float _step, float _intensity, out float _modDegrees)
-        //{
-        //    // 34.
-        //    _modDegrees = _degrees + (_step * 2f);
-
-        //    return new Vector2(GetCos(_degrees, _intensity) / 6f, GetSin(_degrees, _intensity) / 2f);
-        //    //use coords for speed of movement
-        //    //add sophistications like extra blame during it and perhaps convulsions
-        //}
-        private Vector2 MankoCircle(float deg, float step, float intensity, out float newDeg)
-        {
-            // 14.
-            deg = Mathf.Repeat(deg, 360);
-            newDeg = deg += step * intensity;
-            
-            //return new Vector2(DividePos(GetCos(deg, intensity), 2f), DividePos(GetSin(deg, intensity), 2f));
-            return new Vector2(GetCos(deg, intensity * 2f), GetSin(deg, intensity * 2f));
-        }
-        private Vector2 MankoHorizontalOval(float deg, float step, float intensity, out float newDeg)
-        {
-            // 15.
-            deg = Mathf.Repeat(deg, 360);
-            newDeg = deg += step * intensity;
-
-            //return new Vector2(GetCos(deg, intensity), DividePos(GetSin(deg, intensity), 4f));
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity * 4f));
-        }
-        private Vector2 MankoSideToSide(float deg, float step, float intensity, out float newDeg)
-        {
-            // 16.
-            deg = Mathf.Repeat(deg, 360);
-            newDeg = deg += step * (intensity * 2f);
-
-            //return new Vector2(GetCos(deg, intensity), DividePos(GetSin(deg, intensity), 4f));
-            return new Vector2(GetCos(deg, intensity), GetSin(deg, intensity * 4f));
-        }
-        private Vector2 MankoSideToSideFast(float deg, float step, float intensity, out float newDeg)
-        {
-            // 17.
-            deg = Mathf.Repeat(deg, 360);
-            newDeg = deg += step * (intensity * 4f);
-
-            return new Vector2(GetCos(deg, intensity * 2f), GetSin(deg, intensity * 4f));
-        }
+        
     }
 }

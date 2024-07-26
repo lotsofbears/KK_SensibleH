@@ -15,8 +15,10 @@ using System;
 using Manager;
 using static SaveData;
 using ActionGame.Chara;
-using KK_SensibleH.Patches;
+using KK_SensibleH.Patches.StaticPatches;
 using KoikatuVR;
+using static IllusionFixes.ResourceUnloadOptimizations;
+using IllusionFixes;
 
 namespace KK_SensibleH
 {
@@ -33,9 +35,13 @@ namespace KK_SensibleH
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
         private readonly int[] _clothes = { 1, 3, 5, 7, 8 };
         private bool _hEnd;
-        private bool _vrPov;
+        private bool _vr;
         private Scene _scene;
         private bool _patched;
+        private readonly string Con = "Con";
+        private readonly string HPo = "HPo";
+        private bool IsConfigScene => _scene.AddSceneName.StartsWith(Con, StringComparison.Ordinal);
+        private bool IsPointMoveScene => _scene.AddSceneName.StartsWith(HPo, StringComparison.Ordinal);
 
         //private GameObject _sphere;
         //private void Spawn()
@@ -175,6 +181,10 @@ namespace KK_SensibleH
         {
             foreach (var patch in _persistentPatches)
                 patch?.UnpatchSelf();
+            if (_vr)
+            {
+                ResourceUnloadOptimizations.DisableUnload.Value = false;
+            }
         }
         private void Start()
         {
@@ -185,25 +195,35 @@ namespace KK_SensibleH
         }
         protected override void OnStartH(MonoBehaviour proc, HFlag hFlag, bool vr)
         {
+            SensibleH.Logger.LogDebug($"OnStartH");
+            _vr = UnityEngine.VR.VRSettings.enabled;
             if (!_patched)
             {
                 SensibleH.Logger.LogDebug($"PersistentPatches");
                 _patched = true;
                 _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
                 _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchMoMiAuxiliary)));
-                if (UnityEngine.VR.VRSettings.enabled)
+                if (_vr)
                 {
                     SensibleH.Logger.LogDebug($"PersistentPatches[VR]");
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchMoMiAuxiliaryVR)));
+
                 }
             }
-            _scene = Singleton<Scene>.Instance;
-            SensibleH.Logger.LogDebug($"OnStartH");
+            if (_vr)
+            {
+                // The easies way to disable stutters in H when you have 20gb of free RAM.
+                // Does it look at VRAM too? Couldn't find it, and not much can be done about it in VR anyway.
+                // With this and the patch, there is no more stutters on kiss.
+                ResourceUnloadOptimizations.DisableUnload.Value = true;
+            }
+            _scene = Scene.Instance;
             _hEnd = false;
             _handCtrl = Traverse.Create(proc).Field("hand").GetValue<HandCtrl>();
             _handCtrl1 = Traverse.Create(proc).Field("hand1").GetValue<HandCtrl>();
             _hVoiceCtrl = Traverse.Create(proc).Field("voice").GetValue<HVoiceCtrl>();
 
+            // TODO This thingy isn't stock, add it.
             var colliderPlane = CommonLib.LoadAsset<GameObject>($"studio/pine_effect.unity3d", "ColliderPlane", clone: true);
             colliderPlane.GetComponent<Renderer>().enabled = false;
             colliderPlane.transform.position = new Vector3(0f, 0.1f, 0f);
@@ -232,9 +252,10 @@ namespace KK_SensibleH
                 _girlController.Add(heroine);
                 _voiceControllers.Add(voice);
             }
-            StartCoroutine(OnceInAwhile());
             foreach (var num in _clothes)
                 _chaControlM.SetClothesStateNext(num);
+
+            StartCoroutine(OnceInAwhile());
 
             //var kokan = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cf_j_kokan/a_n_kokan");
             //kokan.SetParent(_chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan"), true);
@@ -246,6 +267,7 @@ namespace KK_SensibleH
                 _hFlag.isInsertOK[0] = Random.value < 0.75f;
             if (_hFlag.isAnalInsertOK)
                 _hFlag.isAnalInsertOK = Random.value < 0.75f;
+            yield return new WaitForEndOfFrame();
             while (true)
             {
                 if (_hFlag == null)
@@ -256,7 +278,7 @@ namespace KK_SensibleH
                         if (!_scene.LoadSceneName.Equals("Action"))
                             yield break;
                     }
-                    else if (!_scene.AddSceneName.StartsWith("H") && !_scene.IsNowLoadingFade)
+                    else if (!_scene.AddSceneName.StartsWith("H", StringComparison.Ordinal) && !_scene.IsNowLoadingFade)
                     {
                         ReDressAfter();
                         yield break;
@@ -265,7 +287,7 @@ namespace KK_SensibleH
                     yield return new WaitForSeconds(1f);
                     continue;
                 }
-                if (_scene.AddSceneName.StartsWith("Con") || _scene.AddSceneName.StartsWith("HPo"))
+                if (IsConfigScene || IsPointMoveScene)
                 {
                     yield return new WaitForSeconds(3f);
                     continue;
@@ -446,7 +468,7 @@ namespace KK_SensibleH
             // Shuffle talk tempers.
             LstHeroine = null;
             MaleOrgCount = 0;
-            var game = Singleton<Manager.Game>.Instance;
+            var game = Game.Instance;
             foreach (var heroine in game.HeroineList)
             {
                 for (int i = 0; i < heroine.talkTemper.Count(); i++)
@@ -577,6 +599,10 @@ namespace KK_SensibleH
             SensibleH.Logger.LogDebug($"EndItAll");
             if (SceneApi.GetLoadSceneName().Equals("Action"))
                 ReDress();
+            if (_vr)
+            {
+                ResourceUnloadOptimizations.DisableUnload.Value = false;
+            }
             _hEnd = true;
             //StopAllCoroutines();
             FemalePoI = null;

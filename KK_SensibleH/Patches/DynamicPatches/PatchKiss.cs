@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 
-namespace KK_SensibleH.Patches
+namespace KK_SensibleH.Patches.DynamicPatches
 {
     class PatchKiss
     {

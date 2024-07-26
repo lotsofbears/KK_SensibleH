@@ -68,6 +68,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\kPlug\KK_BetterSquirt.dll</HintPath>
     </Reference>
+    <Reference Include="KK_Fix_ResourceUnloadOptimizations">
+      <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\IllusionFixes\KK_Fix_ResourceUnloadOptimizations.dll</HintPath>
+    </Reference>
     <Reference Include="KoikatuVR, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\KoikatuVR.dll</HintPath>
@@ -96,14 +99,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Caress\MoMiCircles.cs" />
     <Compile Include="GirlController.cs" />
-    <Compile Include="Patches\PatchKiss.cs" />
-    <Compile Include="Patches\PatchLoop.cs" />
-    <Compile Include="Patches\PatchMoMiAuxiliary.cs" />
-    <Compile Include="Patches\PatchMoMiAuxiliaryVR.cs" />
-    <Compile Include="Patches\PatchMoMi.cs" />
-    <Compile Include="Patches\PatchKoikatuVR.cs" />
-    <Compile Include="Patches\PatchSteamVR.cs" />
+    <Compile Include="LoopParameters.cs" />
+    <Compile Include="Patches\DynamicPatches\PatchKiss.cs" />
+    <Compile Include="Patches\StaticPatches\PatchLoop.cs" />
+    <Compile Include="Patches\StaticPatches\PatchMoMiAuxiliary.cs" />
+    <Compile Include="Patches\StaticPatches\PatchMoMiAuxiliaryVR.cs" />
+    <Compile Include="Patches\DynamicPatches\PatchMoMi.cs" />
+    <Compile Include="Patches\DynamicPatches\PatchKoikatuVR.cs" />
+    <Compile Include="Patches\DynamicPatches\PatchSteamVR.cs" />
     <Compile Include="LoopController.cs" />
     <Compile Include="MaleController.cs" />
     <Compile Include="MoMiController.cs" />

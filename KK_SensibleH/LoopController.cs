@@ -11,12 +11,7 @@ using static KK_SensibleH.SensibleH;
 using System.Collections;
 using System.Linq;
 using System;
-using Illusion.Game;
-using Illusion.Extensions;
-using static UnityEngine.Experimental.Director.FrameData;
-using ADV.Commands.Chara;
-using ActionGame.Chara.Mover;
-using ADV.Commands.Base;
+using static KK_SensibleH.LoopParameters;
 
 namespace KK_SensibleH
 {
@@ -55,25 +50,11 @@ namespace KK_SensibleH
         private float GetRandomRange(float multiplier = 1f) => (5f + Random.value * 15f) * multiplier * ActionFrequency.Value;
         private bool IsActionable => GetAvailableActions().Count > 0;
         private bool IsVoiceWait => _hFlag.voiceWait || _hFlag.isDenialvoiceWait;
-        private bool IsIdleLoop => IdleStates.Contains(_hFlag.nowAnimStateName) && !_hFlag.voiceWait;
-        private bool IsIdleInside => _hFlag.nowAnimStateName.Contains("InsertIdle");
-        private bool IsIdleOutside => _hFlag.nowAnimStateName.Equals("Idle");
-        private bool IsEndLoop => IsEndInsideLoop || IsEndOutsideLoop;
-        private bool IsEndInsideLoop => _hFlag.nowAnimStateName.Contains("OUT_A");
-        private bool IsEndOutsideLoop => _hFlag.nowAnimStateName.Contains("IN_A");
-        private bool IsInsert => _hFlag.nowAnimStateName.Contains("Insert");
-        private bool IsFinishLoop => _hFlag.finish != HFlag.FinishKind.none;
-        private bool IsActionLoop => IsWeakLoop || IsStrongLoop || IsOrgasmLoop;
-        private bool IsDecisionLoop => DecisionStates.Contains(_hFlag.nowAnimStateName);
-        private bool IsWeakLoop => _hFlag.nowAnimStateName.Contains("WLoop");
-        private bool IsStrongLoop => _hFlag.nowAnimStateName.Contains("SLoop");
-        private bool IsOrgasmLoop => _hFlag.nowAnimStateName.Contains("OLoop");
+        
         internal bool IsSonyu => _hFlag.mode == HFlag.EMode.sonyu || _hFlag.mode == HFlag.EMode.sonyu3P;
         internal bool IsHoushi => _hFlag.mode == HFlag.EMode.houshi || _hFlag.mode == HFlag.EMode.houshi3P;
         internal bool IsVoiceActive => _hVoiceCtrl.nowVoices[CurrentMain].state == HVoiceCtrl.VoiceKind.voice;
 
-        private static List<string> IdleStates = new List<string>() { "InsertIdle", "A_InsertIdle", "A_IN_A", "IN_A" };
-        private static List<string> DecisionStates = new List<string>() { "OUT_A", "A_OUT_A", "Idle", "A_Idle", "Vomit_A", "Drink_A" };
         private List<Button> GetAvailableActions(string _name = "")
         {
             List<Button> menu;
@@ -180,9 +161,13 @@ namespace KK_SensibleH
                 {
                     if (IsIdleInside)
                         ChangeMotion();
+                    else if (_hFlag.gaugeFemale > 90f && IsOrgasmLoop)
+                    {
+                        ChangeLoop(request: Loop.Strong);
+                    }
                     else if (IsActionLoop)
                     {
-                        if (_nextLoopChange < _actionTimer && _hFlag.gaugeMale > 10f)
+                        if (_nextLoopChange < _actionTimer && _hFlag.gaugeMale > 10f && _hFlag.gaugeFemale < 90f)
                             ChangeLoop();
                         else if (_nextSpeedChange < _actionTimer)
                             ChangeSpeed();
@@ -332,7 +317,11 @@ namespace KK_SensibleH
             else if (IsActionLoop && _hFlag.gaugeMale > _climaxAt)
             {
                 SensibleH.Logger.LogDebug($"PickAction AutoClimax");
-                if (Random.value < 0.25f)
+                if (IsOrgasmLoop)
+                {
+                    ChangeLoop(request: Loop.Strong);
+                }
+                else if (Random.value < 0.25f)
                 {
                     ToggleOutsideFinish();
                     StartCoroutine(RunAfterTimer(() => ActionButton(), timer: 0.5f));
@@ -413,7 +402,7 @@ namespace KK_SensibleH
             bool result = true;
             if (request == Loop.Random)
             {
-                if (!IsOrgasmLoop && _hFlag.speedCalc > 0.5f && _hFlag.gaugeMale < 80f && _hFlag.gaugeFemale < 80f)
+                if (!IsOrgasmLoop && _hFlag.speedCalc > 0.5f)
                     request = (Loop)Random.Range(1, 4);
                 else
                     request = (Loop)(Random.value > 0.5f ? 1 : 2);
@@ -514,7 +503,7 @@ namespace KK_SensibleH
             switch (_hFlag.mode)
             {
                 case HFlag.EMode.houshi:
-                    if (!_pullOut && IsDecisionLoop)
+                    if (!_pullOut && IsIdleOutside)
                     {
                         SensibleH.Logger.LogDebug($"ChangeEdge[1]");
                         //_girlController[CurrentMain].PlayVoice()
@@ -548,7 +537,7 @@ namespace KK_SensibleH
                         SensibleH.Logger.LogDebug($"ChangeEdge[2]");
                         ChangeMotion();
                     }
-                    else if (_pullOut && IsIdleLoop && IsActionable)
+                    else if (_pullOut && IsIdleInside && IsActionable)
                     {
                         if (_hFlag.nowAnimationInfo.isFemaleInitiative)
                             _girlController[CurrentMain].SupressVoice(341);
@@ -663,7 +652,7 @@ namespace KK_SensibleH
                     _hFlag.click = HFlag.ClickKind.again;
                     break;
                 case HFlag.EMode.sonyu:
-                    if (IsEndOutsideLoop)
+                    if (IsEndOutside)
                         ActionButton();
                     else
                         _hFlag.click = HFlag.ClickKind.speedup;

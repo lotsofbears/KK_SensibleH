@@ -8,7 +8,7 @@ using HarmonyLib;
 using KoikatuVR;
 using KoikatuVR.Caress;
 
-namespace KK_SensibleH.Patches
+namespace KK_SensibleH.Patches.DynamicPatches
 {
     class PatchKoikatuVR
     {

@@ -7,7 +7,7 @@ using System.Text;
 using HarmonyLib;
 using UnityEngine;
 
-namespace KK_SensibleH.Patches
+namespace KK_SensibleH.Patches.StaticPatches
 {
     class PatchMoMiAuxiliaryVR
     {

@@ -1,13 +1,10 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
-using System.Security.Policy;
-using System.Text;
+using UnityEngine;
 
-namespace KK_SensibleH.Patches
+namespace KK_SensibleH.Patches.StaticPatches
 {
     internal class PatchMoMiAuxiliary
     {
@@ -18,6 +15,7 @@ namespace KK_SensibleH.Patches
             public OpCode secondOpcode;
             public string secondOperand;
         }
+
 
         /// <summary>
         /// We delete the restriction to play caress voice only in Aibu.
@@ -82,6 +80,27 @@ namespace KK_SensibleH.Patches
 
                 }
                 yield return code;
+            }
+        }
+        
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Animator), nameof(Animator.CrossFadeInFixedTime), new Type[]
+        {
+            typeof(string),
+            typeof(float),
+            typeof(int)
+        })]
+        public static void CrossFadeInFixedTimePrefix(string stateName, ref float transitionDuration)
+        {
+            if (stateName.Equals("K_Touch"))
+            {
+                SensibleH.Logger.LogDebug($"CrossFadeInFixedTime Kiss");
+                transitionDuration = 1f;
+            }
+            else if (stateName.Equals("Idle"))
+            {
+                SensibleH.Logger.LogDebug($"CrossFadeInFixedTime AfterAction");
+                transitionDuration = UnityEngine.Random.Range(1.5f, 2.5f);
             }
         }
     }

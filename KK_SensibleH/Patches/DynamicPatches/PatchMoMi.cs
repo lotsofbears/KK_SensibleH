@@ -11,13 +11,16 @@ using KKAPI.MainGame;
 using ADV.Commands.Base;
 using NodeCanvas.Tasks.Actions;
 
-namespace KK_SensibleH.Patches
+namespace KK_SensibleH.Patches.DynamicPatches
 {
     class PatchMoMi
     {
         public static bool GetMouseButtonUp(int button) => false;
         public static bool GetMouseButton(int button) => true;
 
+        /// <summary>
+        /// We substitute original mouse button up with fake that returns "false".
+        /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ClickAction))]
         public static IEnumerable<CodeInstruction> ClickActionTranspiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -53,6 +56,11 @@ namespace KK_SensibleH.Patches
                 }
             }
         }
+
+        /// <summary>
+        /// We feed the game our vector of movement to add excitement from them. (and ask to reset them also).
+        /// We substitute mouse button press with fake that returns "true".
+        /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
         public static IEnumerable<CodeInstruction> DragActionTranspiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -93,6 +101,9 @@ namespace KK_SensibleH.Patches
             }
             return code.AsEnumerable();
         }
+        /// <summary>
+        /// We feed our fake array for active items check that involves restart of animation of an aibu item.
+        /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.JudgeProc))]
         public static IEnumerable<CodeInstruction> JudgeProcTranspiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -112,6 +123,10 @@ namespace KK_SensibleH.Patches
             }
             return code.AsEnumerable();
         }
+
+        /// <summary>
+        /// We feed our fake array for active items check that involves restart of animation of an aibu item.
+        /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.AnimatrotRestrart))]
         public static IEnumerable<CodeInstruction> AnimatrotRestrartTranspiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -140,7 +155,10 @@ namespace KK_SensibleH.Patches
             }
             return code.AsEnumerable();
         }
-
+        /// <summary>
+        /// We feed our fake array for active items check that involves restart of animation of an aibu item.
+        /// And something else..
+        /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetDragStartLayer))]
         public static IEnumerable<CodeInstruction> SetDragStartLayerTranspiler(IEnumerable<CodeInstruction> instructions)
         {

@@ -9,7 +9,7 @@ using System.Text;
 using UnityEngine;
 using Valve.VR;
 
-namespace KK_SensibleH.Patches
+namespace KK_SensibleH.Patches.DynamicPatches
 {
     class PatchSteamVR
     {

@@ -75,7 +75,7 @@ namespace KK_SensibleH
             {
                 _eyes = _chaControl[main].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
             }
-            _voiceManager = Singleton<Voice>.Instance;
+            _voiceManager = Voice.Instance;
             OnPositionChange();
         }
         private void OnDestroy()
@@ -367,8 +367,7 @@ namespace KK_SensibleH
         internal void Proc()
         {
             // TODO
-            // A proper Away pose that doesn't fuck with everything.
-
+            // A Dodge Kiss feature.
 
             //if (_handCtrl.isKiss)
             //{
@@ -389,7 +388,7 @@ namespace KK_SensibleH
             }
             else if (IsNeckMovable && !IsNeckMoving)
             {
-                if (_vr && IsCamClose)
+                if (_vr && IsCamClose && !IsVoiceActive)
                 {
                     if (!lookAtCam && !_camWasClose && !lookAway)
                     {
@@ -746,7 +745,7 @@ namespace KK_SensibleH
         //    if (_hFlag.voice.playVoices[main] ==  _id)
         //    {
         //        SensibleH.Logger.LogDebug($"SupressVoice[{main}]");
-        //        Singleton<Voice>.Instance.Stop(_hFlag.transVoiceMouth[main]);
+        //        Voice.Instance.Stop(_hFlag.transVoiceMouth[main]);
         //    }
         //}
         internal bool SquirtHandler()
