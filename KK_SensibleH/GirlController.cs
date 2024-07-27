@@ -85,17 +85,22 @@ namespace KK_SensibleH
         }
         private void AddPoi(GameObject parent, Vector3 localPos)
         {
-            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.transform.SetParent(parent.transform, false);
-            cube.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-            cube.transform.localPosition = localPos;
-            cube.GetComponent<Collider>().enabled = false;
-            //cube.GetComponent<Renderer>().material.color = new Color(1, 0, 0, 1);
-            cube.GetComponent<Renderer>().enabled = false;
-            cube.name = "PoI_SensibleH";
-            _listOfMyPoI.Add(cube);
+            var notCube = new GameObject("PoI_SensibleH").transform;
+            notCube.name = "PoI_SensibleH";
+            notCube.SetParent(parent.transform, false);
+            notCube.localScale = Vector3.zero;
+            notCube.localPosition = localPos;
+            //var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            //cube.transform.SetParent(parent.transform, false);
+            //cube.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+            //cube.transform.localPosition = localPos;
+            //cube.GetComponent<Collider>().enabled = false;
+            ////cube.GetComponent<Renderer>().material.color = new Color(1, 0, 0, 1);
+            //cube.GetComponent<Renderer>().enabled = false;
+            //cube.name = "PoI_SensibleH";
+            _listOfMyPoI.Add(notCube);
         }
-        private List<GameObject> _listOfMyPoI = new List<GameObject>();
+        private List<Transform> _listOfMyPoI = new List<Transform>();
         enum PoseTypes
         {
             Front,
@@ -285,11 +290,16 @@ namespace KK_SensibleH
                             var animName = _chaControl[main].animBody.runtimeAnimatorController.name;
                             if (DontMoveNeckSpecialCases.ContainsKey(animName))
                             {
-                                for (int i = 0; i < DontMoveNeckSpecialCases[animName].Count; i++)
+                                foreach (var neck in DontMoveNeckSpecialCases[animName])
                                 {
-                                    if (_hFlag.nowAnimStateName.StartsWith(DontMoveNeckSpecialCases[animName].ElementAt(i)))
+                                    if (_hFlag.nowAnimStateName.StartsWith(neck, StringComparison.Ordinal))
                                         return false;
                                 }
+                                //for (int i = 0; i < DontMoveNeckSpecialCases[animName].Count; i++)
+                                //{
+                                //    if (_hFlag.nowAnimStateName.StartsWith(DontMoveNeckSpecialCases[animName].ElementAt(i), StringComparison.Ordinal))
+                                //        return false;
+                                //}
                             }
                             return true;
                         case HFlag.EMode.houshi:

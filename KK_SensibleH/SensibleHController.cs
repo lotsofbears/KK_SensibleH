@@ -72,16 +72,66 @@ namespace KK_SensibleH
         {
             if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
+                var cube = new GameObject("Cube");
+                var components = cube.GetComponents(typeof(Component));
+                foreach (var component in components)
+                    SensibleH.Logger.LogDebug($"{component}");
                 //SensibleH.Logger.LogDebug($"Hotkey[1] {_scene.AddSceneName.StartsWith("Con") || _scene.AddSceneName.StartsWith("HPo")}");
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-
+                if (_primitiveCube == null)
+                    Spawn();
+                if (_forwardHelper)
+                {
+                    _forward += 0.01f;
+                    if (_forward > 0.1f)
+                        _forwardHelper = false;
+                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _primitiveCube.transform.localPosition.y, _forward);
+                }
+                else
+                {
+                    _forward -= 0.01f;
+                    if (_forward < -0.1f)
+                        _forwardHelper = true;
+                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _primitiveCube.transform.localPosition.y, _forward);
+                }
+                SensibleH.Logger.LogDebug($"Hotkey[2] _forward = {_forward}");
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey3.Value.MainKey) && Cfg_TestKey3.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-
+                if (_primitiveCube == null)
+                    Spawn();
+                if (_upHelper)
+                {
+                    _up += 0.01f;
+                    if (_up > 0.1f)
+                        _upHelper = false;
+                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _up, _primitiveCube.transform.localPosition.z);
+                }
+                else
+                {
+                    _up -= 0.01f;
+                    if (_up < -0.1f)
+                        _upHelper = true;
+                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _up, _primitiveCube.transform.localPosition.z);
+                }
+                SensibleH.Logger.LogDebug($"Hotkey[3] _up = {_up}");
             }
+        }
+        private float _forward;
+        private float _up;
+        private bool _forwardHelper;
+        private bool _upHelper;
+        private GameObject _primitiveCube;
+        private void Spawn()
+        {
+            _primitiveCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _primitiveCube.transform.SetParent(_chaControl[0].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/a_n_mouth"), false);
+            _primitiveCube.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+            _primitiveCube.GetComponent<Collider>().enabled = false;
+            _primitiveCube.GetComponent<Renderer>().material.color = new Color(1, 0, 1, 1);
+            _primitiveCube.GetComponent<Renderer>().enabled = true;
         }
         //private void Update()
         //{
@@ -179,8 +229,8 @@ namespace KK_SensibleH
         //}
         private void OnDestroy()
         {
-            foreach (var patch in _persistentPatches)
-                patch?.UnpatchSelf();
+            //foreach (var patch in _persistentPatches)
+            //    patch?.UnpatchSelf();
             if (_vr)
             {
                 ResourceUnloadOptimizations.DisableUnload.Value = false;
@@ -305,7 +355,6 @@ namespace KK_SensibleH
                 }
                 //if (_chaControlM != null && _chaControlM.visibleAll)
                 //    maleController.LookLessDead();
-                //SensibleH.Logger.LogDebug($"Hand[{_handCtrl.actionUseItem != -1}] Kiss[{_handCtrl.isKiss}]");
                 //SensibleH.Logger.LogDebug($"Ptn[{eyeNeckPtn[0]}] flag[{_hFlag.voice.eyenecks[0]}] " +
                 //    $"poi[{FemalePoI[0]}] [{moveNeckGlobal}]");
                 if (!FirstTouch)
@@ -318,14 +367,11 @@ namespace KK_SensibleH
 
         public void DoVoiceProc(int main)
         {
-            if (_hFlag != null)
+            if (!_voiceControllers[main].SayNickname())
             {
-                if (!_voiceControllers[main].SayNickname())
-                {
-                    SensibleH.Logger.LogDebug($"DoVoiceProc[{main}] - {_hFlag.voice.playVoices[main]}");
-                    _girlController[main].lastVoice = _hFlag.voice.playVoices[main];
-                    _girlController[main].LookAtCam();
-                }
+                SensibleH.Logger.LogDebug($"DoVoiceProc[{main}] - {_hFlag.voice.playVoices[main]}");
+                _girlController[main].lastVoice = _hFlag.voice.playVoices[main];
+                _girlController[main].LookAtCam();
             }
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
@@ -337,17 +383,7 @@ namespace KK_SensibleH
 
             _loopController.OnPositionChange();
             _sprite.ForceCloseAllMenu();
-            switch (nextAnimInfo.mode)
-            {
-                case HFlag.EMode.houshi:
-                    _sprite.houshi.tglRely.isOn = true;
-                    //_hFlag.rely = true;
-                    //Sprite.rely.InitTimer();
-                    break;
-                case HFlag.EMode.sonyu:
-                    _sprite.sonyu.tglAutoFinish.isOn = false;
-                    break;
-            }
+            
             foreach (var girl in _girlController)
             {
                 girl.OnPositionChange();

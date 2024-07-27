@@ -73,6 +73,7 @@ namespace KK_SensibleH
         private bool _mousePressDown;
 
         private List<MoMiCircles> _circles = new List<MoMiCircles>();
+        private Thread _thread;
         private SteamVR_Controller.Device _device;
         private SteamVR_Controller.Device _device1;
         private Controller _controller;
@@ -98,6 +99,8 @@ namespace KK_SensibleH
             }
             if (_vr)
             {
+                this.gameObject.AddComponent<Kiss>();
+                _thread = this.gameObject.AddComponent<Thread>();
                 _eyes = _chaControl[0].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
                 _head = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_j_neck/cf_j_head");
                 _neck = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_j_neck");
@@ -123,8 +126,6 @@ namespace KK_SensibleH
             //SensibleH.Logger.LogDebug("MoMi[OnDestroy]");
             foreach (var activePatch in _activePatches)
                 activePatch?.UnpatchSelf();
-            foreach (var coroutine in _activeCoroutines)
-                StopCoroutine(coroutine);
         }
         private void StartMoMi()
         {
@@ -215,6 +216,7 @@ namespace KK_SensibleH
                         Instance.Halt(disengage: false);
                     }
                     Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.KissCo()));
+                    
                 }
                 else if (!_lickCo)
                 {
@@ -242,6 +244,7 @@ namespace KK_SensibleH
             
             var neck = GetKissStartPosition();
             _girlController[0].OnKissStart(neck);
+            Kiss.Instance.Cyu();
 
             var rollDelta = FindRollDelta();
             if (Math.Abs(rollDelta) < 5f)
@@ -250,7 +253,7 @@ namespace KK_SensibleH
                 SensibleH.Logger.LogDebug($"KissCo[signedAngle] = {signedAngle}]");
                 if (Math.Abs(signedAngle) < 10f)
                 {
-                    rollDelta = LoopController.Instance.IsSonyu ? Random.Range(-20f, 20f) : Random.Range(-45f, 45);
+                    rollDelta = LoopParameters.IsSonyu ? Random.Range(-20f, 20f) : Random.Range(-45f, 45);
                     SensibleH.Logger.LogDebug($"KissCo[RandomRoll] Everything else is too small to consider it {rollDelta}");
                 }
                 else
@@ -389,7 +392,7 @@ namespace KK_SensibleH
             _endKissCo = true;
             var origin = VR.Camera.Origin;
             var head = VR.Camera.Head;
-            var pov = POV.Instance != null && POV.Instance.Active;
+            var pov = POV.Instance != null && POV.Active;
             if (_device.GetPress(ButtonMask.Grip) || _device1.GetPress(ButtonMask.Grip))
             {
                 yield return new WaitUntil(() => !_device.GetPress(ButtonMask.Grip) && !_device1.GetPress(ButtonMask.Grip));
@@ -488,31 +491,14 @@ namespace KK_SensibleH
 
         private IEnumerator AttachCo(HandCtrl.AibuColliderKind colliderKind)
         {
+            SensibleH.Logger.LogDebug($"AttachCo[Start]");
             var dic = PoI[colliderKind];
             var poi = _chaControl[0].objBodyBone.transform.Find(dic.path);
 
             var origin = VR.Camera.Origin;
             var head = VR.Camera.Head;
-            //var dicItem = PoI[_handCtrl.selectKindTouch];
-            //SensibleH.Logger.LogDebug($"AttachCo[selectKindTouch = {_handCtrl.selectKindTouch}]");
-            //var tempItem = _chaControl[0].objBodyBone.transform.Find(dicItem.path);
-            //var poi = tempItem;
-            //SensibleH.Logger.LogDebug($"AttachCo[poi = {poi}]");
-            //var startDist = Vector3.Distance(tempItem.position + tempItem.forward * dicItem.offsetForward, head.position);
-            //var steps = startDist / 0.002f;
-            //while (_handCtrl.useItems[2] == null)
-            //{
-            //    SensibleH.Logger.LogDebug($"AttachCo[MoveToInitialPos]");
-            //    var fpsDelata = GetFpsDelta;
-            //    steps = Mathf.Clamp(steps - (1f * fpsDelata), 1f, steps); 
-            //    var moveVec = (tempItem.position + tempItem.forward * dicItem.offsetForward + tempItem.up * 0.03f - head.position) / steps;
-            //    var lookAt = Quaternion.LookRotation(poi.position - (head.position + moveVec), poi.up + poi.forward);
-            //    origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, fpsDelata);
-            //    origin.position += moveVec;
-            //    yield return new WaitForEndOfFrame();
-            //}
             var prevPoiPosition = poi.position;
-            // We check parameter as more often then not, update doesn't run check just yet.
+            // We check parameter as more often then not, the update doesn't run centralized check just yet.
             while (IsTouch || _handCtrl.useItems[2] == null)
             {
                 // We move together with point of interest during "Touch" animation
@@ -520,10 +506,7 @@ namespace KK_SensibleH
                 prevPoiPosition = poi.position;
                 yield return new WaitForEndOfFrame();
             }
-            SensibleH.Logger.LogDebug($"AttachCo[Start]");
-            //var dic = PoI[_handCtrl.useItems[2].kindTouch];
             var item = _handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
-            //var poi = _chaControl[0].objBodyBone.transform.Find(dic.path); 
             SensibleH.Logger.LogDebug($"AttachCo[Start] {poi.rotation.eulerAngles.x}");
             if (poi.rotation.eulerAngles.x > 30f && poi.rotation.eulerAngles.x < 90f)
             {
@@ -534,7 +517,8 @@ namespace KK_SensibleH
             {
                 if (_handCtrl.useItems[2] == null)
                 {
-                    //SensibleH.Logger.LogDebug($"AttachCo[Break] no transform");
+                    // This condition should virtually never happen. 
+                    SensibleH.Logger.LogDebug($"AttachCo[PrematureEnd] no transform");
                     yield break;
                 }
                 //SensibleH.Logger.LogDebug($"AttachCo[MoveToItem]");
@@ -698,6 +682,7 @@ namespace KK_SensibleH
         {
             if (_hFlag == null)
                 return;
+            // There is a little to no point to run moMi on the kiss outside of VR. So we don't, saves ADHD VR users from atleast few bugs.
             if (!_moMiCo && (GameCursor.isLock && (_handCtrl.actionUseItem != -1)))// || _handCtrl.isKiss))  || _lickCo)
             {
                 StartMoMi();
@@ -705,7 +690,7 @@ namespace KK_SensibleH
             else if (_moMiCo)
             {
                 _touchAnim = IsTouch;
-                if (!_touchAnim && (UnityEngine.Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.isKiss)))
+                if ((UnityEngine.Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.isKiss)))
                 {
                     Halt();
                 }
@@ -729,10 +714,6 @@ namespace KK_SensibleH
             }
             if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-                // Negative for right (girl perspetive)
-                // t
-                //SensibleH.Logger.LogDebug($"Hotkey[1]{SignedAngle(VR.Camera.Head.position - _shoulders.position, _shoulders.forward, _shoulders.right)}");
-                //SensibleH.Logger.LogDebug($"Hotkey[2]{SignedAngle(VR.Camera.Head.position - _shoulders.position, _shoulders.forward, _shoulders.up)}");
                 //RangeTest();
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
@@ -769,39 +750,9 @@ namespace KK_SensibleH
                 //SensibleH.Logger.LogDebug($"SensibleH[Hotkey3] upHelper[{itmUp}]");
             }
         }
-        //private void TestTan()
-        //{
-        //    //var head = VR.Camera.Head;
-        //    //var origin = VR.Camera.Origin;
-
-        //    //////var localPosHead = _shoulders.InverseTransformPoint(head.position);
-
-        //    //////var localXZpos = new Vector3(localPosHead.x, 0f, localPosHead.z);
-        //    //////var localZYpos = new Vector3(0f, localPosHead.y, localPosHead.z);
-
-        //    //////var localYaw = Vector3.Angle(_shoulders.forward, localXZpos);
-        //    //////var localPitch = Vector3.Angle(_shoulders.up, localZYpos);
-        //    //var lookAt = Quaternion.LookRotation(head.position - (_shoulders.position), _eyes.up);
-
-        //    //var deltaX =  - Mathf.DeltaAngle(lookAt.eulerAngles.x, _shoulders.eulerAngles.x);
-        //    //var deltaY = Mathf.DeltaAngle(lookAt.eulerAngles.y, _shoulders.eulerAngles.y);
-        //    ////var localRot = _shoulders.localRotation * lookAt;
-
-        //    //var deltaAngleX = Mathf.DeltaAngle(deltaX, 0f);
-        //    //var deltaAngleY = Mathf.DeltaAngle(deltaY, 0f);
-        //    ////var angleY = Quaternion.AngleAxis()
-
-        //    ////var XZpos = new Vector3(head.position.x, _shoulders.position.y, head.position.z);
-        //    ////var ZYpos = new Vector3(_shoulders.position.x, head.position.y, head.position.z);
-        //    //var oldPos = VR.Camera.Head.position;
-        //    //var yaw = SignedAngle(XZpos - _shoulders.position, _shoulders.forward, _shoulders.up);
-        //    //var pitch = SignedAngle(ZYpos - _shoulders.position, _shoulders.forward, _shoulders.right);
-        //    //SensibleH.Logger.LogDebug($"localYaw {localYaw} localPitch {localPitch}");
-        //    //origin.rotation = lookAt;
-        //    //origin.position += _shoulders.position - head.position;
-        //}
         private float SignedAngle(Vector3 from, Vector3 to, Vector3 axis)
         {
+            // This one brings little to no benefit with current neck states of the kiss.
             float unsignedAngle = Vector3.Angle(from, to);
 
             float cross_x = from.y * to.z - from.z * to.y;

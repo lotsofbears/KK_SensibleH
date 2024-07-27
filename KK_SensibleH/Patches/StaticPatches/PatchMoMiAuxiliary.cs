@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using KK_SensibleH.Caress;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -82,7 +83,9 @@ namespace KK_SensibleH.Patches.StaticPatches
                 yield return code;
             }
         }
-        
+        /// <summary>
+        /// We adjust CrossFader's FadeTime for specific animations.
+        /// </summary>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Animator), nameof(Animator.CrossFadeInFixedTime), new Type[]
         {
@@ -99,8 +102,23 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             else if (stateName.Equals("Idle"))
             {
+                if (LoopParameters.IsHoushi)
+                    transitionDuration = UnityEngine.Random.Range(0.5f, 1f);
+                else
+                    transitionDuration = UnityEngine.Random.Range(1.5f, 2.5f);
                 SensibleH.Logger.LogDebug($"CrossFadeInFixedTime AfterAction");
-                transitionDuration = UnityEngine.Random.Range(1.5f, 2.5f);
+            }
+        }
+        /// <summary>
+        /// A hook for CyuVR's tongue manipulations.
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(FaceBlendShape), nameof(FaceBlendShape.LateUpdate))]
+        public static void FaceBlendShapeLateUpdateHook()
+        {
+            if (Kiss.Instance != null)
+            {
+                Kiss.Instance.LateUpdateHook();
             }
         }
     }

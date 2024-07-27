@@ -33,6 +33,9 @@ namespace KK_SensibleH.Patches.DynamicPatches
         //            yield return code;
         //    }
         //}
+        /// <summary>
+        /// We intercept "Grip" GetPress and return "false".
+        /// </summary>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(SteamVR_Controller.Device), nameof(SteamVR_Controller.Device.GetPress), new Type[] { typeof(ulong) })]
         public static bool GetPressPrefix(ulong buttonMask, ref bool __result)

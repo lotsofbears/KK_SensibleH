@@ -12,6 +12,9 @@ namespace KK_SensibleH.Patches.DynamicPatches
 {
     class PatchKoikatuVR
     {
+        /// <summary>
+        /// We remove synthetic mouse up click that is being fed directly to "HandCtrl".
+        /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrlHooks), nameof(HandCtrlHooks.InjectMouseButtonUp))]
         public static IEnumerable<CodeInstruction> RemoveInjectMouseButtonUp(IEnumerable<CodeInstruction> instructions)
         {

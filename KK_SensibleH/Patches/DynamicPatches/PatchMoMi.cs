@@ -58,8 +58,8 @@ namespace KK_SensibleH.Patches.DynamicPatches
         }
 
         /// <summary>
-        /// We feed the game our vector of movement to add excitement from them. (and ask to reset them also).
-        /// We substitute mouse button press with fake that returns "true".
+        /// We feed the game our vector of movement to add excitement from it. (and ask to reset it also).
+        /// We substitute mouse button press with the fake that returns "true".
         /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
         public static IEnumerable<CodeInstruction> DragActionTranspiler(IEnumerable<CodeInstruction> instructions)

@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using ADV.Commands.Base;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using KK_SensibleH.Caress;
 using KKAPI.MainGame;
 using UnityEngine;
+using static KK_SensibleH.Caress.Kiss;
 
 namespace KK_SensibleH
 {
@@ -18,15 +22,19 @@ namespace KK_SensibleH
     public class SensibleH : BaseUnityPlugin
     {
         public const string GUID = "kk.sensible.h";
-        public const string Version = "0.1";
+        public const string Version = "0.1.1";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<AutoModeKind> AutoMode { get; set; }
         public static ConfigEntry<AutoPosMode> AutoPickPosition { get; set; }
         public static ConfigEntry<bool> AutoRestartAction { get; set; }
         public static ConfigEntry<bool> Edge { get; set; }
+        public static ConfigEntry<bool> MomiMomi { get; set; }
         public static ConfigEntry<float> ActionFrequency { get; set; }
+        public static ConfigEntry<float> EdgeFrequency { get; set; }
         public static ConfigEntry<float> NeckLimit { get; set; }
+        public static ConfigEntry<Kiss.FrenchType> FrenchKiss { get; set; }
+        public static ConfigEntry<int> KissEyesLimit { get; set; }
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey { get; set; }
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey2 { get; set; }
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey3 { get; set; }
@@ -55,9 +63,9 @@ namespace KK_SensibleH
         public static int MaleOrgCount;
         public enum AutoModeKind
         {
-            None,
-            PlayerPromptStart,
-            PlayerPromptStartAndFinish,
+            Disabled,
+            BeginWithPrompt,
+            BeginAndProceedWithPrompt,
             Automatic
         }
         public enum AutoPosMode
@@ -73,43 +81,92 @@ namespace KK_SensibleH
             Logger = base.Logger;
 
             AutoMode = Config.Bind(
-                section: "SensibleH",
+                section: "AutoMode",
                 key: "AutoMode",
-                defaultValue: AutoModeKind.None,
-                "Minimize the need for inputs from the player during H."
+                defaultValue: AutoModeKind.Disabled,
+                "Minimize the need for inputs from the player during H.\n" +
+                "Disabled - Waits for setting to change any moment.\n" +
+                "BeginWithPrompt - For action to begin necessary:\n" +
+                "Click on any interactable element of the lower half of the screen(except leaving H) or Touch or Kiss\n" +
+                "BeginAndProceedWithPrompt - Same as above but now after climax too.\n" +
+                "Automatic - Will start/finish action, change position (If setting is enabled) and restart action (If setting is enabled will do it considerably faster) without any user input.\n" +
+                "Warning. All proactive functions have mild disrespect for persistent user input, bad things (that will be solved only by the reboot of the game) may happen " +
+                "for those who seeks two pilots in one seat." 
                 );
             AutoPickPosition = Config.Bind(
-                section: "SensibleH",
+                section: "AutoMode",
                 key: "AutoPositionChange",
                 defaultValue: AutoPosMode.AllPositions,
-                "Allows auto change of positions."
+                "Allows auto change of positions after climax.\n" +
+                "Disabled - Waits for setting to change any moment.\n" +
+                "FemdomOnly - Choses only position where the girl is dominant. By default it's only one (game's default) cowgirl position. With modified AnimationLoader manifest comes much more.\n" +
+                "AllPositions - Choses random non caress animation found.\n" +
+                "If both AutoPositionChange and AutoRestart are enabled, position change takes a bit of precedence."
                 );
             AutoRestartAction = Config.Bind(
-                section: "SensibleH",
+                section: "AutoMode",
                 key: "AutoRestart",
                 defaultValue: true,
-                "Allows restart of the current position after set period of time. Restarts with low probability if AutoPositionChange is enabled."
+                "With  AutoPositionChange enabled, attempts to restart action after climax (and all the voices). If unsuccessful, changes position.\n" +
+                "With AutoPositionChange disabled,  restarts action after climax (and all the voices). \n" +
+                "Even if disabled, as long as AutoMode is in functional state (enabled and if necessary with inputs from user) sooner or later " +
+                "restart will happen."
+
                 );
             Edge = Config.Bind(
-                section: "SensibleH",
+                section: "AutoMode",
                 key: "Edge",
                 defaultValue: true,
-                "Allows the use of Edge mode."
+                "Allows one of the partners to pull out/stop for a moment " +
+                "for whatever reason it may be. Available in Service/Intercourse."
                 );
             ActionFrequency = Config.Bind(
-                section: "SensibleH",
-                key: "Intensity",
+                section: "AutoMode",
+                key: "ActionFrequency",
                 defaultValue: 1f,
-                new ConfigDescription("Frequency of manipulations in AutoMode. Lesser value -> smaller pause between actions",
-                new AcceptableValueRange<float>(0f, 2f))
+                new ConfigDescription("Frequency of manipulations in AutoMode.\n" +
+                "Lesser value -> smaller pause between actions.",
+                new AcceptableValueRange<float>(0.1f, 2f))
+                ); 
+            EdgeFrequency = Config.Bind(
+                section: "AutoMode",
+                key: "EdgeFrequency",
+                defaultValue: 1f,
+                new ConfigDescription("Cooldown of edge mode.\n" +
+                "Lesser value -> smaller pause between edges.",
+                new AcceptableValueRange<float>(0.1f, 2f))
                 );
             NeckLimit = Config.Bind(
-                section: "SensibleH",
+                section: "Tweaks",
                 key: "NeckLimit",
                 defaultValue: 0.8f,
                 new ConfigDescription("Adjust the limits of neck movements, 1.0 being the default value.\n" +
                 "Changes take place on scene reload or new position.",
                 new AcceptableValueRange<float>(0.5f, 1.5f))
+                ); 
+            FrenchKiss = Config.Bind(
+                section: "Caress",
+                key: "KissType",
+                defaultValue: Kiss.FrenchType.Auto,
+                "Set alternative type of the mouth during kiss.\n" +
+                "Disabled - Waits for setting to change any moment.\n" +
+                "Auto - Changes mouth with certain probability based on random/girl's H experience/girl's excitement.\n" +
+                "Always - Self explanatory."
+                );
+            KissEyesLimit = Config.Bind(
+                section: "Caress",
+                key: "EyesOpenness",
+            defaultValue: 50,
+            new ConfigDescription("Maximum openness of eyes and eyelids during kissing.\n" +
+            "Set to 0 to keep eyes closed during kiss",
+            new AcceptableValueRange<int>(0, 100))
+                );
+            MomiMomi = Config.Bind(
+                section: "Caress",
+                key: "MomiMomi",
+                defaultValue: true,
+                "Attach items(hands/tongue/etc) to girl's points of interest then press and hold the mouse button for a second (or trigger if in MainGameVR)" +
+                "and enjoy items moving by themselves (button may be released). A click anywhere to stop it. This setting is just description."
                 );
 
             Cfg_TestKey = Config.Bind(
@@ -133,7 +190,7 @@ namespace KK_SensibleH
 
 
 
-            // God know where the original info is stored. Will make do for now.
+            // God knows where the original info is stored. Will make do for now.
             sLoopInfo = new AnimatorStateInfo();
             object dummyInfo = sLoopInfo;
             Traverse.Create(dummyInfo).Field("m_Name").SetValue(-1715982390);
@@ -168,6 +225,7 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.AddSonyuAnalOrg))]
             public static void OrgasmFemalePostfix()
             {
+                SensibleH.Logger.LogDebug("OrgasmFemalePostfix");
                 LoopController.Instance.DoOrgasmF();
             }
             [HarmonyPostfix]
@@ -181,11 +239,12 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.AddSonyuAnalCondomInside))]
             public static void OrgasmMalePostfix()
             {
+                SensibleH.Logger.LogDebug("OrgasmMalePostfix");
                 LoopController.Instance.DoOrgasmM();
             }
             /// <summary>
             /// Wa waltz in on masturbating/lesbianing wonder, and the scene is already HOT. Outside of FreeH that is.
-            /// And we tone down limits for neck movement. Or not.
+            /// And we change limits for neck movement.
             /// </summary>
             [HarmonyPostfix]
             [HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.ChangeAnimator))]
@@ -237,7 +296,7 @@ namespace KK_SensibleH
             }
 
             /// <summary>
-            /// We check for non Orgasm/OrgasmAfter loops and run the timer that by default is being used only for action restart after the finish.
+            /// We check for non Orgasm/OrgasmAfter loops and run the timer that by default is being used only for the action restart after the finish.
             /// </summary>
             [HarmonyPostfix]
             [HarmonyPatch(typeof(HMasturbation), nameof(HMasturbation.Proc))]
@@ -258,7 +317,7 @@ namespace KK_SensibleH
             }
 
             /// <summary>
-            /// We check for non Orgasm, OrgasmAfter loops and run the timer that by default is being used only for action restart after the finish.
+            /// We check for non Orgasm, OrgasmAfter loops and run the timer that by default is being used only for the action restart after the finish.
             /// </summary>
             [HarmonyPostfix]
             [HarmonyPatch(typeof(HLesbian), nameof(HLesbian.Proc))]
@@ -276,10 +335,13 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.VoiceProc))]
             public static void PrefixVoiceProc(HVoiceCtrl __instance, int _main)
             {
-                if (__instance.flags.voice.playVoices[_main] != -1)// && __instance.nowVoices[_main].state != HVoiceCtrl.VoiceKind.voice)
+                if (__instance.flags.voice.playVoices[_main] != -1 && _hFlag != null)// && __instance.nowVoices[_main].state != HVoiceCtrl.VoiceKind.voice)
                 {
+                    if (_frenchKiss || _kissPhase == Phase.Disengaging)
+                        __instance.flags.voice.playVoices[_main] = -1;
+                    else
+                        SensibleHController.Instance.DoVoiceProc(_main);
                     //_voiceController.NicknamePlay();
-                    SensibleHController.Instance.DoVoiceProc(_main);
                 }
             }
             [HarmonyPrefix]
@@ -287,21 +349,21 @@ namespace KK_SensibleH
             public static void PrefixFemaleGaugeUp(ref float _addPoint)
             {
                 if (_addPoint < 0)// && biasF < 1f)
-                    _addPoint = _addPoint / 3f;
+                    _addPoint = _addPoint * 0.25f;
                 else
-                    _addPoint = _addPoint / 3f * BiasF;
+                    _addPoint = _addPoint * 0.25f * BiasF;
             }
             [HarmonyPrefix]
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.MaleGaugeUp))]
             public static void PrefixMaleGaugeUp(ref float _addPoint)
             {
                 if (_addPoint < 0)// && biasM < 1f)
-                    _addPoint = _addPoint / 3f;
+                    _addPoint = _addPoint * 0.25f;
                 else
-                    _addPoint = _addPoint / 3f * BiasM;
+                    _addPoint = _addPoint * 0.25f * BiasM;
             }
             /// <summary>
-            /// We override basic neck with our pick, somewhere down the line we need to change the _tag too.
+            /// We override basic neck with our pick, somewhere down the line we need to change the "_tag" too.
             /// </summary>
             [HarmonyPrefix]
             [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetEyeNeckPtn))]
@@ -339,6 +401,7 @@ namespace KK_SensibleH
             //}
 
             /// <summary>
+            /// TODO do it with transpiler.
             /// We run voiceProcs for caress actions in non-Aibu modes.
             /// </summary>
             [HarmonyPrefix]
@@ -583,7 +646,7 @@ namespace KK_SensibleH
             }
             [HarmonyPrefix]
             [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetNeckTarget))]
-            public static void PreSetNeckTarget(ref int _tag, float _rate, GameObject _objCamera, bool _isConfigDisregard, HMotionEyeNeckMale __instance)
+            public static void SetNeckTargetPrefix(ref int _tag, float _rate, GameObject _objCamera, bool _isConfigDisregard, HMotionEyeNeckMale __instance)
             {
                 if (MoveNeckGlobal && _tag != 0 && __instance.chara.sex == 1)
                 {

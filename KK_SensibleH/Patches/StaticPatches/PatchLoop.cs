@@ -12,6 +12,9 @@ namespace KK_SensibleH.Patches.StaticPatches
 {
     internal class PatchLoop
     {
+        /// <summary>
+        /// We get rid of pesky sound on button clicks.
+        /// </summary>
         [HarmonyTranspiler]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnPullClick))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnRelyClick))]
@@ -19,7 +22,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalClick))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertNoVoiceClick))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertClick))]
-
         public static IEnumerable<CodeInstruction> OnClickTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             var methodToPatch = nameof(Utils.Sound.Play);
@@ -38,6 +40,9 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             return codes.AsEnumerable();
         }
+        /// <summary>
+        /// Actions that we interpret as user input.
+        /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnAutoFinish))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertClick))]

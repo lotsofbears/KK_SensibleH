@@ -501,7 +501,7 @@ namespace KK_SensibleH.Resources
             {34, DirectionNeck.Away},
             {68,  DirectionNeck.Away},
             {102, DirectionNeck.Away},
-            {136, DirectionNeck.UpRightFar}, // Seems to be bugged.
+            {136, DirectionNeck.UpRightFar},
             {153, DirectionNeck.UpMid},
         };
         public static Dictionary<HFlag.EMode, List<string>> FrontAnimations = new Dictionary<HFlag.EMode, List<string>>()
@@ -555,8 +555,8 @@ namespace KK_SensibleH.Resources
                     "kha_f_00", // standing
                     "kha_f_01", // lying
                     "kha_f_03", // sitting
-                    "kha_f_08", // desk squat
                     "kha_f_07", // desk sitting
+                    "kha_f_08", // desk squat
                     "kha_f_09", // standing bookshelf
                 }
             }
