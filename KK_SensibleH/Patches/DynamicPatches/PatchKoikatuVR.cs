@@ -18,14 +18,31 @@ namespace KK_SensibleH.Patches.DynamicPatches
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrlHooks), nameof(HandCtrlHooks.InjectMouseButtonUp))]
         public static IEnumerable<CodeInstruction> RemoveInjectMouseButtonUp(IEnumerable<CodeInstruction> instructions)
         {
-            var codes = new List<CodeInstruction>(instructions);
-            for (var i = 0; i < codes.Count; i++)
+            foreach (var code in instructions)
             {
-                if (codes[i].opcode != OpCodes.Ret)
-                    codes[i].opcode = OpCodes.Nop;
-                
+                if (code.opcode != OpCodes.Ret)
+                    yield return new CodeInstruction(OpCodes.Nop);
+                else
+                    yield return code;
             }
-            return codes.AsEnumerable();
         }
+        //[HarmonyTranspiler, HarmonyPatch(typeof(HandCtrlHooks), nameof(HandCtrlHooks.InjectMouseButtonDown))]
+        //public static IEnumerable<CodeInstruction> RemoveInjectMouseButtonDown(IEnumerable<CodeInstruction> instructions)
+        //{
+        //    foreach (var code in instructions)
+        //    {
+        //        if (code.opcode != OpCodes.Ret)
+        //            yield return new CodeInstruction(OpCodes.Nop);
+        //        else
+        //            yield return code;
+        //    }
+        //    //for (var i = 0; i < codes.Count; i++)
+        //    //{
+        //    //    if (codes[i].opcode != OpCodes.Ret)
+        //    //        codes[i].opcode = OpCodes.Nop;
+
+        //    //}
+        //    //return codes.AsEnumerable();
+        //}
     }
 }

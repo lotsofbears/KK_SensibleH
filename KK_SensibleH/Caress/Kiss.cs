@@ -234,7 +234,7 @@ namespace KK_SensibleH.Caress
             {
                 // Extra check if we don't go through the "Disengage" phase, and start the new kiss immediately.
                 _activePatch = Harmony.CreateAndPatchAll(typeof(PatchEyes));
-                SensibleH.Logger.LogDebug($"BeroKiss[Patch]{_activePatch}");
+                //SensibleH.Logger.LogDebug($"BeroKiss[Patch]{_activePatch}");
             }
             _female.ChangeEyesBlinkFlag(false);
             //_female.ChangeEyesPtn(0);
@@ -253,7 +253,7 @@ namespace KK_SensibleH.Caress
                 curEyeValue = Mathf.Clamp(curEyeValue - (frameChange * 3f), 0f, 100f);
                 _eyesOpenness = curEyeValue * 0.01f;
                 AnimateEyes();
-                SensibleH.Logger.LogDebug($"BeroKiss[Engage]{curMouthValue} - {curKissValue} - {curEyeValue}");
+                //SensibleH.Logger.LogDebug($"BeroKiss[Engage]{curMouthValue} - {curKissValue} - {curEyeValue}");
                 if (curEyeValue == 0f)
                 {
                     break;
@@ -261,7 +261,7 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.InAction;
-            SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_kissCo}");
+            //SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_kissCo}");
             while (_kissCo)
             {
                 RandomMoveFloatTest(ref npWeight, ref npWeightTo, ref npWeightSpeed, 0f, 1f, ref npWeightTime, 0.1f, 0.5f);
@@ -312,7 +312,7 @@ namespace KK_SensibleH.Caress
                     kissAction = false;
                     yield break;
                 }
-                SensibleH.Logger.LogDebug($"BeroKiss[Disengage]{curMouthValue} - {curKissValue} - {curEyeValue}");
+                //SensibleH.Logger.LogDebug($"BeroKiss[Disengage]{curMouthValue} - {curKissValue} - {curEyeValue}");
                 yield return null;
             }
             if (_frenchKiss)

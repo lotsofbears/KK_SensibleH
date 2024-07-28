@@ -106,6 +106,7 @@
     <Compile Include="LoopParameters.cs" />
     <Compile Include="Patches\DynamicPatches\PatchEyes.cs" />
     <Compile Include="Patches\DynamicPatches\PatchKiss.cs" />
+    <Compile Include="Patches\DynamicPatches\PatchLickCo.cs" />
     <Compile Include="Patches\StaticPatches\PatchLoop.cs" />
     <Compile Include="Patches\StaticPatches\PatchMoMiAuxiliary.cs" />
     <Compile Include="Patches\StaticPatches\PatchMoMiAuxiliaryVR.cs" />

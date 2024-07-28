@@ -165,8 +165,8 @@ namespace KK_SensibleH
                 section: "Caress",
                 key: "MomiMomi",
                 defaultValue: true,
-                "Attach items(hands/tongue/etc) to girl's points of interest then press and hold the mouse button for a second (or trigger if in MainGameVR)" +
-                "and enjoy items moving by themselves (button may be released). A click anywhere to stop it. This setting is just description."
+                "Attach items (hands/tongue/etc) to girl's points of interest then press and hold the mouse button for a second (or trigger if in MainGameVR) " +
+                "and enjoy items moving by themselves (button may be released). A click anywhere to stop it. This setting is just a description."
                 );
 
             Cfg_TestKey = Config.Bind(

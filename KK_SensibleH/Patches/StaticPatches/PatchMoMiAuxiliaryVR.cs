@@ -9,10 +9,11 @@ using UnityEngine;
 
 namespace KK_SensibleH.Patches.StaticPatches
 {
+    /// <summary>
+    /// We throw away camera/effects related things that cause Huge stutters on the kiss and present zero use in VR.
+    /// </summary>
     class PatchMoMiAuxiliaryVR
     {
-        // We throw away camera/effects related things that cause Huge stutters on the kiss and present zero use in VR.
-
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.OnCollision))]
         public static IEnumerable<CodeInstruction> OnCollisionTranspiler(IEnumerable<CodeInstruction> instructions)
         {

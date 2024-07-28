@@ -38,10 +38,9 @@ namespace KK_SensibleH
         private bool _vr;
         private Scene _scene;
         private bool _patched;
-        private readonly string Con = "Con";
-        private readonly string HPo = "HPo";
-        private bool IsConfigScene => _scene.AddSceneName.StartsWith(Con, StringComparison.Ordinal);
-        private bool IsPointMoveScene => _scene.AddSceneName.StartsWith(HPo, StringComparison.Ordinal);
+        private bool IsConfigScene => _scene.AddSceneName.StartsWith("Con", StringComparison.Ordinal);
+        private bool IsPointMoveScene => _scene.AddSceneName.StartsWith("HPo", StringComparison.Ordinal);
+        private bool IsHProcScene => _scene.AddSceneName.Equals("HProc");
 
         //private GameObject _sphere;
         //private void Spawn()
@@ -72,67 +71,64 @@ namespace KK_SensibleH
         {
             if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-                var cube = new GameObject("Cube");
-                var components = cube.GetComponents(typeof(Component));
-                foreach (var component in components)
-                    SensibleH.Logger.LogDebug($"{component}");
+                _handCtrl.selectKindTouch = HandCtrl.AibuColliderKind.muneL;
                 //SensibleH.Logger.LogDebug($"Hotkey[1] {_scene.AddSceneName.StartsWith("Con") || _scene.AddSceneName.StartsWith("HPo")}");
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-                if (_primitiveCube == null)
-                    Spawn();
-                if (_forwardHelper)
-                {
-                    _forward += 0.01f;
-                    if (_forward > 0.1f)
-                        _forwardHelper = false;
-                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _primitiveCube.transform.localPosition.y, _forward);
-                }
-                else
-                {
-                    _forward -= 0.01f;
-                    if (_forward < -0.1f)
-                        _forwardHelper = true;
-                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _primitiveCube.transform.localPosition.y, _forward);
-                }
-                SensibleH.Logger.LogDebug($"Hotkey[2] _forward = {_forward}");
+                SensibleH.Logger.LogDebug($"Hotkey[2] {_scene.AddSceneName}");
+                //if (_primitiveCube == null)
+                //    Spawn();
+                //if (_forwardHelper)
+                //{
+                //    _forward += 0.01f;
+                //    if (_forward > 0.1f)
+                //        _forwardHelper = false;
+                //    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _primitiveCube.transform.localPosition.y, _forward);
+                //}
+                //else
+                //{
+                //    _forward -= 0.01f;
+                //    if (_forward < -0.1f)
+                //        _forwardHelper = true;
+                //    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _primitiveCube.transform.localPosition.y, _forward);
+                //}
+                //SensibleH.Logger.LogDebug($"Hotkey[2] _forward = {_forward}");
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey3.Value.MainKey) && Cfg_TestKey3.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-                if (_primitiveCube == null)
-                    Spawn();
-                if (_upHelper)
-                {
-                    _up += 0.01f;
-                    if (_up > 0.1f)
-                        _upHelper = false;
-                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _up, _primitiveCube.transform.localPosition.z);
-                }
-                else
-                {
-                    _up -= 0.01f;
-                    if (_up < -0.1f)
-                        _upHelper = true;
-                    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _up, _primitiveCube.transform.localPosition.z);
-                }
-                SensibleH.Logger.LogDebug($"Hotkey[3] _up = {_up}");
+                //if (_primitiveCube == null)
+                //    Spawn();
+                //if (_upHelper)
+                //{
+                //    _up += 0.01f;
+                //    if (_up > 0.1f)
+                //        _upHelper = false;
+                //    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _up, _primitiveCube.transform.localPosition.z);
+                //else
+                //{
+                //    _up -= 0.01f;
+                //    if (_up < -0.1f)
+                //        _upHelper = true;
+                //    _primitiveCube.transform.localPosition = new Vector3(_primitiveCube.transform.localPosition.x, _up, _primitiveCube.transform.localPosition.z);
+                //}
+                //SensibleH.Logger.LogDebug($"Hotkey[3] _up = {_up}");
             }
         }
-        private float _forward;
-        private float _up;
-        private bool _forwardHelper;
-        private bool _upHelper;
-        private GameObject _primitiveCube;
-        private void Spawn()
-        {
-            _primitiveCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            _primitiveCube.transform.SetParent(_chaControl[0].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/a_n_mouth"), false);
-            _primitiveCube.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-            _primitiveCube.GetComponent<Collider>().enabled = false;
-            _primitiveCube.GetComponent<Renderer>().material.color = new Color(1, 0, 1, 1);
-            _primitiveCube.GetComponent<Renderer>().enabled = true;
-        }
+        //private float _forward;
+        //private float _up;
+        //private bool _forwardHelper;
+        //private bool _upHelper;
+        //private GameObject _primitiveCube;
+        //private void Spawn()
+        //{
+        //    _primitiveCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        //    _primitiveCube.transform.SetParent(_chaControl[0].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/a_n_mouth"), false);
+        //    _primitiveCube.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+        //    _primitiveCube.GetComponent<Collider>().enabled = false;
+        //    _primitiveCube.GetComponent<Renderer>().material.color = new Color(1, 0, 1, 1);
+        //    _primitiveCube.GetComponent<Renderer>().enabled = true;
+        //}
         //private void Update()
         //{
         //    if (Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => Input.GetKey(x)))
@@ -317,9 +313,9 @@ namespace KK_SensibleH
                 _hFlag.isInsertOK[0] = Random.value < 0.75f;
             if (_hFlag.isAnalInsertOK)
                 _hFlag.isAnalInsertOK = Random.value < 0.75f;
-            yield return new WaitForEndOfFrame();
             while (true)
             {
+                yield return new WaitForEndOfFrame();
                 if (_hFlag == null)
                 {
                     if (!_hEnd)
@@ -337,7 +333,7 @@ namespace KK_SensibleH
                     yield return new WaitForSeconds(1f);
                     continue;
                 }
-                if (IsConfigScene || IsPointMoveScene)
+                if (!IsHProcScene)
                 {
                     yield return new WaitForSeconds(3f);
                     continue;
@@ -355,24 +351,23 @@ namespace KK_SensibleH
                 }
                 //if (_chaControlM != null && _chaControlM.visibleAll)
                 //    maleController.LookLessDead();
-                //SensibleH.Logger.LogDebug($"Ptn[{eyeNeckPtn[0]}] flag[{_hFlag.voice.eyenecks[0]}] " +
+                //SensibleH.Logger.LogDebug($"OnceInAWhile[{_scene.AddSceneName}");
                 //    $"poi[{FemalePoI[0]}] [{moveNeckGlobal}]");
                 if (!FirstTouch)
                     FirstTouch = !_handCtrl.IsItemTouch();
                 yield return new WaitForSeconds(1f);
-                yield return new WaitForEndOfFrame();
             }
         }
 
 
         public void DoVoiceProc(int main)
         {
-            if (!_voiceControllers[main].SayNickname())
-            {
+            //if (!_voiceControllers[main].SayNickname())
+            //{
                 SensibleH.Logger.LogDebug($"DoVoiceProc[{main}] - {_hFlag.voice.playVoices[main]}");
                 _girlController[main].lastVoice = _hFlag.voice.playVoices[main];
                 _girlController[main].LookAtCam();
-            }
+            //}
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
         {

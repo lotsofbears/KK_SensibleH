@@ -111,7 +111,7 @@ namespace KK_SensibleH
 
         public void Proc()
         {
-            SensibleH.Logger.LogDebug($"LoopProc Busy[{_busy}] Restart[{_restart}] UserInput[{_userInput}] Climax[{_hadClimax}]");
+            //SensibleH.Logger.LogDebug($"LoopProc Busy[{_busy}] Restart[{_restart}] UserInput[{_userInput}] Climax[{_hadClimax}]");
 
             if (_edgeActive)
                 return; 

@@ -62,10 +62,11 @@ namespace KK_SensibleH
         internal static bool _kissCo;
         internal static bool _endKissCo;
         internal static bool _lickCo;
+        internal static bool _moMiCo;
 
         private float[] _postfixTimers = new float[3];
         private bool _endLickCo;
-        private bool _moMiCo;
+        //private bool _moMiCo;
         private bool _fakeTag;
         private bool _vr;
         private bool _judgeCooldown;
@@ -210,11 +211,11 @@ namespace KK_SensibleH
             {
                 if (colliderKind == HandCtrl.AibuColliderKind.mouth)
                 {
-                    SensibleH.Logger.LogDebug($"StartVrAction[KissCo]");
-                    if (_lickCo)
+                    if (_moMiCo || _lickCo)
                     {
                         Instance.Halt(disengage: false);
                     }
+                    SensibleH.Logger.LogDebug($"StartVrAction[KissCo]");
                     Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.KissCo()));
                     
                 }
@@ -472,17 +473,18 @@ namespace KK_SensibleH
             _activeCoroutines.Add(StartCoroutine(AttachCo(colliderKind)));
             yield return CaressUtil.ClickCo();
             yield return new WaitUntil(() => !IsTouch);
+            //yield return new WaitUntil(() => _handCtrl.actionUseItem == -1);
 
             _mousePressDown = true;
             HandCtrlHooks.InjectMouseButtonDown(0);
-            MoMiActive = true;
+            //MoMiActive = true;
             yield return new WaitUntil(() => GameCursor.isLock);
 
-            // Most likely somebody along the line wants this wait badly.
+            // Most likely somebody along the line wants this Wait badly.
             yield return new WaitForEndOfFrame();
             if (!_moMiCo)
             {
-                //SensibleH.Logger.LogDebug($"LickCo[AddMoMiCo]");
+                SensibleH.Logger.LogDebug($"LickCo[AddMoMiCo]");
                 _moMiCo = true;
                 _activeCoroutines.Add(StartCoroutine(MoMiCo(skipWait: true)));
             }
@@ -715,6 +717,7 @@ namespace KK_SensibleH
             if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
                 //RangeTest();
+                SensibleH.Logger.LogDebug($"Hotkey[1] {Vector3.Distance(_eyes.position, VR.Camera.transform.position)} {Vector3.SqrMagnitude(_eyes.position - VR.Camera.transform.position)}");
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {

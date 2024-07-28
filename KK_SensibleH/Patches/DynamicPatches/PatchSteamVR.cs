@@ -11,6 +11,9 @@ using Valve.VR;
 
 namespace KK_SensibleH.Patches.DynamicPatches
 {
+    /// <summary>
+    /// We disable GripMove (by intercepting Grip Press) and move camera ourselves.
+    /// </summary>
     class PatchSteamVR
     {
         //[HarmonyTranspiler, HarmonyPatch(typeof(SteamVR_Controller.Device), nameof(SteamVR_Controller.Device.GetPress), new Type[] { typeof(ulong) })]
