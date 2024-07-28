@@ -1,29 +1,8 @@
-﻿using BepInEx.Unity;
-//using InputSimulator = BepInEx.Unity.InputSimulator;
-using KKAPI;
-using KKAPI.MainGame;
-using HarmonyLib;
+﻿using KKAPI.MainGame;
 using UnityEngine;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
-using System.Collections.Generic;
 using static KK_SensibleH.SensibleH;
-using System.Collections;
 using System.Linq;
-using System;
-using Illusion.Game;
-using Illusion.Extensions;
-using KK_BetterSquirt;
-using System.Runtime.InteropServices;
-using BepInEx;
-using NodeCanvas.DialogueTrees;
-using System.Runtime.Remoting;
-using System.Security.Cryptography;
-using static KK_BetterSquirt.BetterSquirt;
-using static Illusion.Game.Utils.Scene;
-using IllusionUtility.GetUtility;
-using Unity.Linq;
-using Illusion.Game.Extensions;
 
 namespace KK_SensibleH
 {

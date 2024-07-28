@@ -16,15 +16,17 @@ using KoikatuVR;
 using KoikatuVR.Caress;
 using static SteamVR_Controller;
 using KK_SensibleH.Caress;
-using static KK_SensibleH.LoopParameters;
+using static KK_SensibleH.AutoMode.LoopProperties;
+using KK_SensibleH.AutoMode;
+using KK_SensibleH.EyeNeckControl;
+using NodeCanvas.Tasks.Actions;
 
 namespace KK_SensibleH
 {
     /*
      * TODO:
      * 
-     * Squirts:  - while inside, change Pitch, and make it Y / W shaped across the Yaw
-     *           - on pullout a set of very brief sprays during convulsions;
+     * Squirts:  - while inside, change Pitch/Yaw, and make it Y / W shaped across the Yaw
      *
      */
     public class MoMiController : MonoBehaviour
@@ -130,8 +132,6 @@ namespace KK_SensibleH
         }
         private void StartMoMi()
         {
-            SensibleH.Logger.LogDebug($"MoMi[startReason]: item[{_handCtrl.actionUseItem != -1}] kiss[{_handCtrl.isKiss}]");
-            _moMiCo = true;
             _activeCoroutines.Add(StartCoroutine(MoMiCo()));
         }
         private void Halt(bool disengage = true)
@@ -161,8 +161,10 @@ namespace KK_SensibleH
                 if (disengage && (_kissCo || _lickCo))
                 {
                     if (!_endKissCo)
+                    {
                         _activeCoroutines.Add(StartCoroutine(EndKissCo()));
-                    _girlController[0].OnKissEnd();
+                    }
+                    _girlControllers[0].OnKissEnd();
                 }
                 if (_mousePressDown)
                 {
@@ -222,7 +224,7 @@ namespace KK_SensibleH
                 else if (!_lickCo)
                 {
                     SensibleH.Logger.LogDebug($"StartVrAction[LickCo]");
-                    if (_kissCo)
+                    if (_moMiCo)//if (_kissCo)
                     {
                         Instance.Halt(disengage: false);
                     }
@@ -233,28 +235,38 @@ namespace KK_SensibleH
                 }
             }
         }
+        /// <summary>
+        /// Purely VR feature, allows us to actually kiss.. stock of MainGameVR / KK_VR is a joke.
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator KissCo()
         {
             SensibleH.Logger.LogDebug($"KissCo[Start]");
             yield return new WaitForEndOfFrame();
             _kissCo = true;
-            _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchKiss)));
+            _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlKiss)));
             _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchSteamVR)));
             var origin = VR.Camera.Origin;
             var head = VR.Camera.Head;
-            
-            var neck = GetKissStartPosition();
-            _girlController[0].OnKissStart(neck);
+            var camera = _girlControllers[0]._fixNeckMove;
+            //var neck = GetKissStartPosition();
+
+            _girlControllers[0].OnKissStart();
             Kiss.Instance.Cyu();
 
+            // In light of recent rework, whole "FindRoll" function is busted.
             var rollDelta = FindRollDelta();
             if (Math.Abs(rollDelta) < 5f)
             {
-                var signedAngle = SignedAngle(head.position - _eyes.position, _eyes.forward, _eyes.up);
+                //var signedAngle = SignedAngle(head.position - _eyes.position, _eyes.forward, _eyes.up);
+                var signedAngle = SignedAngle(head.position - _shoulders.position, _shoulders.forward, _shoulders.up);
                 SensibleH.Logger.LogDebug($"KissCo[signedAngle] = {signedAngle}]");
                 if (Math.Abs(signedAngle) < 10f)
                 {
-                    rollDelta = LoopParameters.IsSonyu ? Random.Range(-20f, 20f) : Random.Range(-45f, 45);
+                    rollDelta = 25f * (Random.value > 0.5f ? 1 : -1);
+                    if (!LoopProperties.IsSonyu)
+                        rollDelta *= Random.value * 2f;
+
                     SensibleH.Logger.LogDebug($"KissCo[RandomRoll] Everything else is too small to consider it {rollDelta}");
                 }
                 else
@@ -271,9 +283,11 @@ namespace KK_SensibleH
             var offsetForward = 0.09f;
             var offsetUp = -0.04f - (Math.Abs(offsetRight) * 0.5f);
             var startDistance = Vector3.Distance(_eyes.position, head.position) - offsetForward;
-            var steps = 0f;
+            //var steps = 0f;
             var timer = Time.time + 3f;
-            // Change this one to something less consistent.
+
+            // Placeholder.
+            // Change this one to something more interesting.
             FakeDragLength = Vector2.one * 0.5f;
 
             //var newPosUpMod = _shoulders.up * 0.1f;
@@ -287,6 +301,7 @@ namespace KK_SensibleH
             //var signedDeltaForward = SignedAngle(posDelta, _shoulders.forward, _shoulders.up);
             //while (timer > Time.time)
             //{
+            //    // God knows what method.
             //    var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
             //    Vector3 moveTowards;
             //    var fpsDelta = GetFpsDelta;
@@ -314,45 +329,57 @@ namespace KK_SensibleH
             //    origin.position += moveTowards - head.position;
             //    yield return new WaitForEndOfFrame();
             //}
-            var step = 0.05f;
-            // Girl sways considerably during kiss, and it's especially noticeable in side angles, so we make camera's follow more aggressive to compensate.
-            if (neck == DirectionNeck.UpRightFar || neck == DirectionNeck.UpLeft)
-                step = 0.13f;
-            var inPosition = false;
-            while (true)//(timer > Time.time)
-            {
-                // Glue Method.
-                var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
-                var targetPos = adjustedEyes + _eyes.forward * (offsetForward + Mathf.Clamp01(startDistance - steps));
-                Vector3 moveTowards;
-                // Voice interrupt will be in Cyu.
-                //if (_girlController[0].IsVoiceActive && Vector3.Distance(adjustedEyes, head.position) < 0.12f)
-                //{
-                //    _girlController[0].PlayShort();
-                //}
-                if (!inPosition)
-                {
-                    moveTowards = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.13f);
-                    steps += Time.deltaTime * 0.13f;
-                    if (Vector3.Distance(moveTowards, targetPos) < 0.005f)
-                        inPosition = true;
-                }
-                else
-                {
-                    moveTowards = targetPos;
-                    steps += Time.deltaTime * step;
-                    if (steps > startDistance || timer < Time.time)
-                    {
-                        break;
-                    }
-                }
+            //var inPosition = false;
+            var oldEyePos = _eyes.position;
+            //while (true)//(timer > Time.time)
+            //{
+            //    // Glue Method.
+            //    // Voice interrupt will be in Cyu.
+            //    var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
+            //    var targetPos = adjustedEyes + _eyes.forward * (offsetForward + Mathf.Clamp01(startDistance - steps));
+            //    Vector3 moveTowards;
+            //    var deltaEyesPos = _eyes.position - oldEyePos;
+            //    //camera.MoveFixMoveCam(deltaEyesPos);
+            //    oldEyePos = _eyes.position;
+            //    if (!inPosition)
+            //    {
+            //        moveTowards = Vector3.MoveTowards(head.position, deltaEyesPos + targetPos, Time.deltaTime * 0.13f);
+            //        steps += Time.deltaTime * 0.13f;
+            //        if (Vector3.Distance(moveTowards, targetPos) < 0.005f)
+            //            inPosition = true;
+            //    }
+            //    else
+            //    {
+            //        moveTowards = targetPos;
+            //        steps += Time.deltaTime * step;
+            //        if (!IsTouch && (steps > startDistance || timer < Time.time))
+            //        {
+            //            break;
+            //        }
+            //    }
 
+            //    var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight)); // + _eyes.forward * -0.1f);
+            //    origin.rotation = Quaternion.RotateTowards(origin.rotation, lookRotation, Time.deltaTime * 90f);
+            //    origin.position += moveTowards - head.position;
+            //    yield return new WaitForEndOfFrame();
+            //}
+            while (timer > Time.time)
+            {
+                // Simple MoveTowards + added head movement.
+                // With newest neck looks very good with added (due to girls' sway) eye's deltaPos.
+                // Requires more testing.
+                var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
+                var targetPos = adjustedEyes + _eyes.forward * offsetForward;
+
+                var deltaEyesPos = _eyes.position - oldEyePos;
+                oldEyePos = _eyes.position; 
+                //camera.MoveFixMoveCam(deltaEyesPos);
+                var moveTowards = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.07f); 
                 var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight)); // + _eyes.forward * -0.1f);
                 origin.rotation = Quaternion.RotateTowards(origin.rotation, lookRotation, Time.deltaTime * 90f);
-                origin.position += moveTowards - head.position;
+                origin.position += moveTowards + deltaEyesPos - head.position;
                 yield return new WaitForEndOfFrame();
             }
-            
             //SensibleH.Logger.LogDebug($"KissCo[UnPatch]");
             var lastElement = _activePatches.Count - 1;
             _activePatches[lastElement].UnpatchSelf();
@@ -360,6 +387,7 @@ namespace KK_SensibleH
             UpdateDevices();
             if (!_moMiCo)
             {
+                // Pretty sure it's online for a while at this point.
                 _moMiCo = true;
                 _activeCoroutines.Add(StartCoroutine(MoMiCo()));
             }
@@ -380,13 +408,19 @@ namespace KK_SensibleH
                 }
                 else
                 {
+                    var deltaEyesPos = _eyes.position - oldEyePos;
+                    oldEyePos = _eyes.position;
                     var targetPos = _eyes.position + (_eyes.right * offsetRight) + (_eyes.forward * offsetForward) + (_eyes.up * offsetUp);
-                    var moveTowards = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * step);
-                    origin.position += moveTowards - head.position;
+                    var moveTowards = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.05f);
+                    origin.position += moveTowards + deltaEyesPos - head.position;
                 }
                 yield return new WaitForEndOfFrame();
             }
         }
+        /// <summary>
+        /// Properly disengages the player from VR actions. Leaves the player not familiar with "Grip Move" hanging, that is being in weird X-axis rotation.
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator EndKissCo()
         {
             SensibleH.Logger.LogDebug($"EndKissCo[Start]");
@@ -394,6 +428,7 @@ namespace KK_SensibleH
             var origin = VR.Camera.Origin;
             var head = VR.Camera.Head;
             var pov = POV.Instance != null && POV.Active;
+            UpdateDevices();
             if (_device.GetPress(ButtonMask.Grip) || _device1.GetPress(ButtonMask.Grip))
             {
                 yield return new WaitUntil(() => !_device.GetPress(ButtonMask.Grip) && !_device1.GetPress(ButtonMask.Grip));
@@ -402,7 +437,7 @@ namespace KK_SensibleH
             if (Vector3.Distance(_eyes.position, head.position) < 0.25f)
             {
                 // Get away first if we are too close. Different for active pov.
-                SensibleH.Logger.LogDebug($"EndKissCo[MoveCameraAway][pov = {pov}]");
+                //SensibleH.Logger.LogDebug($"EndKissCo[MoveCameraAway][pov = {pov}]");
                 var step = Time.deltaTime * 0.12f; //0.0034f * delta;
                 if (pov && _maleEyes != null)
                 {
@@ -466,6 +501,10 @@ namespace KK_SensibleH
             _hFlag.click = HFlag.ClickKind.de_muneL;
             SensibleH.Logger.LogDebug($"EndKissCo[End]");
         }
+        /// <summary>
+        /// Purely VR feature, helps immensely with Licking of MainGameVR.
+        /// TODO Centering of camera in sonyu, so it looks more plausible.
+        /// </summary>
         private IEnumerator LickCo(HandCtrl.AibuColliderKind colliderKind)
         {
             SensibleH.Logger.LogDebug($"LickCo[Start]");
@@ -477,7 +516,10 @@ namespace KK_SensibleH
 
             _mousePressDown = true;
             HandCtrlHooks.InjectMouseButtonDown(0);
-            //MoMiActive = true;
+
+            // Is this really necessary ?
+            MoMiActive = true;
+
             yield return new WaitUntil(() => GameCursor.isLock);
 
             // Most likely somebody along the line wants this Wait badly.
@@ -490,7 +532,9 @@ namespace KK_SensibleH
             }
             JudgeProc(2, fakeIt: true);
         }
-
+        /// <summary>
+        /// Partner in crime of LickCo.
+        /// </summary>
         private IEnumerator AttachCo(HandCtrl.AibuColliderKind colliderKind)
         {
             SensibleH.Logger.LogDebug($"AttachCo[Start]");
@@ -500,28 +544,29 @@ namespace KK_SensibleH
             var origin = VR.Camera.Origin;
             var head = VR.Camera.Head;
             var prevPoiPosition = poi.position;
-            // We check parameter as more often then not, the update doesn't run centralized check just yet.
+            // We check parameter as the update doesn't run centralized check just yet.
             while (IsTouch || _handCtrl.useItems[2] == null)
             {
-                // We move together with point of interest during "Touch" animation
+                // We move together with the point of interest during "Touch" animation
                 origin.position += poi.position - prevPoiPosition;
                 prevPoiPosition = poi.position;
                 yield return new WaitForEndOfFrame();
             }
             var item = _handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
-            SensibleH.Logger.LogDebug($"AttachCo[Start] {poi.rotation.eulerAngles.x}");
+            //SensibleH.Logger.LogDebug($"AttachCo[Start] {poi.rotation.eulerAngles.x}");
             if (poi.rotation.eulerAngles.x > 30f && poi.rotation.eulerAngles.x < 90f)
             {
+                // Check if the girl is on all fours.
                 dic = PoI[HandCtrl.AibuColliderKind.none];
             }
 
-            while (Vector3.Distance(item.position + item.forward * dic.itemOffsetForward + item.up * dic.itemOffsetUp, head.position) > 0.002f)
+            UpdateDevices();
+            while (true)
             {
-                if (_handCtrl.useItems[2] == null)
+                if (_handCtrl.useItems[2] == null || _device.GetPressDown(ButtonMask.Trigger) || _device1.GetPressDown(ButtonMask.Trigger))
                 {
-                    // This condition should virtually never happen. 
-                    SensibleH.Logger.LogDebug($"AttachCo[PrematureEnd] no transform");
-                    yield break;
+                    SensibleH.Logger.LogDebug($"AttachCo[PrematureEnd] no transform/triggers");
+                    Halt();
                 }
                 //SensibleH.Logger.LogDebug($"AttachCo[MoveToItem]");
                 var adjustedItem = item.position + item.forward * dic.itemOffsetForward + item.up * dic.itemOffsetUp;
@@ -529,12 +574,15 @@ namespace KK_SensibleH
                 var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiOffsetUp - moveTo, poi.up * dic.directionUp + poi.forward * dic.directionForward);
                 origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, Time.deltaTime * 60f);
                 origin.position += moveTo - head.position;
+                if (Vector3.Distance(adjustedItem, head.position) < 0.002f)
+                {
+                    break;
+                }
                 yield return new WaitForEndOfFrame();
             }
-            UpdateDevices();
             while (true)
             {
-                if (_device.GetPressUp(ButtonMask.Trigger) || _device1.GetPressUp(ButtonMask.Trigger)) //_handCtrl.useItems[2] == null || 
+                if (_device.GetPressDown(ButtonMask.Trigger) || _device1.GetPressDown(ButtonMask.Trigger)) //_handCtrl.useItems[2] == null || 
                 {
                     break;
                 }
@@ -545,7 +593,6 @@ namespace KK_SensibleH
                 }
                 else
                 {
-                    //SensibleH.Logger.LogDebug($"AttachCo[Action][{_handCtrl.actionUseItem == 2}]");
                     var targetPos = item.position + (item.forward * dic.itemOffsetForward) + (item.up * dic.itemOffsetUp);
                     var moveTo = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.05f);
                     var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiOffsetUp - moveTo, poi.up * dic.directionUp + poi.forward * dic.directionForward);
@@ -556,7 +603,6 @@ namespace KK_SensibleH
             }
             Halt();
             SensibleH.Logger.LogDebug($"AttachCo[End]");
-
         }
         /*
          * cf_j_tangroot.transform.
@@ -684,15 +730,15 @@ namespace KK_SensibleH
         {
             if (_hFlag == null)
                 return;
-            // There is a little to no point to run moMi on the kiss outside of VR. So we don't, saves ADHD VR users from atleast few bugs.
-            if (!_moMiCo && (GameCursor.isLock && (_handCtrl.actionUseItem != -1)))// || _handCtrl.isKiss))  || _lickCo)
+            // There is a little to no point to run moMi on the kiss outside of VR. So we don't, saves ADHD VR users from quite a few bugs.
+            if (!_moMiCo && GameCursor.isLock && _handCtrl.actionUseItem != -1)// || _handCtrl.isKiss))  || _lickCo)
             {
                 StartMoMi();
             }
             else if (_moMiCo)
             {
                 _touchAnim = IsTouch;
-                if ((UnityEngine.Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.isKiss)))
+                if (UnityEngine.Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.isKiss))
                 {
                     Halt();
                 }
@@ -701,6 +747,7 @@ namespace KK_SensibleH
                     var count = 0;
                     for (int i = 0; i < 3; i++)
                     {
+                        // Fake conditions for animation restarts of specific items.
                         if (_postfixTimers[i] < Time.time)
                         {
                             FakePostfix[i] = null;
@@ -717,7 +764,7 @@ namespace KK_SensibleH
             if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
                 //RangeTest();
-                SensibleH.Logger.LogDebug($"Hotkey[1] {Vector3.Distance(_eyes.position, VR.Camera.transform.position)} {Vector3.SqrMagnitude(_eyes.position - VR.Camera.transform.position)}");
+                //SensibleH.Logger.LogDebug($"Hotkey[1] {Vector3.Distance(_eyes.position, VR.Camera.transform.position)} {Vector3.SqrMagnitude(_eyes.position - VR.Camera.transform.position)}");
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
@@ -756,6 +803,7 @@ namespace KK_SensibleH
         private float SignedAngle(Vector3 from, Vector3 to, Vector3 axis)
         {
             // This one brings little to no benefit with current neck states of the kiss.
+            // After recent rework became a local detractor.
             float unsignedAngle = Vector3.Angle(from, to);
 
             float cross_x = from.y * to.z - from.z * to.y;
@@ -764,8 +812,13 @@ namespace KK_SensibleH
             float sign = Mathf.Sign(axis.x * cross_x + axis.y * cross_y + axis.z * cross_z);
             return unsignedAngle * sign;
         }
+        /// <summary>
+        /// Initiates automatic moving of items, looks what to patch.
+        /// </summary>
         private IEnumerator MoMiCo(bool skipWait = false)
         {
+            SensibleH.Logger.LogDebug($"MoMiCo[StartReason] item[{_handCtrl.actionUseItem != -1}] kiss[{_handCtrl.isKiss}]");
+            _moMiCo = true;
             if (!skipWait)
             {
                 _touchAnim = IsTouch;
@@ -786,7 +839,7 @@ namespace KK_SensibleH
             if (!kiss)
             {
                 SensibleH.Logger.LogDebug($"MoMiCo[PatchMoMi]");
-                _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchMoMi)));
+                _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrl)));
                 if (!_lickCo)
                 {
                     Utils.Sound.Play(SystemSE.ok_l);
@@ -794,11 +847,17 @@ namespace KK_SensibleH
                     {
                         UpdateDevices();
                         //SensibleH.Logger.LogDebug($"MoMiCo[PatchKoikatuVR]");
+                        //var vrPatch = 
+
+                        // 
                         _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchKoikatuVR)));
 
                         if (_device.GetPress(ButtonMask.Trigger))
                             yield return new WaitUntil(() => _device.GetPressUp(ButtonMask.Trigger));
+                        else if (_device1.GetPress(ButtonMask.Trigger))
+                            yield return new WaitUntil(() => _device1.GetPressUp(ButtonMask.Trigger));
                         _mousePressDown = true;
+                        //vrPatch.UnpatchSelf();
                     }
                     else
                     {
@@ -846,6 +905,9 @@ namespace KK_SensibleH
             }
             SensibleH.Logger.LogDebug($"MoMiCo[Finish]");
         }
+        /// <summary>
+        /// Moves attached items.
+        /// </summary>
         private IEnumerator ItemCo(bool kiss, int itemId)
         {
             SensibleH.Logger.LogDebug($"ItemCo[{itemId}][Online]");
@@ -896,17 +958,17 @@ namespace KK_SensibleH
                         var wait = 0f;
                         if (Random.value < 0.4f)
                         {
-                            _girlController[0].Reaction();
+                            _girlControllers[0].Reaction();
 
                             if (Random.value < 0.5f)
                             {
                                 //_girlController[0].PlayShort();
                                 wait = CaressAreaReaction(itemId);
-                                _girlController[0].LookAway();
+                                _girlControllers[0].LookAway();
                             }
                             else
                             {
-                                _girlController[0].LookAtPoI(5f);
+                                _girlControllers[0].LookAtPoI(5f);
                                 yield return new WaitForSeconds(0.15f);
                             }
                         }
@@ -929,7 +991,7 @@ namespace KK_SensibleH
                             if (Random.value < num / 2f)
                             {
                                 yield return new WaitForSeconds(0.4f);
-                                _girlController[0].Reaction();
+                                _girlControllers[0].Reaction();
                                 yield return new WaitForSeconds(0.15f);
                             }
                             else
@@ -1081,6 +1143,7 @@ namespace KK_SensibleH
             //    return area != HandCtrl.AibuColliderKind.kokan && area != HandCtrl.AibuColliderKind.anal;
             //}
         }
+
         private bool JudgeProc(int item, bool fakeIt = false)
         {
             // It's way too much trouble to keep "JudgeProc()" during lick/kiss action, especially given that the player will hardly see/like it at all.
@@ -1172,6 +1235,8 @@ namespace KK_SensibleH
         }
         private float CaressAreaReaction(int target)
         {
+            // Timings are crossbreed of aesthetic and breakability.
+            // Rarely falls off and Halt()s, but nothing breaks.
             if (IsTouch || _hFlag.mode != HFlag.EMode.aibu)
                 return 0f;
 
@@ -1220,7 +1285,7 @@ namespace KK_SensibleH
                         _postfixTimers[i] = suggestedTimer;
                 }
             }
-            _girlController[0].SquirtHandler();
+            _girlControllers[0].SquirtHandler();
             return waitTime;
         }
         

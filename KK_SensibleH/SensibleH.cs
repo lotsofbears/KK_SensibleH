@@ -10,15 +10,22 @@ using KK_SensibleH.Caress;
 using KKAPI.MainGame;
 using UnityEngine;
 using static KK_SensibleH.Caress.Kiss;
+using UniRx;
+using KKAPI;
+using KK_SensibleH.AutoMode;
 
 namespace KK_SensibleH
 {
     [BepInPlugin(GUID, "KK_SensibleH", Version)]
     [BepInProcess("Koikatu")]
-    [BepInDependency("marco.kkapi")]
-    [BepInDependency("mosirnik.kk-main-game-vr")]
-    [BepInDependency("MK.KK_BetterSquirt")] // TODO use unmodified version, without "forced" start.
-    [BepInDependency("KK_Fix_ResourceUnloadOptimizations")]
+    [BepInDependency(KoikatuAPI.GUID)]
+    [BepInDependency(KoikatuVR.VRPlugin.GUID)]
+    [BepInDependency("github.lunared.bepinex.unityinput")]
+    [BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in dependencies, no clue how to pass unknown enum type to the delegate.
+    [BepInDependency(IllusionFixes.ResourceUnloadOptimizations.GUID)]
+    // Breaks stuff sooner or later in KK, breaks from the start something serious in KKS (all in FreeH).
+    // In case of KK can be fixed by removing config, in KKS by removing plugin. 
+    //[BepInIncompatibility("keelhauled.freehdefaults")] 
     public class SensibleH : BaseUnityPlugin
     {
         public const string GUID = "kk.sensible.h";
@@ -30,15 +37,16 @@ namespace KK_SensibleH
         public static ConfigEntry<bool> AutoRestartAction { get; set; }
         public static ConfigEntry<bool> Edge { get; set; }
         public static ConfigEntry<bool> MomiMomi { get; set; }
+        public static ConfigEntry<bool> EyeNeckControl { get; set; }
         public static ConfigEntry<float> ActionFrequency { get; set; }
         public static ConfigEntry<float> EdgeFrequency { get; set; }
         public static ConfigEntry<float> NeckLimit { get; set; }
-        public static ConfigEntry<Kiss.FrenchType> FrenchKiss { get; set; }
+        public static ConfigEntry<FrenchType> FrenchKiss { get; set; }
         public static ConfigEntry<int> KissEyesLimit { get; set; }
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey { get; set; }
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey2 { get; set; }
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey3 { get; set; }
-        internal static List<GirlController> _girlController;
+        internal static List<GirlController> _girlControllers;
         internal static HandCtrl _handCtrl;
         internal static HandCtrl _handCtrl1;
         internal static HMotionEyeNeckFemale _eyeneckFemale;
@@ -48,19 +56,26 @@ namespace KK_SensibleH
         internal static ChaControl _chaControlM;
         internal static HVoiceCtrl _hVoiceCtrl;
         internal static HSprite _sprite;
-        public static bool MoveNeckGlobal;
-        public static int[] EyeNeckPtn = { -1, -1, -1 };
-        public static float BiasF;
-        public static float BiasM;
-        public static GameObject MalePoI;
-        public static GameObject[] FemalePoI;
-        public static bool OLoop;
-        public static AnimatorStateInfo sLoopInfo;
-        public static bool MoMiActive;
-        public static bool FirstTouch;
-        public static int CurrentMain;
-        public static Dictionary<string, int> LstHeroine;
-        public static int MaleOrgCount;
+        internal static bool MoveNeckGlobal;
+        internal static int[] EyeNeckPtn = { -1, -1, -1 };
+        internal static float BiasF;
+        internal static float BiasM;
+        internal static GameObject MalePoI;
+        internal static GameObject[] FemalePoI;
+        internal static bool OLoop;
+        internal static bool MoMiActive;
+        internal static bool FirstTouch;
+        internal static int CurrentMain;
+        internal static Dictionary<string, int> LstHeroine;
+        internal static int MaleOrgCount;
+        internal static bool SuppressVoice;
+        internal static bool OverrideSquirt;
+        //internal static bool BetterSquirtEnabled;
+        internal static bool[] IsNeckSet = new bool[2];
+        internal static float[] NeckChangeRate = { 1f, 1f };
+        private static AnimatorStateInfo sLoopInfo;
+        //internal delegate bool RunSquirt(bool softSE, FakeType trigger, bool sound, MonoBehaviour handCtrl, bool setTouchCooldown);
+        //internal static RunSquirt RunSquirtsDelegate;
         public enum AutoModeKind
         {
             Disabled,
@@ -71,6 +86,8 @@ namespace KK_SensibleH
         public enum AutoPosMode
         {
             Disabled,
+            OnlyService,
+            OnlyIntercourse,
             FemdomOnly,
             AllPositions
         }
@@ -95,7 +112,7 @@ namespace KK_SensibleH
                 );
             AutoPickPosition = Config.Bind(
                 section: "AutoMode",
-                key: "AutoPositionChange",
+                key: "PositionChange",
                 defaultValue: AutoPosMode.AllPositions,
                 "Allows auto change of positions after climax.\n" +
                 "Disabled - Waits for setting to change any moment.\n" +
@@ -105,7 +122,7 @@ namespace KK_SensibleH
                 );
             AutoRestartAction = Config.Bind(
                 section: "AutoMode",
-                key: "AutoRestart",
+                key: "Restart",
                 defaultValue: true,
                 "With  AutoPositionChange enabled, attempts to restart action after climax (and all the voices). If unsuccessful, changes position.\n" +
                 "With AutoPositionChange disabled,  restarts action after climax (and all the voices). \n" +
@@ -118,11 +135,12 @@ namespace KK_SensibleH
                 key: "Edge",
                 defaultValue: true,
                 "Allows one of the partners to pull out/stop for a moment " +
-                "for whatever reason it may be. Available in Service/Intercourse."
+                "for whatever reason it may be. Available in Service/Intercourse.\n" +
+                "Requires enabled AutoMode."
                 );
             ActionFrequency = Config.Bind(
                 section: "AutoMode",
-                key: "ActionFrequency",
+                key: "ChangeFrequency",
                 defaultValue: 1f,
                 new ConfigDescription("Frequency of manipulations in AutoMode.\n" +
                 "Lesser value -> smaller pause between actions.",
@@ -143,7 +161,13 @@ namespace KK_SensibleH
                 new ConfigDescription("Adjust the limits of neck movements, 1.0 being the default value.\n" +
                 "Changes take place on scene reload or new position.",
                 new AcceptableValueRange<float>(0.5f, 1.5f))
-                ); 
+                );
+            EyeNeckControl = Config.Bind(
+                section: "Tweaks",
+                key: "EyeNeckControl",
+                defaultValue: true,
+                "Allow plugin to introduce alternative control of eyes and neck."
+                );
             FrenchKiss = Config.Bind(
                 section: "Caress",
                 key: "KissType",
@@ -155,7 +179,7 @@ namespace KK_SensibleH
                 );
             KissEyesLimit = Config.Bind(
                 section: "Caress",
-                key: "EyesOpenness",
+                key: "KissEyes",
             defaultValue: 50,
             new ConfigDescription("Maximum openness of eyes and eyelids during kissing.\n" +
             "Set to 0 to keep eyes closed during kiss",
@@ -335,10 +359,13 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.VoiceProc))]
             public static void PrefixVoiceProc(HVoiceCtrl __instance, int _main)
             {
-                if (__instance.flags.voice.playVoices[_main] != -1 && _hFlag != null)// && __instance.nowVoices[_main].state != HVoiceCtrl.VoiceKind.voice)
+                if (_hFlag != null && __instance.flags.voice.playVoices[_main] != -1)// && __instance.nowVoices[_main].state != HVoiceCtrl.VoiceKind.voice)
                 {
-                    if (_frenchKiss || _kissPhase == Phase.Disengaging)
+                    if (SuppressVoice)
+                    {
+                        _girlControllers[_main]._lastVoice = __instance.flags.voice.playVoices[_main];
                         __instance.flags.voice.playVoices[_main] = -1;
+                    }
                     else
                         SensibleHController.Instance.DoVoiceProc(_main);
                     //_voiceController.NicknamePlay();
@@ -363,7 +390,7 @@ namespace KK_SensibleH
                     _addPoint = _addPoint * 0.25f * BiasM;
             }
             /// <summary>
-            /// We override basic neck with our pick, somewhere down the line we need to change the "_tag" too.
+            /// We override basic neck with our pick, then in case of custom eyeCam we alter "_tag" of "SetNeckTarget()" too.
             /// </summary>
             [HarmonyPrefix]
             [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetEyeNeckPtn))]
@@ -371,27 +398,147 @@ namespace KK_SensibleH
             {
                 if (MoveNeckGlobal && __instance.chara.sex == 1)
                 {
-                    for (var i = 0; i < _chaControl.Count; ++i)
+                    //SensibleH.Logger.LogDebug($"SetEyeNeckPtn");
+                    if (__instance.chara == _chaControl[0])
                     {
-                        if (__instance.chara == _chaControl[i])
-                        {
-                            _id = EyeNeckPtn[i];
-                            if (FemalePoI[i] != null)
-                                _objCamera = FemalePoI[i];
-                        }
+                        _id = EyeNeckPtn[0];
+                        //if (FemalePoI[0] != null)
+                        //    _objCamera = FemalePoI[0];
+                    }
+                    else
+                    {
+                        _id = EyeNeckPtn[1];
+                        //if (FemalePoI[1] != null)
+                        //    _objCamera = FemalePoI[1];
                     }
                 }
-                if (__instance.chara.sex == 0 && _chaControlM != null && _chaControlM.visibleAll)
-                {
-                    _id = EyeNeckPtn[2];
-                    if (MalePoI != null)
-                        _objCamera = MalePoI;
-                }
+                //if (__instance.chara.sex == 0 && _chaControlM != null && _chaControlM.visibleAll)
+                //{
+                //    _id = EyeNeckPtn[2];
+                //    if (MalePoI != null)
+                //        _objCamera = MalePoI;
+                //}
                 //__instance.chara.ChangeEyebrowOpenMax
                 //__instance.chara.ChangeLookNeckTarget(0, __instance.objKokan.transform, 0.5f, 0f, 1f, 0.8f);
 
             }
+            /// <summary>
+            /// 
+            /// </summary>
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetNeckTarget))]
+            public static bool SetNeckTargetPrefix(ref int _tag, float _rate, ref GameObject _objCamera, bool _isConfigDisregard, HMotionEyeNeckMale __instance)
+            {
+                //SensibleH.Logger.LogDebug($"SetNeckTarget[{_tag}][{_rate}] [{__instance.gameObject.name}]");
+                if (MoveNeckGlobal && __instance.chara.sex == 1)
+                {
+                    //SensibleH.Logger.LogDebug($"SetNeckTarget");
+                    if (__instance.chara == _chaControl[0])
+                    {
+                        if (!IsNeckSet[0])
+                        {
+                            if (FemalePoI[0] != null)
+                            {
+                                _objCamera = FemalePoI[0];
+                                _tag = 0;
+                            }
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                    else
+                    {
+                        if (!IsNeckSet[0])
+                        {
+                            if (FemalePoI[0] != null)
+                            {
+                                _objCamera = FemalePoI[0];
+                                _tag = 0;
+                            }
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                }
+                return true;
+                //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
+                //{
+                //    _tag = 0;
+                //}
 
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckTarget))]
+            public static bool ChangeLookNeckTargetPrefix(ChaControl __instance)
+            {
+                if (MoveNeckGlobal && __instance.sex == 1)
+                {
+                    SensibleH.Logger.LogDebug($"ChangeLookNeckTarget");
+                    if (__instance == _chaControl[0])
+                    {
+                        if (!IsNeckSet[0])
+                        {
+                            IsNeckSet[0] = true;
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                    else
+                    {
+                        if (!IsNeckSet[1])
+                        {
+                            IsNeckSet[1] = true;
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                }
+                return true;
+                //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
+                //{
+                //    _tag = 0;
+                //}
+
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckPtn))]
+            public static bool ChangeLookNeckPtnPrefix(int ptn, ref float rate, ChaControl __instance)
+            {
+                if (MoveNeckGlobal && __instance.sex == 1)
+                {
+                    //SensibleH.Logger.LogDebug($"ChangeLookNeckPtn");
+                    if (__instance == _chaControl[0])
+                    {
+                        if (!IsNeckSet[0])
+                        {
+                            rate = NeckChangeRate[0]; 
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                    else
+                    {
+                        if (!IsNeckSet[1])
+                        {
+                            rate = NeckChangeRate[1];
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                }
+                return true;
+                //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
+                //{
+                //    _tag = 0;
+                //}
+
+            }
             //[HarmonyPostfix]
             //[HarmonyPatch(typeof(FaceListCtrl), nameof(FaceListCtrl.SetFace))]
             //public static void AlterSetFace(int _idFace, ChaControl _chara, int _voiceKind, int _action)
@@ -401,7 +548,7 @@ namespace KK_SensibleH
             //}
 
             /// <summary>
-            /// TODO do it with transpiler.
+            /// TODO replace this with transpiler.
             /// We run voiceProcs for caress actions in non-Aibu modes.
             /// </summary>
             [HarmonyPrefix]
@@ -514,124 +661,7 @@ namespace KK_SensibleH
                     __instance.voice.nowVoices[__instance.numFemale].notOverWrite = false;
                 }
             }
-            /// <summary>
-            /// Obsolete by transpiler.
-            /// We run voiceProcs for caress actions in non-Aibu modes.
-            /// </summary>
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
-            //public static void DragActionPrefix(HandCtrl __instance)
-            //{
-            //    if ((__instance.flags.mode == HFlag.EMode.houshi || __instance.flags.mode == HFlag.EMode.sonyu) &&
-            //        (__instance.voicePlayActionMoveOld > (__instance.voicePlayActionMove + __instance.calcDragLength.magnitude) % (float)__instance.voicePlayActionLoop) &&
-            //        __instance.voice.nowVoices[__instance.numFemale].state != HVoiceCtrl.VoiceKind.voice)
-            //    {
-            //        __instance.voicePlayActionMove = 0f;
-            //        __instance.voicePlayActionMoveOld = 0f;
-            //        __instance.voicePlayActionLoop = UnityEngine.Random.Range(1000, 1500);
-            //        int[] array = new int[]
-            //        {
-            //            0,
-            //            1,
-            //            1,
-            //            2,
-            //            3,
-            //            4,
-            //            4
-            //        };
-            //        int num = 0;
-            //        if (__instance.actionUseItem != -1)
-            //        {
-            //            num = __instance.useItems[__instance.actionUseItem].kindTouch - HandCtrl.AibuColliderKind.mouth;
-            //        }
-            //        int[,] array3 = new int[,]
-            //        {
-            //            {
-            //                -1,
-            //                112,
-            //                114,
-            //                116,
-            //                118,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                124,
-            //                120,
-            //                122,
-            //                -1,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                132,
-            //                126,
-            //                128,
-            //                130,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                138,
-            //                134,
-            //                -1,
-            //                136,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                -1,
-            //                140,
-            //                -1,
-            //                -1,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1
-            //            },
-            //            {
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1,
-            //                -1
-            //            }
-            //        };
-            //        __instance.flags.voice.playVoices[__instance.numFemale] = array3[__instance.useItems[__instance.actionUseItem].idObj, array[num]];
-            //        __instance.isClickDragVoice = true;
-            //        __instance.voice.nowVoices[__instance.numFemale].notOverWrite = false;
-            //    }
-            //}
+            
             /// <summary>
             /// We disable (half the time) override of a voice with the short by HitReactionPlay().
             /// Otherwise happens way too often in non-Aibu modes during caress.
@@ -643,24 +673,6 @@ namespace KK_SensibleH
                 if (__instance.actionUseItem != -1 && __instance.voice.nowVoices[__instance.numFemale].state == HVoiceCtrl.VoiceKind.voice && UnityEngine.Random.value < 0.5f)
                     _playShort = false;
                 LoopController.Instance.OnUserInput();
-            }
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetNeckTarget))]
-            public static void SetNeckTargetPrefix(ref int _tag, float _rate, GameObject _objCamera, bool _isConfigDisregard, HMotionEyeNeckMale __instance)
-            {
-                if (MoveNeckGlobal && _tag != 0 && __instance.chara.sex == 1)
-                {
-                    for (var i = 0; i < _chaControl.Count; ++i)
-                    {
-                        if (__instance.chara == _chaControl[i] && FemalePoI[i] != null)
-                            _tag = 0;
-                    }
-                }
-                //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
-                //{
-                //    _tag = 0;
-                //}
-
             }
             /// <summary>
             /// We run voiceProc for first item attached.

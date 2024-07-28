@@ -13,7 +13,7 @@ using NodeCanvas.Tasks.Actions;
 
 namespace KK_SensibleH.Patches.DynamicPatches
 {
-    class PatchMoMi
+    class PatchHandCtrl
     {
         public static bool GetMouseButtonUp(int button) => false;
         public static bool GetMouseButton(int button) => true;
@@ -35,7 +35,7 @@ namespace KK_SensibleH.Patches.DynamicPatches
                 {
                     first = true;
                     //SensibleH.Logger.LogDebug($"ClickActionTranspiler[Found][First][{code.opcode}][{code.operand}]");
-                    var newMethod = AccessTools.Method(typeof(PatchMoMi), nameof(GetMouseButtonUp)); // "GetMouseButtonUp");
+                    var newMethod = AccessTools.Method(typeof(PatchHandCtrl), nameof(GetMouseButtonUp)); // "GetMouseButtonUp");
                     yield return new CodeInstruction(OpCodes.Call, newMethod);
                 }
                 //else if (breaks == 12 && second < 3)
@@ -94,7 +94,7 @@ namespace KK_SensibleH.Patches.DynamicPatches
                 {
                     second++;
                     //SensibleH.Logger.LogDebug($"DragActionTranspiler[Found][Second][{second}]");
-                    code[i].operand = AccessTools.Method(typeof(PatchMoMi), nameof(GetMouseButton));// "GetMouseButton");
+                    code[i].operand = AccessTools.Method(typeof(PatchHandCtrl), nameof(GetMouseButton));// "GetMouseButton");
                     if (second == 2)
                         break;
                 }

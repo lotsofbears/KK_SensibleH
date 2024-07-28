@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
-namespace KK_SensibleH.Patches.DynamicPatches
+namespace KK_SensibleH.EyeNeckControl
 {
-    internal class PatchLickCo
+    internal class EyeNeckController
     {
     }
 }

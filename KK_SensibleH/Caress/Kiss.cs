@@ -142,8 +142,7 @@ namespace KK_SensibleH.Caress
                 {
                     var name = skinnedMeshRenderer.sharedMesh.GetBlendShapeName(j);
                     if (_blendValuesEndsWith.Any(s => name.EndsWith(s, StringComparison.Ordinal))
-                        || _blendValuesEquals.Contains(name)
-                        || name.StartsWith(_blendValueStartsWith))
+                        || name.StartsWith(_blendValueStartsWith, StringComparison.Ordinal)) // _blendValuesEquals.Contains(name)
 
                     {
                         //SensibleH.Logger.LogDebug($"Cyu[ReloadBlendValues][ChosenMesh] {skinnedMeshRenderer.sharedMesh.GetBlendShapeName(j)}");
@@ -173,7 +172,10 @@ namespace KK_SensibleH.Caress
             {
                 if (FrenchKiss.Value == FrenchType.Always || (FrenchKiss.Value == FrenchType.Auto
                     && Random.value < 0.7f && (_hFlag.gaugeFemale > 70f || _hFlag.lstHeroine[0].HExperience > SaveData.Heroine.HExperienceKind.不慣れ)))
+                {
                     _frenchKiss = true;
+                    SuppressVoice = true;
+                }
                 else
                     _frenchKiss = false;
 
@@ -284,22 +286,25 @@ namespace KK_SensibleH.Caress
                 }
                 yield return null;
             }
+            _girlControllers[0].SupressVoice();
             _kissPhase = Phase.Disengaging;
             SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_kissCo}");
             if (!_frenchKiss)
             {
+                SuppressVoice = true;
                 if (_hVoiceCtrl.nowVoices[0].state == HVoiceCtrl.VoiceKind.voice)
                     Manager.Voice.Instance.Stop(_hFlag.transVoiceMouth[0]);
                 _female.ChangeMouthPtn(0);
                 // 23 - kiss
             }
+
             changeRate = Random.Range(15f, 30f); //Mathf.Max(25f, Mathf.Abs(changeRate));
             while (true)
             {
                 var frameChange = Time.deltaTime * changeRate;
                 curMouthValue = Mathf.Clamp(curMouthValue - (frameChange * 1.5f), 0f, 100f);
                 curKissValue = Mathf.Clamp(curKissValue - (frameChange * 1.25f), 0f, 100f);
-                curEyeValue = Mathf.Clamp(curEyeValue + (frameChange * (curMouthValue == 0f ? 1f + _eyesOpenness : 1f)), 0f, 100f);
+                curEyeValue = Mathf.Clamp(curEyeValue + (frameChange * (curMouthValue < 25f ? 1f + _eyesOpenness : 1f)), 0f, 100f);
                 _eyesOpenness = curEyeValue * 0.01f;
                 AnimateEyes();
                 if (curEyeValue == 100f)
@@ -321,6 +326,7 @@ namespace KK_SensibleH.Caress
                 _activePatch = null;
                 _frenchKiss = false;
             }
+            SuppressVoice = false;
             curEyeValue = 100f;
             _eyesOpenness = 1f; 
             curMouthValue = 0f;
@@ -344,7 +350,6 @@ namespace KK_SensibleH.Caress
         }
         public void SetBlendShapeWeight()
         {
-            // TODO grab original strings and place better(probably) methods of comparison.
             foreach (var blendValue in bvs)
             {
                 if (blendValue.active)
@@ -372,7 +377,7 @@ namespace KK_SensibleH.Caress
                     {
                         blendValue.value = curMouthValue * nnKutiOpenWeight;
                     }
-                    if (kissAction && blendValue.name.Equals("kuti_ha.ha00_name02_op"))
+                    else if (kissAction && blendValue.name.Equals("kuti_ha.ha00_name02_op"))
                     {
                         blendValue.value = curMouthValue * (1f - nnKutiOpenWeight);
                     }
@@ -391,9 +396,7 @@ namespace KK_SensibleH.Caress
 
         public void LateUpdateHook()
         {
-            if (!kissAction)
-                return;
-            if (_frenchKiss)
+            if (kissAction && _frenchKiss)
             {
                 // It does indeed wants to be after the late update.
                 SetBlendShapeWeight();
@@ -405,7 +408,7 @@ namespace KK_SensibleH.Caress
         }
         private void AnimateEyes()
         {
-            // We change "ChangeEye..()" with patch, here we only call it (because nobody else wants to).
+            // We patch "ChangeEye..()", here we only call it (because nobody else wants to).
             _female.ChangeEyesOpenMax(1);
             _female.ChangeEyebrowOpenMax(1);
         }

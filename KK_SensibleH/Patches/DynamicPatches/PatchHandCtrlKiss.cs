@@ -12,7 +12,7 @@ namespace KK_SensibleH.Patches.DynamicPatches
     /// <summary>
     /// We substitute vector of the mouse movements to the fake one.
     /// </summary>
-    class PatchKiss
+    class PatchHandCtrlKiss
     {
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
         public static IEnumerable<CodeInstruction> DragActionTranspiler(IEnumerable<CodeInstruction> instructions)

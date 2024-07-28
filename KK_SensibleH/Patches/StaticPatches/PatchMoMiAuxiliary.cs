@@ -1,7 +1,10 @@
 ﻿using HarmonyLib;
+using KK_BetterSquirt;
+using KK_SensibleH.AutoMode;
 using KK_SensibleH.Caress;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 
@@ -102,7 +105,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             else if (stateName.Equals("Idle"))
             {
-                if (LoopParameters.IsHoushi)
+                if (LoopProperties.IsHoushi)
                     transitionDuration = UnityEngine.Random.Range(0.5f, 1f);
                 else
                     transitionDuration = UnityEngine.Random.Range(1.5f, 2.5f);
@@ -121,5 +124,17 @@ namespace KK_SensibleH.Patches.StaticPatches
                 Kiss.Instance.LateUpdateHook();
             }
         }
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BetterSquirtController), "TouchChanceCalc")]
+        public static bool TouchChanceCalcPrefix(ref bool __result)
+        {
+            if (SensibleH.OverrideSquirt)
+            {
+                __result = true;
+                return false;
+            }
+            return true;
+        }
+
     }
 }

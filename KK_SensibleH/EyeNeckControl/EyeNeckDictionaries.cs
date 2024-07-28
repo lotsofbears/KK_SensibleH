@@ -1,10 +1,13 @@
-﻿using System;
+﻿using ADV.Commands.Chara;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 using static KK_SensibleH.GirlController;
+using Random = UnityEngine.Random;
 
-namespace KK_SensibleH.Resources
+namespace KK_SensibleH.EyeNeckControl
 {
     public struct EyeNeckDictionaries
     {
@@ -50,7 +53,35 @@ namespace KK_SensibleH.Resources
             {15, DirectionEye.PoiUp},
             {16, DirectionEye.PoiRollAway}
         };
-        public static Dictionary<int, DirectionEye> NewEyeDirections = new Dictionary<int, DirectionEye>()
+        public static Dictionary<DirectionEye, Vector3> FixNeckEyeCamDic = new Dictionary<DirectionEye, Vector3>()
+        {
+        // -x = right
+        // +y = up
+            {DirectionEye.DownDownMid, new Vector3(-0.15f + Random.value * 0.3f, -0.1f - Random.value * 0.2f)},
+            {DirectionEye.UpMid, new Vector3(-0.15f + Random.value * 0.3f, 0.1f + Random.value * 0.2f)},
+            {DirectionEye.UpRight, new Vector3(-0.1f - Random.value * 0.2f, 0.1f + Random.value * 0.2f)},
+            {DirectionEye.MidRight, new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.DownRight, new Vector3(-0.1f - Random.value * 0.2f, -0.1f - Random.value * 0.2f)},
+            {DirectionEye.DownMid, new Vector3(-0.15f + Random.value * 0.3f, -0.1f - Random.value * 0.2f)},
+            {DirectionEye.DownLeft, new Vector3(0.1f + Random.value * 0.2f, -0.1f - Random.value * 0.2f)},
+            {DirectionEye.MidLeft, new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.UpLeft, new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f)}
+        };
+        public static Dictionary<DirectionEye, Vector3> FixNeckPoiCamDic = new Dictionary<DirectionEye, Vector3>()
+        {
+        // +x = up
+        // -y = right
+            {DirectionEye.DownDownMid, new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.UpMid, new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.UpRight, new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.MidRight, new Vector3(-0.15f + Random.value * 0.3f, -0.1f - Random.value * 0.2f)},
+            {DirectionEye.DownRight, new Vector3(-0.1f - Random.value * 0.2f, -0.1f - Random.value * 0.2f)},
+            {DirectionEye.DownMid, new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.DownLeft, new Vector3(-0.1f - Random.value * 0.2f, -0.1f - Random.value * 0.2f)},
+            {DirectionEye.MidLeft, new Vector3(-0.15f + Random.value * 0.3f, 0.1f + Random.value * 0.2f)},
+            {DirectionEye.UpLeft, new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f)}
+        };
+        public static Dictionary<int, DirectionEye> EyeDirForNeckFollow = new Dictionary<int, DirectionEye>()
         {
             {0, DirectionEye.Cam},
             {5, DirectionEye.UpRight},
@@ -69,15 +100,15 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.MidLeft,
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
-                    DirectionNeck.Pose,
+                    //DirectionNeck.Pose,
                     DirectionNeck.Cam
                 }
             },
             {
                 DirectionNeck.MidRight,
                 new List<DirectionNeck> {
-                    DirectionNeck.Mid,
-                    DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
                     DirectionNeck.DownRight,
                     DirectionNeck.Cam
                 }
@@ -85,8 +116,8 @@ namespace KK_SensibleH.Resources
             {
                 DirectionNeck.MidLeft,
                 new List<DirectionNeck> {
-                    DirectionNeck.Mid,
-                    DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.Cam
                 }
@@ -94,16 +125,16 @@ namespace KK_SensibleH.Resources
             {
                 DirectionNeck.DownMid,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Cam
                 }
             },
             {
                 DirectionNeck.DownDownLeft,
                 new List<DirectionNeck> {
-                    DirectionNeck.Mid,
-                    DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
                     DirectionNeck.MidLeft,
                     DirectionNeck.Cam
                 }
@@ -111,8 +142,8 @@ namespace KK_SensibleH.Resources
             {
                 DirectionNeck.DownRight,
                 new List<DirectionNeck> {
-                    DirectionNeck.Mid,
-                    DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
                     DirectionNeck.MidRight,
                     DirectionNeck.Cam
                 }
@@ -124,15 +155,15 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.MidLeft,
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Cam
                 }
             },
             {
                 DirectionNeck.Cam,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
                     DirectionNeck.MidRight,
                     DirectionNeck.MidLeft
                 }
@@ -140,32 +171,32 @@ namespace KK_SensibleH.Resources
             {
                 DirectionNeck.UpMid,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Cam
                 }
             },
             {
                 DirectionNeck.UpRight,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Cam
                 }
             },
             {
                 DirectionNeck.UpLeft,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Cam
                 }
             },
             {
                 DirectionNeck.Away,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Pose,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Cam
                 }
             },
@@ -173,7 +204,7 @@ namespace KK_SensibleH.Resources
                 DirectionNeck.UpRightFar,
                 new List<DirectionNeck> {
                     DirectionNeck.Pose,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Cam
                 }
             }
@@ -265,7 +296,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.Pose,
                     DirectionNeck.Mid,
                     DirectionNeck.Cam,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.MidLeft,
                     DirectionNeck.MidRight
                 }
@@ -296,9 +327,9 @@ namespace KK_SensibleH.Resources
                 }
             },
             {
-                DirectionNeck.MidRight, // looks funny
+                DirectionNeck.MidRight, // looks off
                 new List<DirectionNeck> {
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.MidLeft,
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
@@ -312,7 +343,7 @@ namespace KK_SensibleH.Resources
                 DirectionNeck.MidLeft,
                 new List<DirectionNeck> {
                     DirectionNeck.MidRight,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
                     DirectionNeck.Pose,
@@ -330,7 +361,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownRight,
                     DirectionNeck.Pose,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpRight,
                     DirectionNeck.UpLeft,
                 }
@@ -343,7 +374,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownRight,
                     DirectionNeck.Pose,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpRight,
                     DirectionNeck.UpLeft,
                 }
@@ -356,7 +387,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.Pose,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpRight,
                     DirectionNeck.UpLeft,
                 }
@@ -369,7 +400,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpRight,
                     DirectionNeck.UpLeft,
                 }
@@ -382,7 +413,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpRight,
                     DirectionNeck.UpLeft,
                     DirectionNeck.Pose
@@ -395,7 +426,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.MidLeft,
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Pose,
                     DirectionNeck.UpLeft,
                     DirectionNeck.UpRight
@@ -409,7 +440,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpRight,
                     DirectionNeck.Pose
                 }
@@ -422,7 +453,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpLeft,
                     DirectionNeck.Pose
                 }
@@ -433,7 +464,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.MidRight,
                     DirectionNeck.DownRight,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.Pose
                 }
             },
@@ -445,7 +476,7 @@ namespace KK_SensibleH.Resources
                     DirectionNeck.DownDownLeft,
                     DirectionNeck.DownRight,
                     DirectionNeck.UpMid,
-                    DirectionNeck.Mid,
+                    //DirectionNeck.Mid,
                     DirectionNeck.UpLeft,
                     DirectionNeck.Pose
                 }
@@ -663,6 +694,9 @@ namespace KK_SensibleH.Resources
         };
         public static Dictionary<string, List<string>> DontMoveNeckSpecialCases = new Dictionary<string, List<string>>()
         {
+            // Key - animationId in question
+            // Value - First letter of animation
+            //     A for A_Touch/A_Loop, and so on. 
             {
                 "kha_f_02",
                 new List<string> {

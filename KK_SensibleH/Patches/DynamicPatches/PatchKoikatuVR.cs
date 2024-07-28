@@ -15,17 +15,24 @@ namespace KK_SensibleH.Patches.DynamicPatches
         /// <summary>
         /// We remove synthetic mouse up click that is being fed directly to "HandCtrl".
         /// </summary>
-        [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrlHooks), nameof(HandCtrlHooks.InjectMouseButtonUp))]
-        public static IEnumerable<CodeInstruction> RemoveInjectMouseButtonUp(IEnumerable<CodeInstruction> instructions)
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(HandCtrlHooks), nameof(HandCtrlHooks.InjectMouseButtonUp))]
+        public static bool InjectMouseButtonUpPrefix()
         {
-            foreach (var code in instructions)
-            {
-                if (code.opcode != OpCodes.Ret)
-                    yield return new CodeInstruction(OpCodes.Nop);
-                else
-                    yield return code;
-            }
+            return false;
         }
+        //[HarmonyTranspiler, HarmonyPatch(typeof(HandCtrlHooks), nameof(HandCtrlHooks.InjectMouseButtonUp))]
+        //public static IEnumerable<CodeInstruction> RemoveInjectMouseButtonUp(IEnumerable<CodeInstruction> instructions)
+        //{
+        //    foreach (var code in instructions)
+        //    {
+        //        if (code.opcode != OpCodes.Ret)
+        //            yield return new CodeInstruction(OpCodes.Nop);
+        //        else
+        //            yield return code;
+        //    }
+        //}
         //[HarmonyTranspiler, HarmonyPatch(typeof(HandCtrlHooks), nameof(HandCtrlHooks.InjectMouseButtonDown))]
         //public static IEnumerable<CodeInstruction> RemoveInjectMouseButtonDown(IEnumerable<CodeInstruction> instructions)
         //{

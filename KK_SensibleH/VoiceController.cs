@@ -20,22 +20,48 @@ namespace KK_SensibleH
         private ChaControl _chara;
         private HVoiceCtrl.Voice _voice;
         private int _main = 0;
-        private bool _recentCall;
+        private bool _recentVoiceProc;
         private bool IsNicknameAvailable;
+        private int _lastVoice;
+        //private string _lastVoiceId;
         private bool IsVoiceActive => _voice.state == HVoiceCtrl.VoiceKind.voice;
 
         internal void Initialize(int main)
         {
             _main = main;
-            _heroine = _hFlag.lstHeroine[_main];
+            _heroine = _hFlag.lstHeroine[main];
             IsNicknameAvailable = _heroine.isNickNameEvent || _hFlag.isFreeH;
-            _voice = _hVoiceCtrl.nowVoices[_main];
-            _chara = _chaControl[_main];
+            _voice = _hVoiceCtrl.nowVoices[main];
+            _chara = _chaControl[main];
+            _girlController = _girlControllers[main];
+        }
+        public void OnVoiceProc()
+        {
+            SensibleH.Logger.LogDebug("OnVoiceProc");
+            var id = _hFlag.voice.playVoices[_main];
+            if (id == _lastVoice)
+            {
+                return;
+            }
+            else
+            {
+                SensibleH.Logger.LogDebug("OnVoiceProc");
+                _girlController._lastVoice = id;
+                //_lastVoiceId = _voice.voiceInfo.nameFile;
+                _recentVoiceProc = true;
+
+                if (SensibleH.EyeNeckControl.Value)
+                    _girlController.OnVoiceProc();
+            }
         }
         internal void Proc()
         {
-            if (_recentCall && !IsVoiceActive)
-                _recentCall = false;
+            // TODO Leave only "nickname instead of voice", only in aibu idle probably (and re-integrate it).
+            if (_recentVoiceProc && !IsVoiceActive)
+            {
+                _recentVoiceProc = false;
+                _lastVoice = -1;
+            }
         }
         private IEnumerator PlayBeforeVoice(int pattern)
         {
@@ -170,10 +196,9 @@ namespace KK_SensibleH
         }
         public bool SayNickname()
         {
-            if (!IsNicknameAvailable || _recentCall || IsVoiceActive)
+            if (!IsNicknameAvailable || IsVoiceActive)
                 return false;
             
-            _recentCall = true;
             if (Random.value < 0.9f)
                 return false;
 

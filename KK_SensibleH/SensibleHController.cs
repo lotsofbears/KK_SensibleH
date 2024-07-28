@@ -16,12 +16,19 @@ using Manager;
 using static SaveData;
 using ActionGame.Chara;
 using KK_SensibleH.Patches.StaticPatches;
+using KK_SensibleH.AutoMode;
 using KoikatuVR;
 using static IllusionFixes.ResourceUnloadOptimizations;
 using IllusionFixes;
+using System.Reflection;
 
 namespace KK_SensibleH
 {
+    /// <summary>
+    /// Bugs:
+    /// Cyu
+    /// Kiss SFX reappeared on disengage phase of the kiss.
+    /// </summary>
     public class SensibleHController : GameCustomFunctionController
     {
         public static SensibleHController Instance;
@@ -35,7 +42,7 @@ namespace KK_SensibleH
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
         private readonly int[] _clothes = { 1, 3, 5, 7, 8 };
         private bool _hEnd;
-        private bool _vr;
+        internal bool _vr;
         private Scene _scene;
         private bool _patched;
         private bool IsConfigScene => _scene.AddSceneName.StartsWith("Con", StringComparison.Ordinal);
@@ -66,12 +73,16 @@ namespace KK_SensibleH
         //{
         //    _sphere.transform.localPosition = Vector3.zero;
         //}
-
+        private Transform _testform;
+        private Transform _eyes;
         private void Update()
         {
+            if (_testform != null && _handCtrl.isKiss)
+            {
+                //SensibleH.Logger.LogDebug($"{vec.position.x} {vec.position.y} {vec.position.z}");
+            }
             if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
             {
-                _handCtrl.selectKindTouch = HandCtrl.AibuColliderKind.muneL;
                 //SensibleH.Logger.LogDebug($"Hotkey[1] {_scene.AddSceneName.StartsWith("Con") || _scene.AddSceneName.StartsWith("HPo")}");
             }
             else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
@@ -232,16 +243,19 @@ namespace KK_SensibleH
                 ResourceUnloadOptimizations.DisableUnload.Value = false;
             }
         }
+
+        //BetterSquirtController.RunSquirts(softSE: true, trigger: BetterSquirt.TriggerType.Touch, handCtrl: main == 0 ? _handCtrl : _handCtrl1);
         private void Start()
         {
             SensibleH.Logger.LogDebug($"Start");
             Instance = this;
             //_vrPov = POV.Instance != null;
-            
         }
         protected override void OnStartH(MonoBehaviour proc, HFlag hFlag, bool vr)
         {
             SensibleH.Logger.LogDebug($"OnStartH");
+
+            // Can't check/patch this on Awake/Start, too early to grab setting.
             _vr = UnityEngine.VR.VRSettings.enabled;
             if (!_patched)
             {
@@ -261,6 +275,8 @@ namespace KK_SensibleH
                 // The easies way to disable stutters in H when you have 20gb of free RAM.
                 // Does it look at VRAM too? Couldn't find it, and not much can be done about it in VR anyway.
                 // With this and the patch, there is no more stutters on kiss.
+                // And people who actually needs this in VR H scene.. I HIGLY doubt there are any.
+                // Once H ends we re-enable it.
                 ResourceUnloadOptimizations.DisableUnload.Value = true;
             }
             _scene = Scene.Instance;
@@ -273,6 +289,7 @@ namespace KK_SensibleH
             var colliderPlane = CommonLib.LoadAsset<GameObject>($"studio/pine_effect.unity3d", "ColliderPlane", clone: true);
             colliderPlane.GetComponent<Renderer>().enabled = false;
             colliderPlane.transform.position = new Vector3(0f, 0.1f, 0f);
+
             _chaControl = Traverse.Create(proc).Field("lstFemale").GetValue<List<ChaControl>>();
             _chaControlM = Traverse.Create(proc).Field("male").GetValue<ChaControl>();
             _hFlag = hFlag;
@@ -280,39 +297,43 @@ namespace KK_SensibleH
                 LstHeroine = new Dictionary<string, int>();
             _eyeneckFemale = Traverse.Create(proc).Field("eyeneckFemale").GetValue<HMotionEyeNeckFemale>();
             _eyeneckFemale1 = Traverse.Create(proc).Field("eyeneckFemale1").GetValue<HMotionEyeNeckFemale>();
-            _girlController = new List<GirlController>(_chaControl.Count);
-            _voiceControllers = new List<VoiceController>();
-            FemalePoI = new GameObject[_chaControl.Count];
+            var charaCount = _chaControl.Count;
+            _girlControllers = new List<GirlController>(charaCount);
+            _voiceControllers = new List<VoiceController>(charaCount);
+            FemalePoI = new GameObject[charaCount];
 
             _moMiController = this.gameObject.AddComponent<MoMiController>();
             _maleController = this.gameObject.AddComponent<MaleController>();
             _loopController = this.gameObject.AddComponent<LoopController>();
             _loopController.Initialize(proc);
-            for (int i = 0; i < _chaControl.Count; i++)
+            for (int i = 0; i < charaCount; i++)
             {
                 _heroineList.Add(hFlag.lstHeroine[0]);
                 var heroine = this.gameObject.AddComponent<GirlController>();
-                var voice = this.gameObject.AddComponent<VoiceController>();
                 heroine.Initialize(i, _loopController.GetFamiliarity(i));
+                _girlControllers.Add(heroine);
+                var voice = this.gameObject.AddComponent<VoiceController>();
                 voice.Initialize(i);
-                _girlController.Add(heroine);
                 _voiceControllers.Add(voice);
             }
             foreach (var num in _clothes)
                 _chaControlM.SetClothesStateNext(num);
 
+            // Gameplay Enhancements by ManlyMarco attempts to change this too, but the value changed is irrelevant in practice.
+            if (_hFlag.isInsertOK[0])
+                _hFlag.isInsertOK[0] = Random.value < 0.75f;
+            if (_hFlag.isAnalInsertOK)
+                _hFlag.isAnalInsertOK = Random.value < 0.75f;
+
             StartCoroutine(OnceInAwhile());
 
+            _eyes = _chaControl[0].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
+            _testform = _chaControl[0].transform.parent.Find("CameraBase/Camera");
             //var kokan = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cf_j_kokan/a_n_kokan");
             //kokan.SetParent(_chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan"), true);
         }
         private IEnumerator OnceInAwhile()
         {
-            //yield return new WaitUntil(() => _hFlag != null);
-            if (_hFlag.isInsertOK[0])
-                _hFlag.isInsertOK[0] = Random.value < 0.75f;
-            if (_hFlag.isAnalInsertOK)
-                _hFlag.isAnalInsertOK = Random.value < 0.75f;
             while (true)
             {
                 yield return new WaitForEndOfFrame();
@@ -339,12 +360,15 @@ namespace KK_SensibleH
                     continue;
                 }
                 _loopController.Proc();
-                for (var i = 0; i < _girlController.Count; i++)
+                for (var i = 0; i < _girlControllers.Count; i++)
                 {
-                    _girlController[i].Proc();
+                    if (SensibleH.EyeNeckControl.Value)
+                    {
+                        _girlControllers[i].Proc();
+                    }
                     _voiceControllers[i].Proc();
                 }
-                if (MoveNeckGlobal && EyeNeckPtn[0] == -1 && EyeNeckPtn[1] == -1)
+                if (MoveNeckGlobal && (!SensibleH.EyeNeckControl.Value || (EyeNeckPtn[0] == -1 && EyeNeckPtn[1] == -1)))
                 {
                     SensibleH.Logger.LogDebug($"MoveNeckGlobal[Stop]");
                     MoveNeckGlobal = false;
@@ -364,9 +388,7 @@ namespace KK_SensibleH
         {
             //if (!_voiceControllers[main].SayNickname())
             //{
-                SensibleH.Logger.LogDebug($"DoVoiceProc[{main}] - {_hFlag.voice.playVoices[main]}");
-                _girlController[main].lastVoice = _hFlag.voice.playVoices[main];
-                _girlController[main].LookAtCam();
+            _voiceControllers[main].OnVoiceProc();
             //}
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
@@ -379,7 +401,7 @@ namespace KK_SensibleH
             _loopController.OnPositionChange();
             _sprite.ForceCloseAllMenu();
             
-            foreach (var girl in _girlController)
+            foreach (var girl in _girlControllers)
             {
                 girl.OnPositionChange();
             }
@@ -513,25 +535,26 @@ namespace KK_SensibleH
                 }
             }
         }
-        protected override void OnEndH(MonoBehaviour _proc, HFlag __hFlag, bool _vr)
-        {
-            SensibleH.Logger.LogDebug($"OnEndH");
-            //if (SceneApi.GetLoadSceneName().Equals("Action"))
-            //{
-            //    // Lets redress whole school because why not.
-            //    var chaControls = FindObjectsOfType<ChaControl>().ToList();
-            //    //.Where(c => c.objTop.activeSelf)
+        //protected override void OnEndH(MonoBehaviour _proc, HFlag __hFlag, bool _vr)
+        //{
+        //    SensibleH.Logger.LogDebug($"OnEndH");
+        //    //if (SceneApi.GetLoadSceneName().Equals("Action"))
+        //    //{
+        //    //    // Lets redress whole school because why not.
+        //    //    var chaControls = FindObjectsOfType<ChaControl>().ToList();
+        //    //    //.Where(c => c.objTop.activeSelf)
 
-            //    foreach (var chara in chaControls)
-            //    {
-            //        chara.SetClothesStateAll(0);
-            //    }
-            //}
-        }
+        //    //    foreach (var chara in chaControls)
+        //    //    {
+        //    //        chara.SetClothesStateAll(0);
+        //    //    }
+        //    //}
+        //}
         private readonly int[] _auxClothesSlots = { 2, 3, 5, 6 };
         private Dictionary<SaveData.Heroine, List<byte>> _redressTargets = new Dictionary<Heroine, List<byte>>();
         private List<SaveData.Heroine> _heroineList = new List<SaveData.Heroine>();
         //private Dictionary<SaveData.Heroine, int> _redressTargets = new Dictionary<SaveData.Heroine, int>();
+
         private void ReDress()
         {
             SensibleH.Logger.LogDebug($"ReDress");
@@ -639,7 +662,7 @@ namespace KK_SensibleH
             FemalePoI = null;
             MalePoI = null;
 
-            _girlController = null;
+            _girlControllers = null;
             //_maleController = null;
             //_loopController = null;
             //_moMiController = null;

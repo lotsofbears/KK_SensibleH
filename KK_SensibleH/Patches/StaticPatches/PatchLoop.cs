@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Reflection;
+using KK_SensibleH.AutoMode;
 
 namespace KK_SensibleH.Patches.StaticPatches
 {
