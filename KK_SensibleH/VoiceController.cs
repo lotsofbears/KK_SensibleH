@@ -37,7 +37,6 @@ namespace KK_SensibleH
         }
         public void OnVoiceProc()
         {
-            SensibleH.Logger.LogDebug("OnVoiceProc");
             var id = _hFlag.voice.playVoices[_main];
             if (id == _lastVoice)
             {

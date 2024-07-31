@@ -286,7 +286,6 @@ namespace KK_SensibleH.Caress
                 }
                 yield return null;
             }
-            _girlControllers[0].SupressVoice();
             _kissPhase = Phase.Disengaging;
             SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_kissCo}");
             if (!_frenchKiss)

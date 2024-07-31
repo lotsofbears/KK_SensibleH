@@ -17,9 +17,9 @@ namespace KK_SensibleH.EyeNeckControl
             {0, DirectionNeck.Pose},
             {17, DirectionNeck.Cam},
             {34, DirectionNeck.Away},
-            {51, DirectionNeck.Cam},
+            {51, DirectionNeck.Cam}, // Look at partners head is possible.
             {68,  DirectionNeck.Away},
-            {85,  DirectionNeck.Cam}, // used during sonyu _tag[2] / is it?
+            {85,  DirectionNeck.Cam}, // Look at partners kokan is possible.
             {102, DirectionNeck.Away},
             {119, DirectionNeck.DownLeft},
             {136, DirectionNeck.UpRightFar},
@@ -53,10 +53,11 @@ namespace KK_SensibleH.EyeNeckControl
             {15, DirectionEye.PoiUp},
             {16, DirectionEye.PoiRollAway}
         };
-        public static Dictionary<DirectionEye, Vector3> FixNeckEyeCamDic = new Dictionary<DirectionEye, Vector3>()
+        public static Dictionary<DirectionEye, Vector3> AuxCamDic = new Dictionary<DirectionEye, Vector3>()
         {
-        // -x = right
+        // -x = right   
         // +y = up
+            {DirectionEye.Pose, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
             {DirectionEye.DownDownMid, new Vector3(-0.15f + Random.value * 0.3f, -0.1f - Random.value * 0.2f)},
             {DirectionEye.UpMid, new Vector3(-0.15f + Random.value * 0.3f, 0.1f + Random.value * 0.2f)},
             {DirectionEye.UpRight, new Vector3(-0.1f - Random.value * 0.2f, 0.1f + Random.value * 0.2f)},
@@ -65,9 +66,14 @@ namespace KK_SensibleH.EyeNeckControl
             {DirectionEye.DownMid, new Vector3(-0.15f + Random.value * 0.3f, -0.1f - Random.value * 0.2f)},
             {DirectionEye.DownLeft, new Vector3(0.1f + Random.value * 0.2f, -0.1f - Random.value * 0.2f)},
             {DirectionEye.MidLeft, new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
-            {DirectionEye.UpLeft, new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f)}
+            {DirectionEye.UpLeft, new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f)},
+            {DirectionEye.Mid, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.Away, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.PoiDown, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.PoiUp, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.PoiRollAway, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)}
         };
-        public static Dictionary<DirectionEye, Vector3> FixNeckPoiCamDic = new Dictionary<DirectionEye, Vector3>()
+        public static Dictionary<DirectionEye, Vector3> AuxPoiCamDic = new Dictionary<DirectionEye, Vector3>()
         {
         // +x = up
         // -y = right
@@ -80,6 +86,13 @@ namespace KK_SensibleH.EyeNeckControl
             {DirectionEye.DownLeft, new Vector3(-0.1f - Random.value * 0.2f, -0.1f - Random.value * 0.2f)},
             {DirectionEye.MidLeft, new Vector3(-0.15f + Random.value * 0.3f, 0.1f + Random.value * 0.2f)},
             {DirectionEye.UpLeft, new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f)}
+        };
+        public static List<Vector3> AuxCamDodgeList = new List<Vector3>()
+        {
+            {new Vector3(-0.2f - Random.value * 0.2f, -0.15f + Random.value * 0.3f)}, // Right
+            {new Vector3(0.2f + Random.value * 0.2f, -0.15f + Random.value * 0.3f)}, // Left
+            {new Vector3(-0.15f + Random.value * 0.3f, 0.2f + Random.value * 0.2f)}, // Up
+            {new Vector3(-0.15f + Random.value * 0.3f, -0.2f - Random.value * 0.2f)} // Down
         };
         public static Dictionary<int, DirectionEye> EyeDirForNeckFollow = new Dictionary<int, DirectionEye>()
         {

@@ -23,6 +23,10 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalClick))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertNoVoiceClick))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertClick))]
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnAutoFinish))]
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnCondomClick))]
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsideClick))]
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnOutsideClick))]
         public static IEnumerable<CodeInstruction> OnClickTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             var methodToPatch = nameof(Utils.Sound.Play);
@@ -50,7 +54,8 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalClick))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnChangeMotionClick))] // Changes loop type. RMB.
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnSpeedUpClick))]
-        public static void SetCondomPostfix()
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnCondomClick))]
+        public static void ManyActionsPostfix()
         {
             LoopController.Instance.OnUserInput();
         }
@@ -59,14 +64,14 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static void HandleOnPullClick()
         {
             LoopController.Instance.OnUserInput();
-            LoopController.Instance.DoSonyuClick(pullOut: true);
+            LoopController.Instance.OnSonyuClick(pullOut: true);
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertNoVoiceClick))]
         public static void OnInsertClickPostfix()
         {
             LoopController.Instance.OnUserInput();
-            LoopController.Instance.DoSonyuClick(pullOut: false);
+            LoopController.Instance.OnSonyuClick(pullOut: false);
         }
 
         [HarmonyPostfix, HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalNoVoiceClick))]

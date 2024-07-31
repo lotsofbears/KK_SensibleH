@@ -74,6 +74,9 @@ namespace KK_SensibleH
         private bool _judgeCooldown;
         private bool _touchAnim;
         private bool _mousePressDown;
+        private bool _aibu;
+        private bool _houshi;
+        private bool _sonyu;
 
         private List<MoMiCircles> _circles = new List<MoMiCircles>();
         private Thread _thread;
@@ -264,7 +267,7 @@ namespace KK_SensibleH
                 if (Math.Abs(signedAngle) < 10f)
                 {
                     rollDelta = 25f * (Random.value > 0.5f ? 1 : -1);
-                    if (!LoopProperties.IsSonyu)
+                    if (!_sonyu)
                         rollDelta *= Random.value * 2f;
 
                     SensibleH.Logger.LogDebug($"KissCo[RandomRoll] Everything else is too small to consider it {rollDelta}");
@@ -1288,6 +1291,40 @@ namespace KK_SensibleH
             _girlControllers[0].SquirtHandler();
             return waitTime;
         }
-        
+        internal void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo = null)
+        {
+            var mode = nextAnimInfo == null ? _hFlag.mode : nextAnimInfo.mode;
+            switch (mode)
+            {
+                case HFlag.EMode.aibu:
+                    _aibu = true;
+                    _houshi = false;
+                    _sonyu = false;
+                    break;
+                case HFlag.EMode.houshi:
+                case HFlag.EMode.houshi3P:
+                case HFlag.EMode.houshi3PMMF:
+                    _aibu = false;
+                    _houshi = true;
+                    _sonyu = false;
+                    break;
+                case HFlag.EMode.sonyu:
+                case HFlag.EMode.sonyu3P:
+                case HFlag.EMode.sonyu3PMMF:
+                    _aibu = false;
+                    _houshi = false;
+                    _sonyu = true;
+                    break;
+                default:
+                    _aibu = false;
+                    _houshi = false;
+                    _sonyu = false;
+                    break;
+            }
+            if (nextAnimInfo.mode == HFlag.EMode.aibu)
+                _aibu = true;
+            else
+                _aibu = false;
+        }
     }
 }

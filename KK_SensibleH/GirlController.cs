@@ -45,8 +45,6 @@ namespace KK_SensibleH
             AddPoi(_chara.objBodyBone.transform.Find(GetPoiPath(HandCtrl.AibuColliderKind.muneL)).gameObject, new Vector3(0.025f, 0f, 0.075f));
             AddPoi(_chara.objBodyBone.transform.Find(GetPoiPath(HandCtrl.AibuColliderKind.muneR)).gameObject, new Vector3(-0.025f, 0f, 0.075f));
             AddPoi(_chara.objBodyBone.transform.Find(GetPoiPath(HandCtrl.AibuColliderKind.kokan)).gameObject, new Vector3(0f, 0f, 0.075f));
-            GetPoseType();
-            OnVoiceProc(forced: true);
             SensibleH.Logger.LogDebug($"familiarity[{main}] = [{familiarity}]");
             _vr = UnityEngine.VR.VRSettings.enabled;
             if (_vr)
@@ -54,10 +52,10 @@ namespace KK_SensibleH
                 _eyes = _chaControl[main].objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
             }
             _voiceManager = Voice.Instance;
-            var hscene = _chara.transform.parent.transform;
-            SensibleH.Logger.LogDebug("GirlController[Initialize] hscene = {hscene}");
-            _fixNeckMove = new FixationalNeckMovement(this, _main);
+            _fixNeckMove = new SpecialNeckMovement(this, _main, _vr);
+            GetPoseType();
             OnPositionChange();
+            OnVoiceProc(forced: true);
         }
         private void OnDestroy()
         {
@@ -91,7 +89,7 @@ namespace KK_SensibleH
         private int main;
         private float familiarity;
         internal float moveNeckUntil;
-        internal float moveNeckNext;
+        internal float _neckNextMove;
         private float moveEyesNextMove;
         private float lookBeforeVoiceTimer = 2f;
         internal int _lastVoice;
@@ -112,7 +110,7 @@ namespace KK_SensibleH
         private static Manager.Voice _voiceManager;
         private List<Transform> _listOfMyPoI = new List<Transform>();
         private PoseTypes _poseType;
-        internal FixationalNeckMovement _fixNeckMove;
+        internal SpecialNeckMovement _fixNeckMove;
         private ChaControl _chara;
         public enum DirectionEye
         {
@@ -156,8 +154,11 @@ namespace KK_SensibleH
             Behind,
             Still
         }
-        private bool IsNeckTimeToMove => moveNeckNext < Time.time;
+        private bool IsNeckTimeToMove => _neckNextMove < Time.time;
         private bool IsNeckTimeToStop => moveNeckUntil < Time.time;
+
+        // Seems to be enough with all the extras that fixational movement can add.
+        private void SetNeckNextMove(float multiplier = 1f) => _neckNextMove = Time.time + 10f * multiplier;
         private float GetNextVoiceTime
         {
             get
@@ -179,10 +180,12 @@ namespace KK_SensibleH
                 }
             }
         }
-        internal bool IsNeckRecent => moveNeckNext - Time.time > 5f;
+        internal bool IsNeckRecent => _neckNextMove - Time.time > 5f;
         private bool IsVoiceActive => _hVoiceCtrl.nowVoices[main].state == HVoiceCtrl.VoiceKind.voice;
         private bool IsShortActive => _hVoiceCtrl.nowVoices[main].state == HVoiceCtrl.VoiceKind.breathShort;
-        private bool IsNeckMoving => _chaControl[main].neckLookCtrl.neckLookScript.changeTypeLeapTime - _chaControl[main].neckLookCtrl.neckLookScript.changeTypeTimer != 0;
+
+        // Assigning neck a new position while it already is moving somewhere looks terrible.
+        private bool IsNeckMoving => _chara.neckLookCtrl.neckLookScript.changeTypeLeapTime - _chaControl[main].neckLookCtrl.neckLookScript.changeTypeTimer != 0;
         //private void SetVoiceProcTime(float _time)
         //{
         //    switch (_hFlag.mode)
@@ -257,6 +260,15 @@ namespace KK_SensibleH
             GetPoseType();
             if (SensibleH.EyeNeckControl.Value)
                 OnVoiceProc();
+            var neckTypes = _chara.neckLookCtrl.neckLookScript.neckTypeStates;
+
+            // The higher the familiarity, the less abrupt (relaxed) are neck movements.
+            var speed = (int)(10 * (2 - familiarity)) * 0.1f;
+            SensibleH.Logger.LogDebug($"OnPositionChange[{main}] leapSpeed {speed}");
+            foreach (var type in neckTypes)
+            {
+                type.leapSpeed = speed;
+            }
 
         }
         private bool IsNeckMovable
@@ -316,60 +328,55 @@ namespace KK_SensibleH
         {
             get
             {
-                if (!lookPoI && !lookAway && IsVoiceActive)
-                    return GetCurrentEyes;
+                //if (!lookPoI && !lookAway && IsVoiceActive)
+                //    return GetCurrentNeck; // GetCurrentEyes;
                 switch (_hFlag.mode)
                 {
                     case HFlag.EMode.aibu:
                         return 17;
-                    case HFlag.EMode.houshi:
-                        return 51;
                     case HFlag.EMode.sonyu:
-                        return 51;// 85;
+                    case HFlag.EMode.sonyu3P:
+                    case HFlag.EMode.sonyu3PMMF:
+                        return Random.value < 0.5f ? 51 : 85;
                     case HFlag.EMode.lesbian:
+                    case HFlag.EMode.houshi:
+                    case HFlag.EMode.houshi3P:
+                    case HFlag.EMode.houshi3PMMF:
                         return 51;
                     default:
                         return 17;
                 }
             }
         }
-        
+
         public void OnKissStart()
         {
-            _fixNeckMove.UnParentFixMoveCam();
-            //_fixNeckMove.MoveFixMoveCam(Vector3.up * 0.2f);
-
-            SensibleH.Logger.LogDebug($"OnKissStart [{_fixNeckMove._fixMoveCamera.transform.position}][{_fixNeckMove._fixMoveCamera.transform.localPosition}]");
-            FemalePoI[0] = _fixNeckMove._fixMoveCamera;
+            _fixNeckMove.OnKissAuxCam();
+            FemalePoI[0] = _fixNeckMove._auxCam;
             if (!_neckActive)
+            {
                 MoveNeckInit();
+            }
             SetNeck(17, true);
-            //var offset = position + Vector3.up * 0.2f;
-            //_fixNeckMove._fixMoveCamera.transform
-            //SensibleH.Logger.LogDebug($"OnKissStart[{directionNeck}]");
-            //var neckId = NeckDirections
-            //    .Where(kv => kv.Value == directionNeck)
-            //    .Select(kv => kv.Key)
-            //    .FirstOrDefault();
-
-            //if (!_neckActive)
-            //    MoveNeckInit();
-            //SetNeck(neckId, true);
+            
         }
         public void OnKissEnd()
         {
-            // At this moment CyuVR changes eyes back and thus changing eyes is a bad idea.
-            //if (!_neckActive)
-            //MoveNeckInit();
-            //moveNeckNext = Time.time + Random.Range(5f, 10f);
-            _fixNeckMove.ParentFixMoveCam();
-            SensibleH.Logger.LogDebug($"OnKissEnd [{_fixNeckMove._fixMoveCamera.transform.position}][{_fixNeckMove._fixMoveCamera.transform.localPosition}]");
+            // At this moment CyuVR changes eyes back and thus changing eyes too soon is a bad idea.
+            if (!_neckActive)
+            {
+                // Shouldn't happen but still.
+                MoveNeckInit();
+            }
+            var properEyeCam = GetProperEyeCam;
+            _fixNeckMove.SetAuxCamProperParent(properEyeCam);
+            SetNeck(properEyeCam);
+            SensibleH.Logger.LogDebug($"OnKissEnd ");
             moveNeckUntil = Time.time + Random.Range(20f, 40f);
-            moveEyesNextMove = Time.time + 3f;
-            //SetNeck(17);
+            moveEyesNextMove = Time.time + 3f; 
             lookAtCam = true;
         }
-        private bool IsCamClose => Vector3.Distance(_eyes.position, VR.Camera.SteamCam.head.position) < 0.3f;
+        private bool IsCamClose => Vector3.Distance(_eyes.position, VR.Camera.SteamCam.head.position) < 0.35f;
         internal void Proc()
         {
             // TODO
@@ -404,7 +411,7 @@ namespace KK_SensibleH
                         if (!lookAtCam && !_camWasClose && !lookAway)
                         {
                             MoveNeckInit();
-                            moveNeckNext = Time.time + Random.Range(5f, 15f);
+                            SetNeckNextMove();
                             SetNeck(GetProperEyeCam);
                             lookAtCam = true;
                             _camWasClose = true;
@@ -420,7 +427,7 @@ namespace KK_SensibleH
                             }
                             else
                             {
-                                moveNeckNext = LookSomewhere();
+                                LookSomewhere();
                                 SensibleH.Logger.LogDebug($"LookAlive[{main}][VR] LookSomewhere");
                             }
                         }
@@ -429,13 +436,13 @@ namespace KK_SensibleH
                     {
                         if (lookAtCam)
                         {
-                            moveNeckNext = Time.time + Random.Range(1f, 5f);
+                            SetNeckNextMove(0.4f);
                             lookAtCam = false;
                         }
                         else if (IsNeckTimeToStop)
                         {
-                            if (moveNeckUntil < moveNeckNext)
-                                moveNeckUntil = moveNeckNext;
+                            if (moveNeckUntil < _neckNextMove)
+                                moveNeckUntil = _neckNextMove;
                             else
                                 MoveNeckHalt();
                         }
@@ -465,13 +472,13 @@ namespace KK_SensibleH
                             }
 
                             lookBeforeVoiceTimer = Random.Range(1.5f, 3f);
-                            moveNeckNext = Time.time + 3f;
+                            SetNeckNextMove(0.2f);
                         }
                         else if (IsNeckTimeToMove)
                         {
                             FemalePoI[main] = null;
                             moveEyesNextMove = PickEyes();
-                            moveNeckNext = LookSomewhere();
+                            LookSomewhere();
                         }
                         if (_camWasClose)
                             _camWasClose = false;
@@ -490,6 +497,9 @@ namespace KK_SensibleH
                     moveEyesNextMove = PickEyes();
             }
         }
+        /// <summary>
+        /// Currently is being used only to look at adjusted objects for breast and crouch during aibu.
+        /// </summary>
         internal bool LookAtPoI(float _time)
         {
             if (lookPoI || lookAway || !IsNeckMovable || !SetFemalePoI())
@@ -504,13 +514,14 @@ namespace KK_SensibleH
         }
         public void LookAway()
         {
+            // Make new one.
             if (lookAway || _handCtrl.isKiss || !IsNeckMovable)
                 return;
             SensibleH.Logger.LogDebug($"LookAway[{main}]");
             lookAway = true;
             var time = Random.Range(4f, 6f);
             var neckChoice = SpecialNeckDirections.ElementAt(Random.Range(0, SpecialNeckDirections.Count)).Key;
-            moveNeckNext = Time.time + time;
+            _neckNextMove = Time.time + time;
             if (!_neckActive)
                 MoveNeckInit();
             SetNeck(Random.Range(13, 17) + neckChoice, _quick: true);
@@ -537,10 +548,11 @@ namespace KK_SensibleH
         }
         /// <summary>
         /// Used mostly to initiate neck movement. The only hook for normal neck movement outside of VR.
+        /// Arg "forced" only guarantees attempt to trigger.
         /// </summary>
         public void OnVoiceProc(bool forced = false)
         {
-            if ((!lookAtCam && !_handCtrl.isKiss && !_neckActive && IsNeckMovable) || forced)
+            if ((!lookAtCam && !_handCtrl.isKiss && !IsNeckRecent && IsNeckMovable && !IsNeckMoving) || forced)
             {
                 if (_poseType == PoseTypes.Behind || Random.value < 0.5f)
                     LookAtCamDoNot();
@@ -562,7 +574,10 @@ namespace KK_SensibleH
                 moveNeckUntil = Time.time + Random.Range(40f, 60f);
             else
                 moveNeckUntil = customUntil;
-        }
+        }   
+        /// <summary>
+        /// Unconditionally stop all non-native neck movements.
+        /// </summary>
         public void MoveNeckHalt()
         {
             FemalePoI[main] = null;
@@ -592,7 +607,7 @@ namespace KK_SensibleH
             }
             SensibleH.Logger.LogDebug($"GetPoseType[{main}]:poseType[{_poseType}] animname[{animName}]");
         }
-        private float LookSomewhere()
+        private void LookSomewhere()
         {
             var camChance = familiarity * 0.75f;
             var curNeck = NeckDirections[GetCurrentNeck];
@@ -641,7 +656,7 @@ namespace KK_SensibleH
             }
             else
                 SetNeck(GetCurrentEyes + NeckDirections.FirstOrDefault(v => v.Value == newNeck).Key);
-            return Time.time + Random.Range(10f, 15f);
+            SetNeckNextMove();
         }
         //private void LookAlive(float _coef, int _main)
         //{
@@ -718,14 +733,14 @@ namespace KK_SensibleH
             }
             _chaControl[main].neckLookCtrl.neckLookScript.changeTypeLeapTime = speedOfChange;
             _chaControl[main].neckLookCtrl.neckLookScript.changeTypeTimer = speedOfChange;
-            NeckChangeRate[main] = speedOfChange;
+            //NeckChangeRate[main] = speedOfChange;
             EyeNeckPtn[main] = _id;
             IsNeckSet[main] = false;
             CurrentNeck = NeckDirections[GetCurrentNeck];
             if (CurrentNeck == DirectionNeck.Cam && FemalePoI[main] == null)
             {
-                _fixNeckMove.ResetFixCamera();
-                FemalePoI[main] = _fixNeckMove._fixMoveCamera;
+                _fixNeckMove.SetAuxCamProperParent(GetProperEyeCam);
+                FemalePoI[main] = _fixNeckMove._auxCam;
             }
             SensibleH.Logger.LogDebug($"SetNeck[{main}] = [{_id}] speed = [{speedOfChange}]");
         }
@@ -756,11 +771,11 @@ namespace KK_SensibleH
                 _hVoiceCtrl.nowVoices[main].notOverWrite = true;
             SensibleH.Logger.LogDebug($"GirlController[{main}] - A Short Gasp has escaped");
         }
-        internal void SupressVoice()
-        {
-            SensibleH.Logger.LogDebug($"SupressVoice[{main}]");
-            Voice.Instance.Stop(_hFlag.transVoiceMouth[main]);
-        }
+        //internal void SupressVoice()
+        //{
+        //    SensibleH.Logger.LogDebug($"SupressVoice[{main}]");
+        //    Voice.Instance.Stop(_hFlag.transVoiceMouth[main]);
+        //}
 
         internal bool SquirtHandler()
         {
@@ -775,11 +790,11 @@ namespace KK_SensibleH
             else
                 return false;
         }
-        public void SupressVoice(int id)
-        {
-            SensibleH.Logger.LogDebug($"SupressVoice[{main}] - {id}");
-            StartCoroutine(DoActionWhileTimer(() => StopVoice(id), 1f));
-        }
+        //public void SupressVoice(int id)
+        //{
+        //    SensibleH.Logger.LogDebug($"SupressVoice[{main}] - {id}");
+        //    StartCoroutine(DoActionWhileTimer(() => StopVoice(id), 1f));
+        //}
         private void StopVoice(int id)
         {
             SensibleH.Logger.LogDebug($"StopVoice[{main}] - {id}");
@@ -824,7 +839,7 @@ namespace KK_SensibleH
             _method.DynamicInvoke(_args);
             SensibleH.Logger.LogDebug($"RunAfterTimer[{main}] [{_method.Method.Name}] was supposed to happen");
         }
-        internal bool Reaction(bool _shortPlay = true)
+        internal bool Reaction(bool shortPlay = true)
         {
             HandCtrl.AibuColliderKind touchType;
             switch (_hFlag.mode)
@@ -860,22 +875,22 @@ namespace KK_SensibleH
                     break;
             }
             if (main == 0)
-                _handCtrl.HitReactionPlay(touchType, _shortPlay);
+                _handCtrl.HitReactionPlay(touchType, shortPlay);
             else
-                _handCtrl1.HitReactionPlay(touchType, _shortPlay);
+                _handCtrl1.HitReactionPlay(touchType, shortPlay);
             SensibleH.Logger.LogDebug($"GirlController[{main}] - HitReactionPlay of type {touchType} was supposed to happen");
             return SquirtHandler();
         }
-        public void StartConvulsion(float time, bool playVoiceAfter)
+        public void StartConvulsion(float time, bool playVoiceAfter, int specificVoice = -1)
         {
             //SensibleH.Logger.LogDebug($"StartConvulsion[{main}]");
-            StartCoroutine(Convulsion(time, playVoice: playVoiceAfter));
+            StartCoroutine(Convulsion(time, playVoice: playVoiceAfter, specificVoice));
         }
         /// <summary>
         /// A set of HitReactionPlay()  with option to play voice afterwards.
         /// </summary>
         /// <returns></returns>
-        private IEnumerator Convulsion(float time, bool playVoice)//, bool big = false)
+        private IEnumerator Convulsion(float time, bool playVoice, int specificVoice)//, bool big = false)
         {
             //bool cacophony = Random.value < 0.3f;
             //CatchVoice(time / 2f);
@@ -889,14 +904,21 @@ namespace KK_SensibleH
 
                 var seconds = Random.Range(0.1f, 0.5f);
 
-                Reaction(false); //cacophony
+                Reaction(shortPlay: false); //cacophony
 
                 yield return new WaitForSeconds(seconds);
                 //_hVoiceCtrl.nowVoices[main].notOverWrite = false;
             }
             SuppressVoice = false;
             if (playVoice)
-                PlayVoice(_lastVoice);
+            {
+                if (specificVoice == -1)
+                {
+                    PlayVoice(_lastVoice);
+                }
+                else
+                    PlayVoice(specificVoice);
+            }
         }
 
         //public Transform GetPoI(string name, int main)
@@ -983,33 +1005,33 @@ namespace KK_SensibleH
                         //    transform = lstTransform.ElementAt(Random.Range(0, lstTransform.Count));
                     }
                     break;
-                case HFlag.EMode.houshi:
-                    if(_hFlag.nowAnimationInfo.kindHoushi != 1)
-                    {
-                        transform = GetPoi((HandCtrl.AibuColliderKind)(Random.value < 0.5f ? 1 : 4), Target.MalePartner);
-                    }
-                    break;
-                case HFlag.EMode.sonyu:
-                    if (_handCtrl.actionUseItem != -1)
-                    {
-                        var itemList = new List<int>();
-                        for (var i = 0; i < 3; i++)
-                        {
-                            if (_handCtrl.useAreaItems[i] != null)
-                                itemList.Add(i);
-                        }
-                        transform = GetPoi((HandCtrl.AibuColliderKind)Random.Range(0, itemList.Count) + 2, Target.Myself);
-                        //List<Transform> lstTransform = new List<Transform>();
-                        //if (_handCtrl.useAreaItems[0] != null)
-                        //    lstTransform.Add(customAccNipL.transform);
-                        //if (_handCtrl.useAreaItems[1] != null)
-                        //    lstTransform.Add(customAccNipR.transform);
-                        //if (lstTransform.Count > 0)
-                        //    transform = lstTransform.ElementAt(Random.Range(0, lstTransform.Count));
-                    }
-                    else
-                        transform = GetPoi(HandCtrl.AibuColliderKind.mouth, Target.MalePartner);
-                    break;
+                //case HFlag.EMode.houshi:
+                //    if(_hFlag.nowAnimationInfo.kindHoushi != 1)
+                //    {
+                //        transform = GetPoi((HandCtrl.AibuColliderKind)(Random.value < 0.5f ? 1 : 4), Target.MalePartner);
+                //    }
+                //    break;
+                //case HFlag.EMode.sonyu:
+                //    if (_handCtrl.actionUseItem != -1)
+                //    {
+                //        var itemList = new List<int>();
+                //        for (var i = 0; i < 3; i++)
+                //        {
+                //            if (_handCtrl.useAreaItems[i] != null)
+                //                itemList.Add(i);
+                //        }
+                //        transform = GetPoi((HandCtrl.AibuColliderKind)Random.Range(0, itemList.Count) + 2, Target.Myself);
+                //        //List<Transform> lstTransform = new List<Transform>();
+                //        //if (_handCtrl.useAreaItems[0] != null)
+                //        //    lstTransform.Add(customAccNipL.transform);
+                //        //if (_handCtrl.useAreaItems[1] != null)
+                //        //    lstTransform.Add(customAccNipR.transform);
+                //        //if (lstTransform.Count > 0)
+                //        //    transform = lstTransform.ElementAt(Random.Range(0, lstTransform.Count));
+                //    }
+                //    else
+                //        transform = GetPoi(HandCtrl.AibuColliderKind.mouth, Target.MalePartner);
+                //    break;
                 //case HFlag.EMode.masturbation:
                 //    //switch (Random.Range(0, 2))
                 //    //{

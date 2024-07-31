@@ -103,11 +103,12 @@
     <Compile Include="Caress\MoMiCircles.cs" />
     <Compile Include="Caress\Thread.cs" />
     <Compile Include="EyeNeckControl\EyeNeckController.cs" />
-    <Compile Include="EyeNeckControl\FixationalNeckMovement.cs" />
+    <Compile Include="EyeNeckControl\SpecialNeckMovement.cs" />
     <Compile Include="GirlController.cs" />
     <Compile Include="AutoMode\LoopProperties.cs" />
     <Compile Include="Patches\DynamicPatches\PatchEyes.cs" />
     <Compile Include="Patches\DynamicPatches\PatchHandCtrlKiss.cs" />
+    <Compile Include="Patches\StaticPatches\EyeNeckPatches.cs" />
     <Compile Include="Patches\StaticPatches\PatchLoop.cs" />
     <Compile Include="Patches\StaticPatches\PatchMoMiAuxiliary.cs" />
     <Compile Include="Patches\StaticPatches\PatchMoMiAuxiliaryVR.cs" />

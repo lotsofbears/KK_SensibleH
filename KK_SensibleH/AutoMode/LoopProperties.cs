@@ -20,6 +20,7 @@ namespace KK_SensibleH.AutoMode
         public static bool IsStrongLoop => _hFlag.nowAnimStateName.EndsWith("SLoop", StringComparison.Ordinal);
         public static bool IsOrgasmLoop => _hFlag.nowAnimStateName.EndsWith("OLoop", StringComparison.Ordinal);
         public static bool IsTouch => _hFlag.nowAnimStateName.EndsWith("Touch", StringComparison.Ordinal);
+        public static bool IsPull => _hFlag.nowAnimStateName.EndsWith("Pull", StringComparison.Ordinal);
         public static bool IsFinishLoop => _hFlag.finish != HFlag.FinishKind.none && IsOrgasmLoop;
         public static bool IsActionLoop => IsWeakLoop || IsStrongLoop || IsOrgasmLoop;
         public static bool IsEndLoop => IsEndInside || IsEndOutside;

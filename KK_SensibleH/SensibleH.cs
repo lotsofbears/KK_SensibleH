@@ -72,15 +72,16 @@ namespace KK_SensibleH
         internal static bool OverrideSquirt;
         //internal static bool BetterSquirtEnabled;
         internal static bool[] IsNeckSet = new bool[2];
-        internal static float[] NeckChangeRate = { 1f, 1f };
+        //internal static float[] NeckChangeRate = { 1f, 1f };
         private static AnimatorStateInfo sLoopInfo;
         //internal delegate bool RunSquirt(bool softSE, FakeType trigger, bool sound, MonoBehaviour handCtrl, bool setTouchCooldown);
         //internal static RunSquirt RunSquirtsDelegate;
         public enum AutoModeKind
         {
             Disabled,
-            BeginWithPrompt,
-            BeginAndProceedWithPrompt,
+            PromptAtStart,
+            PromptAtStartAndFinish,
+            //PromptAtStartAndDisableOnFinish,
             Automatic
         }
         public enum AutoPosMode
@@ -359,16 +360,9 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.VoiceProc))]
             public static void PrefixVoiceProc(HVoiceCtrl __instance, int _main)
             {
-                if (_hFlag != null && __instance.flags.voice.playVoices[_main] != -1)// && __instance.nowVoices[_main].state != HVoiceCtrl.VoiceKind.voice)
+                if (__instance.flags.voice.playVoices[_main] != -1)
                 {
-                    if (SuppressVoice)
-                    {
-                        _girlControllers[_main]._lastVoice = __instance.flags.voice.playVoices[_main];
-                        __instance.flags.voice.playVoices[_main] = -1;
-                    }
-                    else
-                        SensibleHController.Instance.DoVoiceProc(_main);
-                    //_voiceController.NicknamePlay();
+                    SensibleHController.Instance.DoVoiceProc(_main);
                 }
             }
             [HarmonyPrefix]
@@ -392,153 +386,41 @@ namespace KK_SensibleH
             /// <summary>
             /// We override basic neck with our pick, then in case of custom eyeCam we alter "_tag" of "SetNeckTarget()" too.
             /// </summary>
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetEyeNeckPtn))]
-            public static void PrefixSetEyeNeckPtn(ref int _id, ref GameObject _objCamera, bool _isConfigEyeDisregard, bool _isConfigNeckDisregard, HMotionEyeNeckMale __instance)
-            {
-                if (MoveNeckGlobal && __instance.chara.sex == 1)
-                {
-                    //SensibleH.Logger.LogDebug($"SetEyeNeckPtn");
-                    if (__instance.chara == _chaControl[0])
-                    {
-                        _id = EyeNeckPtn[0];
-                        //if (FemalePoI[0] != null)
-                        //    _objCamera = FemalePoI[0];
-                    }
-                    else
-                    {
-                        _id = EyeNeckPtn[1];
-                        //if (FemalePoI[1] != null)
-                        //    _objCamera = FemalePoI[1];
-                    }
-                }
-                //if (__instance.chara.sex == 0 && _chaControlM != null && _chaControlM.visibleAll)
-                //{
-                //    _id = EyeNeckPtn[2];
-                //    if (MalePoI != null)
-                //        _objCamera = MalePoI;
-                //}
-                //__instance.chara.ChangeEyebrowOpenMax
-                //__instance.chara.ChangeLookNeckTarget(0, __instance.objKokan.transform, 0.5f, 0f, 1f, 0.8f);
+            //[HarmonyPrefix]
+            //[HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckPtn))]
+            //public static bool ChangeLookNeckPtnPrefix(int ptn, ref float rate, ChaControl __instance)
+            //{
+            //    if (MoveNeckGlobal && __instance.sex == 1)
+            //    {
+            //        //SensibleH.Logger.LogDebug($"ChangeLookNeckPtn");
+            //        if (__instance == _chaControl[0])
+            //        {
+            //            if (!IsNeckSet[0])
+            //            {
+            //                rate = NeckChangeRate[0]; 
+            //                return true;
+            //            }
+            //            else
+            //                return false;
+            //        }
+            //        else
+            //        {
+            //            if (!IsNeckSet[1])
+            //            {
+            //                rate = NeckChangeRate[1];
+            //                return true;
+            //            }
+            //            else
+            //                return false;
+            //        }
+            //    }
+            //    return true;
+            //    //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
+            //    //{
+            //    //    _tag = 0;
+            //    //}
 
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetNeckTarget))]
-            public static bool SetNeckTargetPrefix(ref int _tag, float _rate, ref GameObject _objCamera, bool _isConfigDisregard, HMotionEyeNeckMale __instance)
-            {
-                //SensibleH.Logger.LogDebug($"SetNeckTarget[{_tag}][{_rate}] [{__instance.gameObject.name}]");
-                if (MoveNeckGlobal && __instance.chara.sex == 1)
-                {
-                    //SensibleH.Logger.LogDebug($"SetNeckTarget");
-                    if (__instance.chara == _chaControl[0])
-                    {
-                        if (!IsNeckSet[0])
-                        {
-                            if (FemalePoI[0] != null)
-                            {
-                                _objCamera = FemalePoI[0];
-                                _tag = 0;
-                            }
-                            return true;
-                        }
-                        else
-                            return false;
-                    }
-                    else
-                    {
-                        if (!IsNeckSet[0])
-                        {
-                            if (FemalePoI[0] != null)
-                            {
-                                _objCamera = FemalePoI[0];
-                                _tag = 0;
-                            }
-                            return true;
-                        }
-                        else
-                            return false;
-                    }
-                }
-                return true;
-                //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
-                //{
-                //    _tag = 0;
-                //}
-
-            }
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckTarget))]
-            public static bool ChangeLookNeckTargetPrefix(ChaControl __instance)
-            {
-                if (MoveNeckGlobal && __instance.sex == 1)
-                {
-                    SensibleH.Logger.LogDebug($"ChangeLookNeckTarget");
-                    if (__instance == _chaControl[0])
-                    {
-                        if (!IsNeckSet[0])
-                        {
-                            IsNeckSet[0] = true;
-                            return true;
-                        }
-                        else
-                            return false;
-                    }
-                    else
-                    {
-                        if (!IsNeckSet[1])
-                        {
-                            IsNeckSet[1] = true;
-                            return true;
-                        }
-                        else
-                            return false;
-                    }
-                }
-                return true;
-                //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
-                //{
-                //    _tag = 0;
-                //}
-
-            }
-            [HarmonyPrefix]
-            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckPtn))]
-            public static bool ChangeLookNeckPtnPrefix(int ptn, ref float rate, ChaControl __instance)
-            {
-                if (MoveNeckGlobal && __instance.sex == 1)
-                {
-                    //SensibleH.Logger.LogDebug($"ChangeLookNeckPtn");
-                    if (__instance == _chaControl[0])
-                    {
-                        if (!IsNeckSet[0])
-                        {
-                            rate = NeckChangeRate[0]; 
-                            return true;
-                        }
-                        else
-                            return false;
-                    }
-                    else
-                    {
-                        if (!IsNeckSet[1])
-                        {
-                            rate = NeckChangeRate[1];
-                            return true;
-                        }
-                        else
-                            return false;
-                    }
-                }
-                return true;
-                //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
-                //{
-                //    _tag = 0;
-                //}
-
-            }
+            //}
             //[HarmonyPostfix]
             //[HarmonyPatch(typeof(FaceListCtrl), nameof(FaceListCtrl.SetFace))]
             //public static void AlterSetFace(int _idFace, ChaControl _chara, int _voiceKind, int _action)

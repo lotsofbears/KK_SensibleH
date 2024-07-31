@@ -40,7 +40,7 @@ namespace KK_SensibleH
         private List<Harmony> _persistentPatches = new List<Harmony>();
         //private readonly int[] voiceButton = { 3, 5, 6, 8 };
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
-        private readonly int[] _clothes = { 1, 3, 5, 7, 8 };
+        private readonly int[] _clothes = { 1, 3, 5, 7};
         private bool _hEnd;
         internal bool _vr;
         private Scene _scene;
@@ -77,15 +77,12 @@ namespace KK_SensibleH
         private Transform _eyes;
         private void Update()
         {
-            if (_testform != null && _handCtrl.isKiss)
+            if (Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => Input.GetKey(x)))
             {
-                //SensibleH.Logger.LogDebug($"{vec.position.x} {vec.position.y} {vec.position.z}");
-            }
-            if (UnityEngine.Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
-            {
+                _handCtrl.HitReactionPlay(HandCtrl.AibuColliderKind.reac_bodydown, false);
                 //SensibleH.Logger.LogDebug($"Hotkey[1] {_scene.AddSceneName.StartsWith("Con") || _scene.AddSceneName.StartsWith("HPo")}");
             }
-            else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
+            else if (Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => Input.GetKey(x)))
             {
                 SensibleH.Logger.LogDebug($"Hotkey[2] {_scene.AddSceneName}");
                 //if (_primitiveCube == null)
@@ -106,7 +103,7 @@ namespace KK_SensibleH
                 //}
                 //SensibleH.Logger.LogDebug($"Hotkey[2] _forward = {_forward}");
             }
-            else if (UnityEngine.Input.GetKeyDown(Cfg_TestKey3.Value.MainKey) && Cfg_TestKey3.Value.Modifiers.All(x => UnityEngine.Input.GetKey(x)))
+            else if (Input.GetKeyDown(Cfg_TestKey3.Value.MainKey) && Cfg_TestKey3.Value.Modifiers.All(x => Input.GetKey(x)))
             {
                 //if (_primitiveCube == null)
                 //    Spawn();
@@ -263,6 +260,7 @@ namespace KK_SensibleH
                 _patched = true;
                 _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
                 _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchMoMiAuxiliary)));
+                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(EyeNeckPatches)));
                 if (_vr)
                 {
                     SensibleH.Logger.LogDebug($"PersistentPatches[VR]");
@@ -276,7 +274,7 @@ namespace KK_SensibleH
                 // Does it look at VRAM too? Couldn't find it, and not much can be done about it in VR anyway.
                 // With this and the patch, there is no more stutters on kiss.
                 // And people who actually needs this in VR H scene.. I HIGLY doubt there are any.
-                // Once H ends we re-enable it.
+                // Once H ends/OnDestroy we re-enable it.
                 ResourceUnloadOptimizations.DisableUnload.Value = true;
             }
             _scene = Scene.Instance;
@@ -305,12 +303,12 @@ namespace KK_SensibleH
             _moMiController = this.gameObject.AddComponent<MoMiController>();
             _maleController = this.gameObject.AddComponent<MaleController>();
             _loopController = this.gameObject.AddComponent<LoopController>();
-            _loopController.Initialize(proc);
+            _loopController.Initialize(proc, this);
             for (int i = 0; i < charaCount; i++)
             {
                 _heroineList.Add(hFlag.lstHeroine[0]);
                 var heroine = this.gameObject.AddComponent<GirlController>();
-                heroine.Initialize(i, _loopController.GetFamiliarity(i));
+                heroine.Initialize(i, GetFamiliarity(i));
                 _girlControllers.Add(heroine);
                 var voice = this.gameObject.AddComponent<VoiceController>();
                 voice.Initialize(i);
@@ -383,28 +381,57 @@ namespace KK_SensibleH
             }
         }
 
+        /// <summary>
+        /// Returns (0.25 - 1.0) value based on, well familiarity.
+        /// </summary>
+        internal float GetFamiliarity(int main)
+        {
+            var hExp = 0.55f + ((int)_hFlag.lstHeroine[main].HExperience * 0.15f);
+            if (!_hFlag.isFreeH)
+            {
+                if (_hFlag.mode != HFlag.EMode.lesbian && _hFlag.mode != HFlag.EMode.masturbation)
+                {
+                    hExp *= 0.5f + (_hFlag.lstHeroine[main].intimacy * 0.005f);
+                }
+                else
+                    hExp *= 0.5f + (_hFlag.lstHeroine[main].lewdness * 0.005f);
+            }
+            return hExp;
+        }
 
         public void DoVoiceProc(int main)
         {
+            if (_hFlag != null)
+            {
+                SensibleH.Logger.LogDebug($"{_hFlag.voice.playVoices[main]}");
+                if (SuppressVoice)
+                {
+                    _girlControllers[main]._lastVoice = _hFlag.voice.playVoices[main];
+                    _hFlag.voice.playVoices[main] = -1;
+                }
+                else
+                    _voiceControllers[main].OnVoiceProc();
+            }
             //if (!_voiceControllers[main].SayNickname())
             //{
-            _voiceControllers[main].OnVoiceProc();
             //}
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
         {
-            if (_hFlag == null)
-                return;
-
-            CurrentMain = _hFlag.nowAnimationInfo.nameAnimation.Contains("Alt") ? 1 : 0;
-
-            _loopController.OnPositionChange();
-            _sprite.ForceCloseAllMenu();
-            
-            foreach (var girl in _girlControllers)
+            if (_hFlag != null)
             {
-                girl.OnPositionChange();
+                CurrentMain = _hFlag.nowAnimationInfo.nameAnimation.Contains("Alt") ? 1 : 0;
+
+                _loopController.OnPositionChange(nextAnimInfo);
+                _moMiController.OnPositionChange(nextAnimInfo);
+                _sprite.ForceCloseAllMenu();
+
+                foreach (var girl in _girlControllers)
+                {
+                    girl.OnPositionChange();
+                }
             }
+
         }
         public void DoFirstTouchProc()
         {
