@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using KK_SensibleH.EyeNeckControl; 
 using static KK_SensibleH.EyeNeckControl.EyeNeckDictionaries;
+using static KK_SensibleH.EyeNeckControl.EyeNeckController;
 using Random = UnityEngine.Random;
 using VRGIN.Core;
 
@@ -14,6 +15,7 @@ namespace KK_SensibleH.EyeNeckControl
      * 
      * Implement check for direction of away eyes, and introduce HIGH bias to look that way.
      * 
+     * Bring back active PoI swap.
      * 
      */
     /// <summary>
@@ -24,30 +26,32 @@ namespace KK_SensibleH.EyeNeckControl
     class SpecialNeckMovement
     {
         internal GameObject _auxCam;
+
+
+        private bool _vr;
+        private bool _keepAuxCamStill; // don't move it when parent is kokan.
+
+        private int _main;
+        private float _nextMoveAt;
+        private float _moveDelta;
+
         private GirlController _master;
+        private EyeNeckController _neck;
+        private ChaControl _chara;
         private Transform _eyes;
-        //private Transform _shoulders;
         private Transform _neckLookTarget;
         private Transform _auxCamParent;
         private Vector3 _auxCamParentLastPos;
-        private ChaControl _chara;
-        private int _main = 0;
-        private float _nextMoveAt;
-       // private Vector3 _auxCamLastPos;
-        private bool _vr;
-        //private Transform _camera;
         private HMotionEyeNeckFemale _eyeNeckMotion;
-        private bool _keepAuxCamStill; // don't move it when parent is kokan.
-        internal SpecialNeckMovement(GirlController girlController, int main, bool vr)
+        internal SpecialNeckMovement(GirlController master, EyeNeckController neck, int main, bool vr)
         {
+            _master = master;
+            _neck = neck;
             _main = main;
             _vr = vr;
             _chara = SensibleH._chaControl[main];
             _eyeNeckMotion = main == 0 ? SensibleH._eyeneckFemale : SensibleH._eyeneckFemale1;
-            _master = girlController;
-            _neckLookTarget = _chara.objNeckLookTarget.transform; // objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/" +
-                //"cf_j_spine03/cf_s_spine03/N_NeckLookTargetP/N_NeckLookTarget");
-            //_shoulders = _chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_backsk_00");
+            _neckLookTarget = _chara.objNeckLookTarget.transform;
             _eyes = _chara.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
             //var camera = _chara.transform.parent.Find("CameraBase/Camera");
 
@@ -55,29 +59,20 @@ namespace KK_SensibleH.EyeNeckControl
             fixCam.name = "FixationalNeckMovement";
             fixCam.localScale = Vector3.zero;
             _auxCam = fixCam.gameObject;
-
-            //if (vr)
-            //{
-            //    _camera = VR.Camera.transform;
-            //}
-            //else
-            //    _camera = _chara.transform.parent.Find("CameraBase/Camera");
-
+            if (vr)
+                _moveDelta = 0.05f;
+            else
+                _moveDelta = 0.15f;
             SetAuxCamProperParent(17);
-
-            //SensibleH.Logger.LogDebug($"FixNeckMove[Awake] {_neckLookTarget}");
         }
         /// <summary>
-        /// Reparent camera for FixationalNeckMove to HScene, position stays.
+        /// Reparent AuxCamera to chara, position stays.
         /// </summary>
-        public void OnKissAuxCam()
+        public void OnKissVrAuxCam()
         {
             // Using VR cam for VR feature is kinda given.. too fed up to try the other way.
             var cam = _auxCam.transform;
             var camVR = VR.Camera.transform;
-            //var camVR = _chara.transform.parent.Find("CameraBase/Camera");
-            // test camera movements outside VR.
-           // cam.position = camVR.position;
             cam.position = camVR.position;
             cam.position += camVR.position + camVR.forward * -0.8f + camVR.up * 0.4f - cam.position;
             cam.SetParent(_chara.objTop.transform, worldPositionStays: true);
@@ -119,15 +114,16 @@ namespace KK_SensibleH.EyeNeckControl
         //    //else
         //    _fixMoveCamera.transform.SetParent(_chara.transform.parent.Find("CameraBase/Camera"), worldPositionStays: false);
         //}
+
         public void Proc()
         {
-            if (_master._neckActive && _master.CurrentNeck != GirlController.DirectionNeck.Pose && _master.CurrentNeck != GirlController.DirectionNeck.Mid)
+            if (_neck._neckActive && _neck.CurrentNeck != DirectionNeck.Pose && _neck.CurrentNeck != DirectionNeck.Mid)
             {
                 if (_nextMoveAt < Time.time)
                 {
                     DoFixationalNeck();
                 }
-                else if (_master.CurrentNeck == GirlController.DirectionNeck.Cam && Vector3.Distance(_auxCamParent.position, _auxCamParentLastPos) > 0.15f)
+                else if (_neck.CurrentNeck == DirectionNeck.Cam && Vector3.Distance(_auxCamParent.position, _auxCamParentLastPos) > _moveDelta)
                 {
                     // That is whatever AuxCam is being attached to has moved.
                     ResetAuxCam();
@@ -136,7 +132,6 @@ namespace KK_SensibleH.EyeNeckControl
         }
         public void SetAuxCamProperParent(int eyeCamId)
         {
-            ResetAuxCam();
             Transform parent;
             switch (eyeCamId)
             {
@@ -150,14 +145,24 @@ namespace KK_SensibleH.EyeNeckControl
                     _keepAuxCamStill = true;
                     break;
                 default:
-                    parent = _chara.transform.parent.Find("CameraBase/Camera");
+                    if (_vr)
+                    {
+                        // There are some weird inconsistencies in vr, native camera doesn't always align perfectly/align at all.
+                        // One of the bugs is probably me not patching all the camera teleportation away, still remains somewhere.
+                        // Minor misalignments are real conundrum, because positions are the same.
+                        // Solved in the most sober way, by using VR toolset in VR mode.
+                        parent = VR.Camera.transform;
+                    }
+                    else
+                        parent = _chara.transform.parent.Find("CameraBase/Camera");
+
                     _keepAuxCamStill = false;
                     break;
 
             }
             _auxCam.transform.SetParent(parent, worldPositionStays: false);
             _auxCamParent = parent;
-            _auxCamParentLastPos = parent.position;
+            ResetAuxCam();
         }
         public void ResetAuxCam()
         {
@@ -167,53 +172,54 @@ namespace KK_SensibleH.EyeNeckControl
         }
         private void DoFixationalNeck()
         {
-            SensibleH.Logger.LogDebug($"DoFixationalNeck.");
-            var curEyes = _master.CurrentEyes;
-            var curNeck = _master.CurrentNeck;
-            if (curNeck == GirlController.DirectionNeck.Cam && !_keepAuxCamStill)
+            var voice = _master._voiceController.IsVoiceActive;
+            if (!voice || (voice && Random.value < 0.5f))
             {
-                // While looking at the camera, we introduce deviation to target's position as long as the camera doesn't move too much and eyes don't look at cam.
+                var curEyes = _neck.CurrentEyes;
+                //SensibleH.Logger.LogDebug($"DoFixationalNeck. {_master.CurrentNeck} move - {_keepAuxCamStill == false}");
+                if (_neck.CurrentNeck == DirectionNeck.Cam)
+                {
+                    if (!_keepAuxCamStill)
+                    {
+                        var dist = Vector3.Distance(_auxCamParent.position, _eyes.position);
 
-                //SensibleH.Logger.LogDebug($"EyeCam Delta distance {lastFixCamPosDelta}");
-                if (curEyes == GirlController.DirectionEye.Cam && !_master.IsNeckRecent)
-                {
-                    _master.OnVoiceProc();
-                    SensibleH.Logger.LogDebug($"MoveAuxCam[SwitchToEyeCam]");
-                }
-                else// if (AuxCamDic.ContainsKey(curEyes))
-                {
-                    var testDist = 3f / Vector3.Distance(_auxCamParent.position, _eyes.position);
-                    var vec = AuxCamDic[curEyes];
-                    _auxCam.transform.localPosition += vec * testDist;
-                    _auxCamParentLastPos = _auxCamParent.position;
-                    SensibleH.Logger.LogDebug($"MoveAuxCam[neck[{_master.CurrentNeck}]][eyes[{curEyes}]][{vec.x}][{vec.y}] distance [{testDist}]");
-                }
-            }
-            else
-            {
-                var dist = Vector3.Distance(_eyes.position, _neckLookTarget.position);
-                if (curEyes == GirlController.DirectionEye.Cam && !_master.IsNeckRecent)// && Random.value < 0.66f)
-                {
-                    // Initiate eyeCam when eyes look at cam from other position.
-                    _master.OnVoiceProc();
-                    SensibleH.Logger.LogDebug($"MovePoi[SwitchToEyeCam]");
-                }
-                else if (AuxPoiCamDic.ContainsKey(curEyes))
-                {
-                    var vec = AuxPoiCamDic[curEyes];
-                    _neckLookTarget.localPosition += AuxPoiCamDic[curEyes];
-                    SensibleH.Logger.LogDebug($"MovePoiFollow[neck[{_master.CurrentNeck}]][eyes[{curEyes}]][{vec.x}][{vec.y}] distance [{dist}]");
+                        var vec = GetAuxCamDic(curEyes);
+                        _auxCam.transform.localPosition += vec * (dist / 0.8f);
+                        if (_auxCam.transform.position.y < 0f)
+                        {
+                            _auxCam.transform.localPosition += Vector3.up * (Random.value * 0.2f);
+                        }
+                        _auxCamParentLastPos = _auxCamParent.position;
+                        SensibleH.Logger.LogDebug($"MoveAuxCam[neck[{_neck.CurrentNeck}]][eyes[{curEyes}]][{vec.x}][{vec.y}] dist[{dist}]");
+                    }
+
                 }
                 else
                 {
-                    var vec = new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
-                    _neckLookTarget.localPosition += vec;
-                    SensibleH.Logger.LogDebug($"MovePoiRandom[neck[{_master.CurrentNeck}]] [eyes[{curEyes}]] [{vec.x}] [{vec.y}] distance [{dist}]);");
+                    var dist = Vector3.Distance(_eyes.position, _neckLookTarget.position);
+                    if (curEyes == DirectionEye.Cam && !_neck.IsNeckRecent)// && Random.value < 0.66f)
+                    {
+                        // Attempt to initiate eyeCam when eyes look at cam from other position.
+                        _neck.LookAtCam();
+                        SensibleH.Logger.LogDebug($"MovePoi[SwitchToEyeCam]");
+                    }
+                    else// if (AuxPoiCamDic.ContainsKey(curEyes))
+                    {
+                        var vec = GetAuxPoiDic(curEyes);
+                        _neckLookTarget.localPosition += vec;
+                        SensibleH.Logger.LogDebug($"MovePoiFollow[neck[{_neck.CurrentNeck}]][eyes[{curEyes}]][{vec.x}][{vec.y}] distance [{dist}]");
+                    }
+                    //else
+                    //{
+                    //    var vec = new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                    //    _neckLookTarget.localPosition += vec;
+                    //    SensibleH.Logger.LogDebug($"MovePoiRandom[neck[{_master.CurrentNeck}]] [eyes[{curEyes}]] [{vec.x}] [{vec.y}] distance [{dist}]);");
+                    //}
                 }
             }
             var rand = Random.Range(2f, 6f);
             _nextMoveAt = Time.time + rand;
-            _master._neckNextMove += Mathf.Sqrt(rand); // * 0.1f + Random.value * 0.5f;
+            _neck._neckNextMove += Mathf.Sqrt(rand); // * 0.1f + Random.value * 0.5f;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using static KK_SensibleH.GirlController;
+using static KK_SensibleH.EyeNeckControl.EyeNeckController;
 using Random = UnityEngine.Random;
 
 namespace KK_SensibleH.EyeNeckControl
@@ -53,8 +54,92 @@ namespace KK_SensibleH.EyeNeckControl
             {15, DirectionEye.PoiUp},
             {16, DirectionEye.PoiRollAway}
         };
+        public static Vector3 GetAuxCamDic(DirectionEye direction)
+        {
+            switch (direction)
+            {
+                case DirectionEye.Pose:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.DownDownMid:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.1f - Random.value * 0.2f);
+                case DirectionEye.UpMid:
+                    return new Vector3(-0.15f + Random.value * 0.3f, 0.1f + Random.value * 0.2f);
+                case DirectionEye.UpRight:
+                    return new Vector3(-0.1f - Random.value * 0.2f, 0.1f + Random.value * 0.2f);
+                case DirectionEye.MidRight:
+                    return new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.DownRight:
+                    return new Vector3(-0.1f - Random.value * 0.2f, -0.1f - Random.value * 0.2f);
+                case DirectionEye.DownMid:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.1f - Random.value * 0.2f);
+                case DirectionEye.DownLeft:
+                    return new Vector3(0.1f + Random.value * 0.2f, -0.1f - Random.value * 0.2f);
+                case DirectionEye.MidLeft:
+                    return new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.UpLeft:
+                    return new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f);
+                case DirectionEye.Mid:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.Away:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.PoiDown:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.PoiUp:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.PoiRollAway:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                default:
+                    return Vector3.zero;
+            }
+        }
+        public static Vector3 GetAuxPoiDic(DirectionEye direction)
+        {
+            // Right side 
+            //     Up = -x
+            //     Right = +y
+            // Left side 
+            //     Up = +x
+            //     Right = +y
+            switch (direction)
+            {
+                case DirectionEye.Cam:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.Pose:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.DownDownMid:
+                    return new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.UpMid:
+                    return new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.UpRight:
+                    return new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.MidLeft:
+                case DirectionEye.MidRight:
+                    return new Vector3(-0.15f + Random.value * 0.3f, 0.1f + Random.value * 0.2f);// done
+                case DirectionEye.DownRight:
+                    return new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f); // DONE
+                case DirectionEye.DownMid:
+                    return new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.DownLeft:
+                    return new Vector3(-0.1f - Random.value * 0.2f, -0.1f - Random.value * 0.2f);
+                case DirectionEye.UpLeft:
+                    return new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f);
+                case DirectionEye.Mid:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.Away:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.PoiDown:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.PoiUp:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                case DirectionEye.PoiRollAway:
+                    return new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
+                default:
+                    return Vector3.zero;
+            }
+        }
         public static Dictionary<DirectionEye, Vector3> AuxCamDic = new Dictionary<DirectionEye, Vector3>()
         {
+            // They are created at runtime and kept that way.. not exactly pretty.
         // -x = right   
         // +y = up
             {DirectionEye.Pose, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
@@ -72,11 +157,14 @@ namespace KK_SensibleH.EyeNeckControl
             {DirectionEye.PoiDown, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
             {DirectionEye.PoiUp, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
             {DirectionEye.PoiRollAway, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)}
+
         };
-        public static Dictionary<DirectionEye, Vector3> AuxPoiCamDic = new Dictionary<DirectionEye, Vector3>()
+        public static Dictionary<DirectionEye, Vector3> AuxPoiDic = new Dictionary<DirectionEye, Vector3>()
         {
         // +x = up
         // -y = right
+            {DirectionEye.Cam, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.Pose, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
             {DirectionEye.DownDownMid, new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
             {DirectionEye.UpMid, new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
             {DirectionEye.UpRight, new Vector3(0.1f + Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
@@ -85,7 +173,12 @@ namespace KK_SensibleH.EyeNeckControl
             {DirectionEye.DownMid, new Vector3(-0.1f - Random.value * 0.2f, -0.15f + Random.value * 0.3f)},
             {DirectionEye.DownLeft, new Vector3(-0.1f - Random.value * 0.2f, -0.1f - Random.value * 0.2f)},
             {DirectionEye.MidLeft, new Vector3(-0.15f + Random.value * 0.3f, 0.1f + Random.value * 0.2f)},
-            {DirectionEye.UpLeft, new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f)}
+            {DirectionEye.UpLeft, new Vector3(0.1f + Random.value * 0.2f, 0.1f + Random.value * 0.2f)},
+            {DirectionEye.Mid, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.Away, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.PoiDown, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.PoiUp, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)},
+            {DirectionEye.PoiRollAway, new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f)}
         };
         public static List<Vector3> AuxCamDodgeList = new List<Vector3>()
         {
@@ -104,121 +197,136 @@ namespace KK_SensibleH.EyeNeckControl
             {10, DirectionEye.MidLeft},
             {11, DirectionEye.UpLeft},
         };
+        public static List<DirectionNeck> GetAibuIdleNeckDir(DirectionNeck direction)
+        {
+            switch (direction)
+            {
+                case DirectionNeck.Mid:
+                    return new List<DirectionNeck>() {
+                        DirectionNeck.MidRight,
+                        DirectionNeck.MidLeft
+                    };
+                case DirectionNeck.MidRight:
+                    return new List<DirectionNeck>() {
+                        DirectionNeck.MidRight,
+                        DirectionNeck.Mid
+                    };
+                case DirectionNeck.MidLeft:
+                    return new List<DirectionNeck>() {
+                        DirectionNeck.MidRight,
+                        DirectionNeck.Mid
+                    };
+                default:
+                    return new List<DirectionNeck>() {
+                        DirectionNeck.Mid,
+                        DirectionNeck.MidRight,
+                        DirectionNeck.MidLeft
+                    };
+            }
+
+        }
         public static Dictionary<DirectionNeck, List<DirectionNeck>> AibuFrontIdleNeckDirections = new Dictionary<DirectionNeck, List<DirectionNeck>>()
         {
+            // Keep it simple, mess almost always is a detractor.
             {
                 DirectionNeck.Mid,
                 new List<DirectionNeck> {
                     DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    //DirectionNeck.Pose,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidLeft
                 }
             },
             {
                 DirectionNeck.MidRight,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Mid,
-                    //DirectionNeck.Pose,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.Cam
+                    DirectionNeck.Mid,
+                    DirectionNeck.MidRight
                 }
             },
             {
                 DirectionNeck.MidLeft,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Mid,
                     //DirectionNeck.Pose,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.DownMid,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Pose,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.DownDownLeft,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Mid,
-                    //DirectionNeck.Pose,
+                    DirectionNeck.MidRight,
                     DirectionNeck.MidLeft,
-                    DirectionNeck.Cam
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.DownRight,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Mid,
-                    //DirectionNeck.Pose,
                     DirectionNeck.MidRight,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.Pose,
                 new List<DirectionNeck> {
                     DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidLeft
                 }
             },
             {
                 DirectionNeck.Cam,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Pose,
-                    //DirectionNeck.Mid,
                     DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.UpMid,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Pose,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.UpRight,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Pose,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.UpLeft,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Pose,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.Away,
                 new List<DirectionNeck> {
-                    //DirectionNeck.Pose,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             },
             {
                 DirectionNeck.UpRightFar,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.Mid
                 }
             }
         };
@@ -227,59 +335,91 @@ namespace KK_SensibleH.EyeNeckControl
             {
                 DirectionNeck.Mid,
                 new List<DirectionNeck> {
+                    DirectionNeck.Cam,
                     DirectionNeck.Pose,
-                    DirectionNeck.Cam
+                    DirectionNeck.DownLeft,
+                    DirectionNeck.DownRight,
+                    DirectionNeck.DownMid,
+                    DirectionNeck.MidLeft,
+                    DirectionNeck.MidRight
                 }
             },
             {
                 DirectionNeck.MidRight,
                 new List<DirectionNeck> {
+                    DirectionNeck.Cam,
                     DirectionNeck.Pose,
-                    DirectionNeck.Cam
+                    DirectionNeck.DownLeft,
+                    DirectionNeck.DownRight,
+                    DirectionNeck.DownMid,
+                    DirectionNeck.MidLeft
                 }
             },
             {
                 DirectionNeck.MidLeft,
                 new List<DirectionNeck> {
+                    DirectionNeck.Cam,
                     DirectionNeck.Pose,
-                    DirectionNeck.Cam
+                    DirectionNeck.DownLeft,
+                    DirectionNeck.DownRight,
+                    DirectionNeck.DownMid,
+                    DirectionNeck.MidRight
                 }
             },
             {
                 DirectionNeck.DownMid,
                 new List<DirectionNeck> {
-                    DirectionNeck.DownDownLeft,
+                    DirectionNeck.Cam,
+                    DirectionNeck.Pose,
+                    DirectionNeck.DownLeft,
                     DirectionNeck.DownRight,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft
                 }
             },
             {
                 DirectionNeck.DownDownLeft,
                 new List<DirectionNeck> {
+                    DirectionNeck.Cam,
+                    DirectionNeck.Pose,
+                    DirectionNeck.DownLeft,
+                    DirectionNeck.DownRight,
                     DirectionNeck.DownMid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft
                 }
             },
             {
                 DirectionNeck.DownRight,
                 new List<DirectionNeck> {
+                    DirectionNeck.Cam,
+                    DirectionNeck.Pose,
+                    DirectionNeck.DownLeft,
                     DirectionNeck.DownMid,
-                    DirectionNeck.Cam
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft
                 }
             },
             {
                 DirectionNeck.Pose,
                 new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Cam
+                    DirectionNeck.Cam,
+                    DirectionNeck.DownLeft,
+                    DirectionNeck.DownRight,
+                    DirectionNeck.DownMid,
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft
                 }
             },
             {
                 DirectionNeck.Cam,
                 new List<DirectionNeck> {
+                    DirectionNeck.Pose,
+                    DirectionNeck.DownLeft,
+                    DirectionNeck.DownRight,
                     DirectionNeck.DownMid,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight
+                    DirectionNeck.MidRight,
+                    DirectionNeck.MidLeft
                 }
             },
             {
@@ -307,20 +447,14 @@ namespace KK_SensibleH.EyeNeckControl
                 DirectionNeck.Away,
                 new List<DirectionNeck> {
                     DirectionNeck.Pose,
-                    DirectionNeck.Mid,
-                    DirectionNeck.Cam,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.MidRight
+                    DirectionNeck.Cam
                 }
             },
             {
                 DirectionNeck.UpRightFar,
                 new List<DirectionNeck> {
                     DirectionNeck.Pose,
-                    DirectionNeck.Mid,
-                    DirectionNeck.Cam,
-                    DirectionNeck.MidRight
+                    DirectionNeck.Cam
                 }
             }
         };

@@ -46,7 +46,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             return codes.AsEnumerable();
         }
         /// <summary>
-        /// Actions that we interpret as user input.
+        /// Actions that we interpret as user input.Reaction
         /// </summary>
         [HarmonyPostfix]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnAutoFinish))]
@@ -55,6 +55,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnChangeMotionClick))] // Changes loop type. RMB.
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnSpeedUpClick))]
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnCondomClick))]
+        [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.Reaction))]
         public static void ManyActionsPostfix()
         {
             LoopController.Instance.OnUserInput();

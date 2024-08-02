@@ -11,6 +11,7 @@ using ActionGame.Chara.Mover;
 namespace KK_SensibleH.Caress
 {
     /// <summary>
+    /// CyuVR's ito (thread) part.
     /// There is still a room for optimization.
     /// </summary>
     internal class Thread : MonoBehaviour

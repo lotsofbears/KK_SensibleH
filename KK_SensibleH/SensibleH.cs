@@ -17,12 +17,13 @@ using KK_SensibleH.AutoMode;
 namespace KK_SensibleH
 {
     [BepInPlugin(GUID, "KK_SensibleH", Version)]
-    [BepInProcess("Koikatu")]
-    [BepInDependency(KoikatuAPI.GUID)]
-    [BepInDependency(KoikatuVR.VRPlugin.GUID)]
-    [BepInDependency("github.lunared.bepinex.unityinput")]
-    [BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in dependencies, no clue how to pass unknown enum type to the delegate.
-    [BepInDependency(IllusionFixes.ResourceUnloadOptimizations.GUID)]
+    //[BepInProcess("Koikatu")]
+    //[BepInProcess("Koikatu")]
+    //[BepInDependency(KoikatuAPI.GUID)]
+    //[BepInDependency(KoikatuVR.VRPlugin.GUID)]
+    //[BepInDependency("github.lunared.bepinex.unityinput")]
+    //[BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in dependencies, no clue how to pass unknown enum type to the delegate.
+    //[BepInDependency(IllusionFixes.ResourceUnloadOptimizations.GUID)]
     // Breaks stuff sooner or later in KK, breaks from the start something serious in KKS (all in FreeH).
     // In case of KK can be fixed by removing config, in KKS by removing plugin. 
     //[BepInIncompatibility("keelhauled.freehdefaults")] 
@@ -158,7 +159,7 @@ namespace KK_SensibleH
             NeckLimit = Config.Bind(
                 section: "Tweaks",
                 key: "NeckLimit",
-                defaultValue: 0.8f,
+                defaultValue: 1f,
                 new ConfigDescription("Adjust the limits of neck movements, 1.0 being the default value.\n" +
                 "Changes take place on scene reload or new position.",
                 new AcceptableValueRange<float>(0.5f, 1.5f))
@@ -250,8 +251,7 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.AddSonyuAnalOrg))]
             public static void OrgasmFemalePostfix()
             {
-                SensibleH.Logger.LogDebug("OrgasmFemalePostfix");
-                LoopController.Instance.DoOrgasmF();
+                LoopController.Instance.OnOrgasmF();
             }
             [HarmonyPostfix]
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.AddHoushiInside))]
@@ -264,8 +264,7 @@ namespace KK_SensibleH
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.AddSonyuAnalCondomInside))]
             public static void OrgasmMalePostfix()
             {
-                SensibleH.Logger.LogDebug("OrgasmMalePostfix");
-                LoopController.Instance.DoOrgasmM();
+                LoopController.Instance.OnOrgasmM();
             }
             /// <summary>
             /// Wa waltz in on masturbating/lesbianing wonder, and the scene is already HOT. Outside of FreeH that is.
@@ -290,11 +289,11 @@ namespace KK_SensibleH
                     {
                         var eyeNeck = __instance.eyeneckFemale1.dicEyeNeck.ElementAt(i).Value;
                         eyeNeck.rangeNeck.up = PrettyNumber((int)(eyeNeck.rangeNeck.up * NeckLimit.Value));
-                        eyeNeck.rangeNeck.down -= 10;
+                        eyeNeck.rangeNeck.down = PrettyNumber((int)(eyeNeck.rangeNeck.down * NeckLimit.Value));
                         eyeNeck.rangeNeck.left = PrettyNumber((int)(eyeNeck.rangeNeck.left * NeckLimit.Value));
                         eyeNeck.rangeNeck.right = PrettyNumber((int)(eyeNeck.rangeNeck.right * NeckLimit.Value));
                         eyeNeck.rangeFace.up = PrettyNumber((int)(eyeNeck.rangeFace.up * NeckLimit.Value));
-                        eyeNeck.rangeFace.down -= 10;
+                        eyeNeck.rangeFace.down = PrettyNumber((int)(eyeNeck.rangeFace.down * NeckLimit.Value));
                         eyeNeck.rangeFace.left = PrettyNumber((int)(eyeNeck.rangeFace.left * NeckLimit.Value));
                         eyeNeck.rangeFace.right = PrettyNumber((int)(eyeNeck.rangeFace.right * NeckLimit.Value));
                     }
@@ -303,11 +302,11 @@ namespace KK_SensibleH
                 {
                     var eyeNeck = __instance.eyeneckFemale.dicEyeNeck.ElementAt(i).Value;
                     eyeNeck.rangeNeck.up = PrettyNumber((int)(eyeNeck.rangeNeck.up * NeckLimit.Value));
-                    eyeNeck.rangeNeck.down -= 10;
+                    eyeNeck.rangeNeck.down = PrettyNumber((int)(eyeNeck.rangeNeck.down * NeckLimit.Value));
                     eyeNeck.rangeNeck.left = PrettyNumber((int)(eyeNeck.rangeNeck.left * NeckLimit.Value));
                     eyeNeck.rangeNeck.right = PrettyNumber((int)(eyeNeck.rangeNeck.right * NeckLimit.Value));
                     eyeNeck.rangeFace.up = PrettyNumber((int)(eyeNeck.rangeFace.up * NeckLimit.Value));
-                    eyeNeck.rangeFace.down -= 10;
+                    eyeNeck.rangeFace.down = PrettyNumber((int)(eyeNeck.rangeFace.down * NeckLimit.Value));
                     eyeNeck.rangeFace.left = PrettyNumber((int)(eyeNeck.rangeFace.left * NeckLimit.Value));
                     eyeNeck.rangeFace.right = PrettyNumber((int)(eyeNeck.rangeFace.right * NeckLimit.Value));
                 }
@@ -362,25 +361,25 @@ namespace KK_SensibleH
             {
                 if (__instance.flags.voice.playVoices[_main] != -1)
                 {
-                    SensibleHController.Instance.DoVoiceProc(_main);
+                    SensibleHController.Instance.OnVoiceProc(_main);
                 }
             }
             [HarmonyPrefix]
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.FemaleGaugeUp))]
             public static void PrefixFemaleGaugeUp(ref float _addPoint)
             {
-                if (_addPoint < 0)// && biasF < 1f)
-                    _addPoint = _addPoint * 0.25f;
-                else
+                //if (_addPoint < 0)// && biasF < 1f)
+                //    _addPoint = _addPoint * 0.25f;
+                //else
                     _addPoint = _addPoint * 0.25f * BiasF;
             }
             [HarmonyPrefix]
             [HarmonyPatch(typeof(HFlag), nameof(HFlag.MaleGaugeUp))]
             public static void PrefixMaleGaugeUp(ref float _addPoint)
             {
-                if (_addPoint < 0)// && biasM < 1f)
-                    _addPoint = _addPoint * 0.25f;
-                else
+                //if (_addPoint < 0)// && biasM < 1f)
+                //    _addPoint = _addPoint * 0.25f;
+               // else
                     _addPoint = _addPoint * 0.25f * BiasM;
             }
             /// <summary>
@@ -554,7 +553,6 @@ namespace KK_SensibleH
             {
                 if (__instance.actionUseItem != -1 && __instance.voice.nowVoices[__instance.numFemale].state == HVoiceCtrl.VoiceKind.voice && UnityEngine.Random.value < 0.5f)
                     _playShort = false;
-                LoopController.Instance.OnUserInput();
             }
             /// <summary>
             /// We run voiceProc for first item attached.

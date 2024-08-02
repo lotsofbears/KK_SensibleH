@@ -15,11 +15,9 @@ using static KK_SensibleH.AutoMode.LoopProperties;
 
 namespace KK_SensibleH.AutoMode
 {
-    /// <summary>
-    /// TODO Catch and suppress voice PROPERLY.
-    /// 
+    /// <summary>.
     /// Recently Broken:
-    /// restart, edge voice after stop
+    /// edge voice is still a clutch
     /// </summary>
     public class LoopController : GameCustomFunctionController
     {
@@ -37,7 +35,7 @@ namespace KK_SensibleH.AutoMode
         private bool _wasAnalPlay;
         private bool _edgeActive;
         private bool _busy;
-        private bool _userInput;
+        //private bool _userInput;
         private bool _restart;
         private bool _hadClimax;
         private bool _sonyu;
@@ -46,13 +44,13 @@ namespace KK_SensibleH.AutoMode
         {
             Instance = this;
             _master = master;
-            OnPositionChange();
             lstUseAnimInfo = Traverse.Create(_proc).Field<List<HSceneProc.AnimationListInfo>[]>("lstUseAnimInfo");
             lstProc = Traverse.Create(_proc).Field("lstProc").GetValue<List<HActionBase>>();
             _sprite = Traverse.Create(_proc).Field("sprite").GetValue<HSprite>();
             fakeAnimButton = Instantiate(_sprite.objMotionListNode, gameObject.transform, false);
             fakeAnimButton.AddComponent<HSprite.AnimationInfoComponent>();
             fakeAnimButton.SetActive(true);
+            OnPositionChange();
         }
         private Coroutine _speedChangerCo;
         private Coroutine runAfterCoroutine; // It really is necessary due to crossFader, other way is a mess;
@@ -68,20 +66,18 @@ namespace KK_SensibleH.AutoMode
             switch (_hFlag.mode)
             {
                 case HFlag.EMode.houshi:
-                    if ((IsActionLoop && _hFlag.gaugeMale > _climaxAt) || IsEndInMouth)
-                    {
-                        menu = _sprite.houshi.categoryActionButton.lstButton;
-                    }
-                    else
-                        return new List<Button>();
+                    //if ((IsActionLoop && _hFlag.gaugeMale > _climaxAt) || IsEndInMouth)
+
+                    menu = _sprite.houshi.categoryActionButton.lstButton;
+
+                   // return new List<Button>();
                     break;
                 case HFlag.EMode.houshi3P:
-                    if ((IsActionLoop && _hFlag.gaugeMale > _climaxAt) || IsEndInMouth)
-                    {
-                        menu = _sprite.houshi3P.categoryActionButton.lstButton;
-                    }
-                    else
-                        return new List<Button>();
+                    menu = _sprite.houshi3P.categoryActionButton.lstButton;
+
+
+                    //else
+                    //    return new List<Button>();
                     break;
                 case HFlag.EMode.sonyu:
                     menu = _sprite.sonyu.categoryActionButton.lstButton;
@@ -92,13 +88,13 @@ namespace KK_SensibleH.AutoMode
                 default:
                     return new List<Button>();
             }
-            // StartsWith instead of Equal of for Dark houshi.
+            // StartsWith instead of Equal for Dark houshi.
             var choices = name == String.Empty ? menu
                 .Where(button => button.isActiveAndEnabled && button.interactable
                 && !button.name.StartsWith("Fast", StringComparison.Ordinal) && !button.name.StartsWith("Slow", StringComparison.Ordinal))
                 .ToList()
                 : menu
-                .Where(button => button.isActiveAndEnabled && button.interactable && button.name.Equals(name))
+                .Where(button => button.isActiveAndEnabled && button.interactable && button.name.StartsWith(name, StringComparison.Ordinal))
                 .ToList();
             return choices;
         }
@@ -139,7 +135,7 @@ namespace KK_SensibleH.AutoMode
         }
         public void Proc()
         {
-            //SensibleH.Logger.LogDebug($"LoopProc Busy[{_busy}] Restart[{_restart}] UserInput[{_userInput}] Climax[{_hadClimax}]");
+            //SensibleH.Logger.LogDebug($"LoopProc Busy[{_busy}] Restart[{_restart}] Climax[{_hadClimax}]");
 
             if (_edgeActive || (!_houshi && !_sonyu))
                 return;
@@ -160,14 +156,14 @@ namespace KK_SensibleH.AutoMode
                     ChangeSpeed(request: Speed.Slow);
                 }
             }
-            else if (_busy && (_userInput || SensibleH.AutoMode.Value == AutoModeKind.Automatic))
+            else if (_busy && SensibleH.AutoMode.Value == AutoModeKind.Automatic)
             {
                 _busy = false;
-                _userInput = false;
+                //_userInput = false;
                 if (SensibleH.AutoMode.Value == AutoModeKind.Automatic && _houshi)
-                    ToggleHoushiAutoMode(true);
+                    SetHoushiAutoMode(true);
             }
-            else if (SensibleH.AutoMode.Value != AutoModeKind.Disabled && !_busy && !IsFinishLoop)
+            else if (SensibleH.AutoMode.Value != AutoModeKind.Disabled && !_busy)
             {
                 if (IsActionLoop)
                 {
@@ -175,7 +171,7 @@ namespace KK_SensibleH.AutoMode
                     {
                         if (_hFlag.gaugeFemale > 90f || _hFlag.gaugeMale > _climaxAt || Random.value < 0.5f)// 0.5f)
                         {
-                            _nextEdge = GetNextTimer(3f);
+                            _nextEdge = GetNextTimer(3f * SensibleH.EdgeFrequency.Value);
                             return;
                         }
                         StartCoroutine(Edge());
@@ -193,11 +189,11 @@ namespace KK_SensibleH.AutoMode
                         {
                             ChangeLoop();
                         }
-                        else if (_nextSpeedChange < _actionTimer && !IsOrgasmLoop)
+                        else if (_nextSpeedChange < _actionTimer && !IsOrgasmLoop) // && !IsOrgasmLoop)
                             ChangeSpeed();
                     }
                 }
-                if (_sonyu && IsIdleInside)
+                else if (_sonyu && (IsIdleInside || IsEndInside))
                     ChangeMotion();
                 if (timer % 5 == 0 && !IsVoiceActive && IsActionable)
                 {
@@ -225,11 +221,11 @@ namespace KK_SensibleH.AutoMode
             if (SensibleH.AutoMode.Value != AutoModeKind.Automatic)
             {
                 _busy = true;
-                _userInput = false;
+                //_userInput = false;
             }
             else
             {
-                _userInput = true;
+                //_userInput = true;
                 _busy = false;
             }
             if (_hFlag.isCondom)
@@ -277,8 +273,9 @@ namespace KK_SensibleH.AutoMode
             if (ChangeLoop())
             {
                 if (_houshi)
-                    ToggleHoushiAutoMode(false);
-                ChangeSpeed(request: Speed.Fast, urgent: true);
+                    SetHoushiAutoMode(false);
+                if (!IsOrgasmLoop)
+                    ChangeSpeed(request: Speed.Fast, urgent: true);
                 var timer = Time.time + 5f + (Random.value * 5f);
                 while (timer > Time.time)
                 {
@@ -286,21 +283,20 @@ namespace KK_SensibleH.AutoMode
                 }
                 if (IsOrgasmLoop)
                     ChangeMotion();
-
+                yield return null;
                 ChangeSpeed(request: Speed.Halt, urgent: true);
                 yield return new WaitForSeconds(1f);
             }
-            if (!pullOut)
+            if (!pullOut && !IsVoiceActive)
                 StartCoroutine(RunAfterTimer(() => _girlControllers[CurrentMain].PlayVoice(309), Random.Range(1f, 3f)));
             //_hFlag.voice.playVoices[CurrentMain] = 309;
             else
             {
                 if (_houshi && !IsVoiceActive)
                     StartCoroutine(RunAfterTimer(() => _girlControllers[CurrentMain].PlayVoice(200), Random.Range(1f, 2f)));
-                //_hFlag.voice.playVoices[CurrentMain] = 200;
                 _wasAnalPlay = _hFlag.isAnalPlay;
             }
-            var edgeTimer = Time.time + 5f + (Random.value * 10f);
+            var edgeTimer = Time.time + GetRandomRange();
             while (edgeTimer > Time.time)
             {
                 yield return new WaitForSeconds(0.2f);
@@ -311,24 +307,28 @@ namespace KK_SensibleH.AutoMode
                 yield return new WaitForSeconds(0.2f);
                 ChangeEdge();
             }
-            if (Random.value < 0.5f)
+            if (_sonyu)
             {
-                ChangeLoop(request: Loop.Strong);
-                ChangeSpeed(urgent: true);
+                while (!IsWeakLoop)
+                {
+                    ChangeMotion();
+                    yield return new WaitForSeconds(0.2f);
+                }
             }
+            ChangeSpeed(request: Speed.Fast, urgent: true);
             _nextEdge = GetNextTimer(6f * SensibleH.EdgeFrequency.Value);
-            _edgeActive = false;
             if (_houshi)
-                ToggleHoushiAutoMode(true);
+                SetHoushiAutoMode(true);
+            _edgeActive = false;
             SensibleH.Logger.LogDebug($"Edge[End]");
         }
         private void ActionButton(string name = "")
         {
-            SensibleH.Logger.LogDebug($"LoopController[ActionButton]");
             List<Button> choices;
 
             choices = GetAvailableActions(name);
 
+            SensibleH.Logger.LogDebug($"LoopController[ActionButton] choises - {choices.Count}");
             if (choices.Count == 0)
                 return;
 
@@ -351,7 +351,7 @@ namespace KK_SensibleH.AutoMode
                     RestartAction();
                     return;
                 }
-                else if (Random.value < 0f)//0.3f)
+                else if (Random.value < 0.3f)//0.3f)
                 {
                     RestartAction();
                     return;
@@ -379,7 +379,7 @@ namespace KK_SensibleH.AutoMode
             }
             else if (IsEndInside || IsIdleInside || IsIdleOutside)
             {
-                SensibleH.Logger.LogDebug($"PickAction[PullOut] just press something");
+                SensibleH.Logger.LogDebug($"PickAction[WaitState] just press something");
                 ActionButton();
             }
         }
@@ -387,6 +387,7 @@ namespace KK_SensibleH.AutoMode
         /// <summary>
         /// We change the speed of excitement gain based on different factors.
         /// This results in virgins that can hardly climax and semen demons that defy logic, while making the dude to gravitate towards One-Shot-Joe side.
+        /// And we keep stats for the day, so no more rooster-like actions (they apparently can do it for ~1k times a day, all with different partners thought). 
         /// </summary>
         private void GetBias()
         {
@@ -399,17 +400,17 @@ namespace KK_SensibleH.AutoMode
 
             PickHStats(0);
             var familiarity = _master.GetFamiliarity(CurrentMain);
-            var lewdness = _hFlag.lstHeroine[CurrentMain].lewdness * 0.005f;
+            var lewdness = _hFlag.lstHeroine[CurrentMain].lewdness * 0.0033f;
             var numOfClimaxes = LstHeroine[_hFlag.lstHeroine[CurrentMain].Name];
             float coefficient;
-            if (familiarity < 0.55f)
-                coefficient = 2f / (2f + numOfClimaxes);
+            if (familiarity < 0.8f) // After 90 intimacy on 2nd Exp.stage, and after 60 on 3rd Exp.stage
+                coefficient = 5f / (5f + numOfClimaxes);
             else
                 coefficient = 1 + (numOfClimaxes * 0.1f);
 
             BiasF = familiarity * (_hFlag.isCondom ? 0.75f : 1f) * coefficient + lewdness;
 
-            BiasM = (_hFlag.isCondom ? 0.5f : 1f) - (MaleOrgCount * 0.2f);
+            BiasM = (_hFlag.isCondom ? 0.75f : 1f) + lewdness - (MaleOrgCount * 0.2f);
 
             SensibleH.Logger.LogDebug($"BiasF = {BiasF}, BiasM = {BiasM}");
         }
@@ -453,6 +454,7 @@ namespace KK_SensibleH.AutoMode
                     {
                         AnimSetPlay(_hFlag.isAnalPlay ? "A_WLoop" : "WLoop");
                         OLoop = false;
+                        ChangeSpeed(request: Speed.Slow);
                     }
                     else if (IsStrongLoop)
                     {
@@ -466,6 +468,7 @@ namespace KK_SensibleH.AutoMode
                     {
                         AnimSetPlay(_hFlag.isAnalPlay ? "A_SLoop" : "SLoop");
                         OLoop = false;
+                        ChangeSpeed(request: Speed.Slow);
                     }
                     else if (IsWeakLoop)
                     {
@@ -481,6 +484,8 @@ namespace KK_SensibleH.AutoMode
                         AnimSetPlay(_hFlag.isAnalPlay ? "A_OLoop" : "OLoop");
                         //if (_speedChangerCo != null)
                         //    StopCoroutine(_speedChangerCo);
+                        if (_speedChangerCo != null)
+                            StopCoroutine(_speedChangerCo);
                         _hFlag.speedCalc = 1f;
                         if (!IsVoiceActive && Random.value < 0.5f)
                             _hFlag.voice.playVoices[CurrentMain] = 313;
@@ -601,29 +606,29 @@ namespace KK_SensibleH.AutoMode
             var speedOfChange = 1f;
             if (request == Speed.Random)
             {
-                if (speedCalc < 0.1f)
-                    speedCalc += 0.15f + (Random.value * 0.6f);
-                else if (speedCalc > 0.9f)
-                    speedCalc -= 0.15f + (Random.value * 0.6f);
+                if (speedCalc < 0.15f)
+                    speedCalc += 0.25f + (Random.value * 0.5f);
+                else if (speedCalc > 0.85f)
+                    speedCalc -= 0.25f + (Random.value * 0.5f);
                 else
-                    speedCalc = Random.value;
+                    speedCalc = Mathf.Clamp01(speedCalc + ((0.2f + Random.value * 0.5f) * (Random.value < 0.5f ? 1 : -1)));
             }
             else if (request == Speed.Slow)
             {
-                speedCalc = Random.value * 0.2f;
+                speedCalc = Random.value * 0.25f;
             }
             else if (request == Speed.Fast)
             {
-                speedCalc = 1f - Random.value * 0.2f;
+                speedCalc = 1f - Random.value * 0.25f;
             }
             else
                 speedCalc = 0f;
 
             if (!urgent)
             {
-                speedOfChange = GetRandomRange(0.25f);
+                speedOfChange = Mathf.Abs(_hFlag.speedCalc - speedCalc) * GetRandomRange();
             }
-            _nextSpeedChange = GetNextTimer();
+            _nextSpeedChange = GetNextTimer(1f);
 
             if (_speedChangerCo != null)
                 StopCoroutine(_speedChangerCo);
@@ -674,9 +679,8 @@ namespace KK_SensibleH.AutoMode
             SensibleH.Logger.LogDebug($"SpeedManipulator {start} {target} {speedOfChange}");
             for (var t = 0f; t < speedOfChange; t += Time.deltaTime)
             {
-                if (_hFlag.finish != HFlag.FinishKind.none)
+                if (IsFinishLoop)
                     yield break;
-
                 _hFlag.speedCalc = Mathf.Lerp(start, target, t / speedOfChange);
                 yield return null;
             }
@@ -687,35 +691,53 @@ namespace KK_SensibleH.AutoMode
         {
             SensibleH.Logger.LogDebug($"RestartAction");
             GetBias();
+            _nextEdge = GetNextTimer(6f * SensibleH.EdgeFrequency.Value);
+            _nextLoopChange = GetNextTimer();
             _restart = false;
             _hadClimax = false;
-            _userInput = true;
+            _busy = false;
+            //_userInput = true;
             if (_houshi)
             {
                 _hFlag.click = HFlag.ClickKind.again;
             }
-            else if (_sonyu)
+            else if (_sonyu && IsEndOutside)
             {
-                if (IsEndOutside)
-                    ActionButton();
-                else
-                    _hFlag.click = HFlag.ClickKind.speedup;
+                ActionButton();
             }
         }
         public void OnUserInput()
         {
-            if (_hadClimax && _hFlag.gaugeFemale > 5f && _hFlag.gaugeMale > 5f)
+            if (_busy)
             {
-                // In case the user decides to do some actions after orgasm ahead of the plugin (or plugin was disabled and re-enabled).
-                _hadClimax = false;
-            }
-            if (_busy &&
-                (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStart || SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish))
-            {
-                SensibleH.Logger.LogDebug("OnUserInput");
-                _userInput = true;
-                if (_houshi)
-                    ToggleHoushiAutoMode(true);
+                if (_hadClimax)
+                {
+
+                    if (IsActionLoop)
+                    {
+                        SensibleH.Logger.LogDebug("OnUserInput[UnusualState] ResetClimax");
+                        // In case the user decides to do some actions after orgasm ahead of the plugin (or plugin was disabled and re-enabled).
+                        _hadClimax = false;
+                        _busy = false;
+                    }
+                    else if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish && (IsEndLoop || IsIdleInside || IsIdleOutside))
+                    {
+                        _busy = false;
+                        SensibleH.Logger.LogDebug("OnUserInput[PostClimax]");
+                    }
+                }
+                else
+                {
+                    if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStart || SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish)
+                    {
+
+                        _busy = false;
+                        //_userInput = true;
+                        if (_houshi)
+                            SetHoushiAutoMode(true);
+                        SensibleH.Logger.LogDebug("OnUserInput[PreClimax]");
+                    }
+                }
             }
         }
         /// <summary>
@@ -877,23 +899,27 @@ namespace KK_SensibleH.AutoMode
             if (_hFlag.isAnalInsertOK)
                 OnSonyuClick(pullOut: false);
         }
-        public void DoOrgasmF()
+        public void OnOrgasmF()
         {
+            SensibleH.Logger.LogDebug($"DoOrgasmF");
             PickHStats(1);
             if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish)
                 _busy = true;
+
             _hadClimax = true;
         }
-        public void DoOrgasmM()
+        public void OnOrgasmM()
         {
+            SensibleH.Logger.LogDebug($"DoOrgasmM");
             if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish)
                 _busy = true;
+
             _climaxAt = Random.Range(75, 100);
             _hadClimax = true;
             MaleOrgCount += 1;
-            ToggleHoushiAutoMode(state: false);
+            SetHoushiAutoMode(state: false);
         }
-        private void ToggleHoushiAutoMode(bool state)
+        private void SetHoushiAutoMode(bool state)
         {
             switch (_hFlag.mode)
             {

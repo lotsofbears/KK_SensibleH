@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace KK_SensibleH
 {
+    /// <summary>
+    /// In limbo for now.
+    /// </summary>
     internal class MaleController : GameCustomFunctionController
     {
         private float nextMoveEye;

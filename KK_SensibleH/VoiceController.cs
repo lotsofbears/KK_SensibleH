@@ -10,30 +10,33 @@ using System.Collections;
 using ActionGame.Chara.Mover;
 using ADV.Commands.Base;
 using static HVoiceCtrl;
+using VRGIN.Core;
 
 namespace KK_SensibleH
 {
-    public class VoiceController : MonoBehaviour
+    /// <summary>
+    /// Recently broken:
+    /// </summary>
+    internal class VoiceController : MonoBehaviour
     {
         private SaveData.Heroine _heroine;
-        private GirlController _girlController;
+        private GirlController _master;
         private ChaControl _chara;
         private HVoiceCtrl.Voice _voice;
         private int _main = 0;
         private bool _recentVoiceProc;
-        private bool IsNicknameAvailable;
+        private bool _nickAvailable;
         private int _lastVoice;
         //private string _lastVoiceId;
-        private bool IsVoiceActive => _voice.state == HVoiceCtrl.VoiceKind.voice;
-
-        internal void Initialize(int main)
+        internal bool IsVoiceActive => _voice.state == HVoiceCtrl.VoiceKind.voice;
+        internal void Initialize(GirlController master, int main)
         {
             _main = main;
             _heroine = _hFlag.lstHeroine[main];
-            IsNicknameAvailable = _heroine.isNickNameEvent || _hFlag.isFreeH;
+            _nickAvailable = _heroine.isNickNameEvent || _hFlag.isFreeH;
             _voice = _hVoiceCtrl.nowVoices[main];
             _chara = _chaControl[main];
-            _girlController = _girlControllers[main];
+            _master = master;
         }
         public void OnVoiceProc()
         {
@@ -45,12 +48,10 @@ namespace KK_SensibleH
             else
             {
                 SensibleH.Logger.LogDebug("OnVoiceProc");
-                _girlController._lastVoice = id;
+                _master._lastVoice = id;
+                _lastVoice = id;
                 //_lastVoiceId = _voice.voiceInfo.nameFile;
                 _recentVoiceProc = true;
-
-                if (SensibleH.EyeNeckControl.Value)
-                    _girlController.OnVoiceProc();
             }
         }
         internal void Proc()
@@ -195,7 +196,7 @@ namespace KK_SensibleH
         }
         public bool SayNickname()
         {
-            if (!IsNicknameAvailable || IsVoiceActive)
+            if (!_nickAvailable || IsVoiceActive)
                 return false;
             
             if (Random.value < 0.9f)

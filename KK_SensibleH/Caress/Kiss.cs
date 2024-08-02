@@ -247,7 +247,7 @@ namespace KK_SensibleH.Caress
             _kissPhase = Phase.Engaging;
             
             var changeRate = Random.Range(10f, 20f);
-            while (_kissCo)
+            while (MoMiController._kissCo)
             {
                 var frameChange = Time.deltaTime * changeRate;
                 curMouthValue = Mathf.Clamp(curMouthValue + (frameChange * 10f), 0f, 100f);
@@ -264,7 +264,7 @@ namespace KK_SensibleH.Caress
             }
             _kissPhase = Phase.InAction;
             //SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_kissCo}");
-            while (_kissCo)
+            while (MoMiController._kissCo)
             {
                 RandomMoveFloatTest(ref npWeight, ref npWeightTo, ref npWeightSpeed, 0f, 1f, ref npWeightTime, 0.1f, 0.5f);
                 RandomMoveFloatTest(ref npWeight2, ref npWeight2To, ref npWeightSpeed2, 0f, 1f, ref npWeightTime2, 0.1f, 0.5f);
@@ -287,7 +287,7 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.Disengaging;
-            SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_kissCo}");
+            SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{MoMiController._kissCo}");
             if (!_frenchKiss)
             {
                 SuppressVoice = true;
@@ -310,7 +310,7 @@ namespace KK_SensibleH.Caress
                 {
                     break;
                 }
-                if (_kissCo)
+                if (MoMiController._kissCo)
                 {
                     // In case there is already next one on the way.
                     kissAction = false;

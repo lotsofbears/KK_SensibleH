@@ -25,8 +25,7 @@ using System.Reflection;
 namespace KK_SensibleH
 {
     /// <summary>
-    /// Bugs:
-    /// Cyu
+    /// Recently broken:
     /// Kiss SFX reappeared on disengage phase of the kiss.
     /// </summary>
     public class SensibleHController : GameCustomFunctionController
@@ -36,11 +35,10 @@ namespace KK_SensibleH
         private MoMiController _moMiController;
         private MaleController _maleController;
         private LoopController _loopController;
-        private List<VoiceController> _voiceControllers;
         private List<Harmony> _persistentPatches = new List<Harmony>();
         //private readonly int[] voiceButton = { 3, 5, 6, 8 };
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
-        private readonly int[] _clothes = { 1, 3, 5, 7};
+        private readonly int[] _clothes = { 1, 3, 5};
         private bool _hEnd;
         internal bool _vr;
         private Scene _scene;
@@ -297,7 +295,6 @@ namespace KK_SensibleH
             _eyeneckFemale1 = Traverse.Create(proc).Field("eyeneckFemale1").GetValue<HMotionEyeNeckFemale>();
             var charaCount = _chaControl.Count;
             _girlControllers = new List<GirlController>(charaCount);
-            _voiceControllers = new List<VoiceController>(charaCount);
             FemalePoI = new GameObject[charaCount];
 
             _moMiController = this.gameObject.AddComponent<MoMiController>();
@@ -310,13 +307,14 @@ namespace KK_SensibleH
                 var heroine = this.gameObject.AddComponent<GirlController>();
                 heroine.Initialize(i, GetFamiliarity(i));
                 _girlControllers.Add(heroine);
-                var voice = this.gameObject.AddComponent<VoiceController>();
-                voice.Initialize(i);
-                _voiceControllers.Add(voice);
             }
-            foreach (var num in _clothes)
-                _chaControlM.SetClothesStateNext(num);
-
+            //foreach (var num in _clothes)
+            //{
+            //    SensibleH.Logger.LogDebug($"[{num}] Before {_chaControlM.fileStatus.clothesState[num]}");
+            //    _chaControlM.SetClothesStateNext(num);
+            //    SensibleH.Logger.LogDebug($"[{num}] After {_chaControlM.fileStatus.clothesState[num]}");
+            //}
+            DressDudeForAction();
             // Gameplay Enhancements by ManlyMarco attempts to change this too, but the value changed is irrelevant in practice.
             if (_hFlag.isInsertOK[0])
                 _hFlag.isInsertOK[0] = Random.value < 0.75f;
@@ -329,6 +327,19 @@ namespace KK_SensibleH
             _testform = _chaControl[0].transform.parent.Find("CameraBase/Camera");
             //var kokan = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cf_j_kokan/a_n_kokan");
             //kokan.SetParent(_chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan"), true);
+        }
+        private void DressDudeForAction()
+        {
+            // Not-only-socks edition.
+            var states = _chaControlM.fileStatus.clothesState;
+            for (int i = 0; i < states.Length; i++)
+            {
+                if (_clothes.Contains(i))
+                    states[i] = 1;
+                else
+                    states[i] = 0;
+            }
+            _chaControlM.UpdateClothesStateAll();
         }
         private IEnumerator OnceInAwhile()
         {
@@ -358,14 +369,11 @@ namespace KK_SensibleH
                     continue;
                 }
                 _loopController.Proc();
-                for (var i = 0; i < _girlControllers.Count; i++)
-                {
-                    if (SensibleH.EyeNeckControl.Value)
-                    {
-                        _girlControllers[i].Proc();
-                    }
-                    _voiceControllers[i].Proc();
-                }
+
+                foreach (var girl in _girlControllers)
+                    girl.Proc();
+                   
+                
                 if (MoveNeckGlobal && (!SensibleH.EyeNeckControl.Value || (EyeNeckPtn[0] == -1 && EyeNeckPtn[1] == -1)))
                 {
                     SensibleH.Logger.LogDebug($"MoveNeckGlobal[Stop]");
@@ -396,21 +404,25 @@ namespace KK_SensibleH
                 else
                     hExp *= 0.5f + (_hFlag.lstHeroine[main].lewdness * 0.005f);
             }
+            else
+            {
+                hExp *= hExp;
+            }
             return hExp;
         }
 
-        public void DoVoiceProc(int main)
+        public void OnVoiceProc(int main)
         {
             if (_hFlag != null)
             {
-                SensibleH.Logger.LogDebug($"{_hFlag.voice.playVoices[main]}");
+                SensibleH.Logger.LogDebug($"OnVoiceProc{main}");
                 if (SuppressVoice)
                 {
                     _girlControllers[main]._lastVoice = _hFlag.voice.playVoices[main];
                     _hFlag.voice.playVoices[main] = -1;
                 }
                 else
-                    _voiceControllers[main].OnVoiceProc();
+                    _girlControllers[main].OnVoiceProc();
             }
             //if (!_voiceControllers[main].SayNickname())
             //{
@@ -693,7 +705,6 @@ namespace KK_SensibleH
             //_maleController = null;
             //_loopController = null;
             //_moMiController = null;
-            _voiceControllers = null;
 
             Destroy(_moMiController);
             Destroy(_loopController);
