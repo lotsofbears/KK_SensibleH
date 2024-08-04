@@ -35,6 +35,7 @@ namespace KK_SensibleH
         private MoMiController _moMiController;
         private MaleController _maleController;
         private LoopController _loopController;
+        private GameObject _colliderPlane;
         private List<Harmony> _persistentPatches = new List<Harmony>();
         //private readonly int[] voiceButton = { 3, 5, 6, 8 };
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
@@ -135,71 +136,7 @@ namespace KK_SensibleH
         //    _primitiveCube.GetComponent<Renderer>().material.color = new Color(1, 0, 1, 1);
         //    _primitiveCube.GetComponent<Renderer>().enabled = true;
         //}
-        //private void Update()
-        //{
-        //    if (Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => Input.GetKey(x)))
-        //    {
-        //        if (_sphere == null)
-        //            Spawn();
-        //        else
-        //            MoveForward();
-        //        SensibleH.Logger.LogDebug($"SensibleH[Hotkey1] {_sphere.transform.localPosition.y} - {_sphere.transform.localPosition.z}");
-        //    }
-        //    else if (Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => Input.GetKey(x)))
-        //    {
-        //        MoveUp();
-        //        SensibleH.Logger.LogDebug($"SensibleH[Hotkey2] {_sphere.transform.localPosition.y} - {_sphere.transform.localPosition.z}");
-
-        //    }
-        //    else if (Input.GetKeyDown(Cfg_TestKey3.Value.MainKey) && Cfg_TestKey3.Value.Modifiers.All(x => Input.GetKey(x)))
-        //    {
-        //        Reset();
-        //        SensibleH.Logger.LogDebug($"SensibleH[Hotkey3] {_sphere.transform.localPosition.y} - {_sphere.transform.localPosition.z}");
-        //    }
-
-        //        //if (upHelper)
-        //        //{
-        //        //    itmUp -= 0.01f;
-        //        //    if (itmUp <= -0.1f)
-        //        //        upHelper = false;
-        //        //}
-        //        //else
-        //        //{
-        //        //    itmUp += 0.01f;
-        //        //    if (itmUp > 0.1f)
-        //        //        upHelper = true;
-        //        //}
-
-        //        //if (testLoop)
-        //        //{
-        //        //    if (!girlController[CurrentMain].IsVoiceActive)
-        //        //    {
-        //        //        var a = Mathf.Repeat(_chaControl[0].animBody.GetCurrentAnimatorStateInfo(0).normalizedTime, 1f);
-        //        //        if (a > 0.49f && a < 0.51f)
-        //        //            girlController[CurrentMain].Reaction();
-        //        //    }
-        //        //    //if (a < 0.5f)
-        //        //    //{
-        //        //    //    if (_hFlag.speedCalc < 1f)
-        //        //    //        _hFlag.speedCalc = Mathf.Lerp(0.5f, 1f, a * 5f);
-        //        //    //}
-        //        //    //else
-        //        //    //{
-        //        //    //    if (_hFlag.speedCalc > 0.55f)
-        //        //    //        _hFlag.speedCalc = Mathf.Lerp(1f, 0.55f, a * 1.5f);
-        //        //    //}
-        //        //    ////if (a > 0.49f && a < 0.51f)
-        //        //    ////{
-        //        //    ////    SensibleH.Logger.LogDebug($"ProcAt = [{a}]");
-        //        //    ////    girlController[CurrentMain].Reaction();
-        //        //    ////}
-
-        //        //}
-        //        //if (!momi && _handCtrl.action == HandCtrl.HandAction.none && _handCtrl.useAreaItems[2] != null && _handCtrl.useAreaItems[2].obj.name == "p_fingerL")
-        //        //{
-        //        //    _handCtrl.DetachItemByUseAreaItem(2);
-        //        //}
-        //    }
+        
         //private void Test()
         //{
         //    // source of sound attachment
@@ -219,16 +156,6 @@ namespace KK_SensibleH
         //    }
         //}
 
-        // _handCtrl.IsItemtouch - presence of attached hand regardless of action
-        /*_hFlag.speedupclickaibu make girl sway from intensity
-         * hAibu StartDislikes to cut it out 
-         */
-        //public void Test9()
-        //{
-        //    voiceController.PlayVoice(tempCounter);
-        //    SensibleH.Logger.LogDebug($"Played voice with id call {tempCounter}");
-        //    tempCounter += 1;
-        //}
         private void OnDestroy()
         {
             //foreach (var patch in _persistentPatches)
@@ -239,13 +166,11 @@ namespace KK_SensibleH
             }
         }
 
-        //BetterSquirtController.RunSquirts(softSE: true, trigger: BetterSquirt.TriggerType.Touch, handCtrl: main == 0 ? _handCtrl : _handCtrl1);
         private void Start()
         {
-            SensibleH.Logger.LogDebug($"Start");
             Instance = this;
-            //_vrPov = POV.Instance != null;
         }
+
         protected override void OnStartH(MonoBehaviour proc, HFlag hFlag, bool vr)
         {
             SensibleH.Logger.LogDebug($"OnStartH");
@@ -271,7 +196,7 @@ namespace KK_SensibleH
                 // The easies way to disable stutters in H when you have 20gb of free RAM.
                 // Does it look at VRAM too? Couldn't find it, and not much can be done about it in VR anyway.
                 // With this and the patch, there is no more stutters on kiss.
-                // And people who actually needs this in VR H scene.. I HIGLY doubt there are any.
+                // And people who actually need this in VR H scene.. I HIGLY doubt there are any.
                 // Once H ends/OnDestroy we re-enable it.
                 ResourceUnloadOptimizations.DisableUnload.Value = true;
             }
@@ -282,12 +207,13 @@ namespace KK_SensibleH
             _hVoiceCtrl = Traverse.Create(proc).Field("voice").GetValue<HVoiceCtrl>();
 
             // TODO This thingy isn't stock, add it.
-            var colliderPlane = CommonLib.LoadAsset<GameObject>($"studio/pine_effect.unity3d", "ColliderPlane", clone: true);
-            colliderPlane.GetComponent<Renderer>().enabled = false;
-            colliderPlane.transform.position = new Vector3(0f, 0.1f, 0f);
-
+            //_colliderPlane = CommonLib.LoadAsset<GameObject>($"studio/pine_effect.unity3d", "ColliderPlane", clone: true);
+            //_colliderPlane.GetComponent<Renderer>().enabled = false;
+            //_colliderPlane.transform.position = new Vector3(0f, 0.1f, 0f);;
+            
             _chaControl = Traverse.Create(proc).Field("lstFemale").GetValue<List<ChaControl>>();
             _chaControlM = Traverse.Create(proc).Field("male").GetValue<ChaControl>();
+            //_colliderPlane.transform.SetParent(_chaControl[0].transform.parent, true);
             _hFlag = hFlag;
             if (LstHeroine == null)
                 LstHeroine = new Dictionary<string, int>();
@@ -308,13 +234,8 @@ namespace KK_SensibleH
                 heroine.Initialize(i, GetFamiliarity(i));
                 _girlControllers.Add(heroine);
             }
-            //foreach (var num in _clothes)
-            //{
-            //    SensibleH.Logger.LogDebug($"[{num}] Before {_chaControlM.fileStatus.clothesState[num]}");
-            //    _chaControlM.SetClothesStateNext(num);
-            //    SensibleH.Logger.LogDebug($"[{num}] After {_chaControlM.fileStatus.clothesState[num]}");
-            //}
             DressDudeForAction();
+
             // Gameplay Enhancements by ManlyMarco attempts to change this too, but the value changed is irrelevant in practice.
             if (_hFlag.isInsertOK[0])
                 _hFlag.isInsertOK[0] = Random.value < 0.75f;
@@ -368,8 +289,8 @@ namespace KK_SensibleH
                     yield return new WaitForSeconds(3f);
                     continue;
                 }
-                _loopController.Proc();
 
+                _loopController.Proc();
                 foreach (var girl in _girlControllers)
                     girl.Proc();
                    
@@ -390,7 +311,7 @@ namespace KK_SensibleH
         }
 
         /// <summary>
-        /// Returns (0.25 - 1.0) value based on, well familiarity.
+        /// Returns (0.25 - 1.0) value based on H stats.
         /// </summary>
         internal float GetFamiliarity(int main)
         {
@@ -415,7 +336,7 @@ namespace KK_SensibleH
         {
             if (_hFlag != null)
             {
-                SensibleH.Logger.LogDebug($"OnVoiceProc{main}");
+                //SensibleH.Logger.LogDebug($"OnVoiceProc{main}");
                 if (SuppressVoice)
                 {
                     _girlControllers[main]._lastVoice = _hFlag.voice.playVoices[main];
@@ -424,9 +345,6 @@ namespace KK_SensibleH
                 else
                     _girlControllers[main].OnVoiceProc();
             }
-            //if (!_voiceControllers[main].SayNickname())
-            //{
-            //}
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
         {
@@ -443,7 +361,6 @@ namespace KK_SensibleH
                     girl.OnPositionChange();
                 }
             }
-
         }
         public void DoFirstTouchProc()
         {
@@ -551,7 +468,6 @@ namespace KK_SensibleH
                         break;
                 }
             }
-            // Check in case of MainGameVR shenanigans.
             if (voiceId.Count != 0)
                 _hFlag.voice.playVoices[0] = voiceId.ElementAt(Random.Range(0, voiceId.Count));
         }
@@ -574,60 +490,18 @@ namespace KK_SensibleH
                 }
             }
         }
-        //protected override void OnEndH(MonoBehaviour _proc, HFlag __hFlag, bool _vr)
-        //{
-        //    SensibleH.Logger.LogDebug($"OnEndH");
-        //    //if (SceneApi.GetLoadSceneName().Equals("Action"))
-        //    //{
-        //    //    // Lets redress whole school because why not.
-        //    //    var chaControls = FindObjectsOfType<ChaControl>().ToList();
-        //    //    //.Where(c => c.objTop.activeSelf)
 
-        //    //    foreach (var chara in chaControls)
-        //    //    {
-        //    //        chara.SetClothesStateAll(0);
-        //    //    }
-        //    //}
-        //}
         private readonly int[] _auxClothesSlots = { 2, 3, 5, 6 };
         private Dictionary<SaveData.Heroine, List<byte>> _redressTargets = new Dictionary<Heroine, List<byte>>();
         private List<SaveData.Heroine> _heroineList = new List<SaveData.Heroine>();
-        //private Dictionary<SaveData.Heroine, int> _redressTargets = new Dictionary<SaveData.Heroine, int>();
 
         private void ReDress()
         {
+            // We attempt to capture clothes type/states, so we can put them back accordingly after H.
+            // If auxiliary clothes are in half state, we put them back, if quarter state/off we remove them completely.
+            // As the girl is going to shower and after that to put on a different coordinate type.
             SensibleH.Logger.LogDebug($"ReDress");
-            //for (var i = 0;  i < _chaControl.Count; i++)
-            //{
-            //    var heroine = _heroineList[i];
-            //    var chara = _chaControl[i];
-            //    SensibleH.Logger.LogDebug($"ReDress[Chara]");
-            //    var list = new List<int>();
-            //    for (var j = 0; j < chara.fileStatus.clothesState.Length; j++)
-            //    {
-            //        if (_auxClothesSlots.Contains(j) && chara.fileStatus.clothesState[j] > 1)
-            //            chara.fileStatus.clothesState[j] = 3;
-            //        else
-            //            chara.fileStatus.clothesState[j] = 0;
-            //    }
-            //    chara.UpdateClothesStateAll();
-            //    //foreach (var slot in _auxClothesSlots)
-            //    //{
-            //    //    if (chara.fileStatus.clothesState[slot] > 1)
-            //    //        list.Add(slot);
-            //    //}
-            //    //chara.SetClothesStateAll(0);
-            //    //foreach (var item in list)
-            //    //{
-            //    //    SensibleH.Logger.LogDebug($"UnDressBack[{item}]");
-            //    //    chara.SetClothesState(item, 3, false);
-            //    //}
-            //    heroine.chaCtrl.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)chara.fileStatus.coordinateType);
-            //    heroine.coordinates[0] = chara.fileStatus.coordinateType;
-            //    heroine.isDresses[0] = false;
-            //    //heroine.chaCtrl.AssignCoordinate((ChaFileDefine.CoordinateType)_chaControl[i].fileStatus.coordinateType);
-            //    //heroine.chaCtrl.ChangeClothes(true);
-            //}
+           
             for (var i = 0; i < _chaControl.Count; i++)
             {
                 var heroine = _heroineList[i];
@@ -644,33 +518,15 @@ namespace KK_SensibleH
                 heroine.isDresses[0] = false;
             }
             _heroineList.Clear();
-            //_heroineList.Clear();
-            //var outsideCharas = FindObjectsOfType<ChaControl>()
-            //        .Where(c => !c.objTop.activeSelf && nameList.Contains(c.fileParam.fullname))
-            //        .ToList();
-            //foreach (var chara in outsideCharas)
-            //{
-            //    SensibleH.Logger.LogDebug($"ReDress[outsideCharas]");
-            //    var clone = _chaControl
-            //        .Where(c => c.fileParam.fullname == chara.fileParam.fullname)
-            //        .FirstOrDefault();
-            //    chara.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)clone.fileStatus.coordinateType, false);
-            //}
-
-
         }
         private void ReDressAfter()
         {
-            //var _gameMgr = Game.Instance;
+            // Proper redressing has to be done after H if we want changed outfit to stay put (atleast for a while).
+            // Also we prompt a girl to put on a different outfit, even if this period it is already done.
+            //
+            // There are a lot of null checks in console and sometimes failed to load outfits around the school, but pretty sure, I contribute none to that,
+            // As it keeps on happening even without any of my edits/plugins, and the plugin in question is quite important.. 
             SensibleH.Logger.LogDebug($"ReDressAfter");
-            //foreach (var heroine in _heroineList)
-            //{
-            //    SensibleH.Logger.LogDebug($"ReDressAfter[Chara]");
-            //    _gameMgr.actScene.actCtrl.SetDesire(0, heroine, 200);
-            //}
-            //_heroineList.Clear();
-            //_chaControl[0].ChangeCoordinateTypeAndReload(ChaFileDefine.CoordinateType.School01, false);
-
 
             var _gameMgr = Game.Instance;
             foreach (var target in _redressTargets)
@@ -690,8 +546,11 @@ namespace KK_SensibleH
         public void EndItAll()
         {
             SensibleH.Logger.LogDebug($"EndItAll");
-            if (SceneApi.GetLoadSceneName().Equals("Action"))
+            if (Scene.Instance.LoadSceneName.Equals("Action"))
+            {
+                // We are in main game.
                 ReDress();
+            }
             if (_vr)
             {
                 ResourceUnloadOptimizations.DisableUnload.Value = false;
@@ -708,6 +567,7 @@ namespace KK_SensibleH
 
             Destroy(_moMiController);
             Destroy(_loopController);
+            Destroy(_colliderPlane);
 
             MoMiActive = false;
             OLoop = false;

@@ -144,7 +144,7 @@ namespace KK_SensibleH.AutoMode
             {
                 _busy = true;
             }
-            else if (MoMiController._lickCo || _handCtrl.isKiss)
+            else if (_handCtrl.isKiss)
             {
                 SensibleH.Logger.LogDebug($"LoopProc LickKiss wait");
                 if (IsStrongLoop || IsOrgasmLoop)

@@ -16,9 +16,12 @@ namespace KK_SensibleH.EyeNeckControl
 {
     public class EyeNeckController :MonoBehaviour
     {
-        // Features Proper dartAway with check for angle;
+        // Features
+        //     Proper dartAway with check for angle;
 
-        // Broken PreVoiceEyeCam (checks continuously)
+        // Bugs
+        //     PreVoiceEyeCam (checks continuously)
+        //     Still neck attempts to do something and glitches for one frame.
         internal void Initialize(GirlController master, int main, bool vr, float familiarity)
         {
             _master = master;
@@ -552,10 +555,10 @@ namespace KK_SensibleH.EyeNeckControl
 
             if (_poseType == PoseType.Front)
             {
-                if (CurrentNeck != DirectionNeck.Cam && Random.value < camChance)
+                if (Random.value < camChance)
                 {
-                    // 0.2 chance for absolute virgin to look at cam
-                    // 0.75 for lewd state with maxed out intimacy.
+                    // 0.2 chance for absolute virgin to look at the cam
+                    // 0.75 for the lewd state with maxed out intimacy.
                     SetNeck(GetProperEyeCam);
                     SensibleH.Logger.LogDebug($"LookSomewhere[{_main}][EyeCam] changing [{curNeck}] to [eyeCam]");
                 }
@@ -663,12 +666,12 @@ namespace KK_SensibleH.EyeNeckControl
         }
         private void SetNeck(int _id, bool _quick = false)
         {
-            var speedOfChange = 3f + ((int)(Random.value * 10f) * 0.1f);// (float)Math.Round(Random.Range(1.5f, 3f), 1);
+            var speedOfChange = 2f + ((int)(Random.value * 10f) * 0.1f);// (float)Math.Round(Random.Range(1.5f, 3f), 1);
             if (_quick)
                 speedOfChange = 1f;
             else if (CurrentNeck == DirectionNeck.Cam)
             {
-                speedOfChange = 4f;
+                speedOfChange = 3f;
             }
             _chara.neckLookCtrl.neckLookScript.changeTypeLeapTime = speedOfChange;
             _chara.neckLookCtrl.neckLookScript.changeTypeTimer = speedOfChange;
