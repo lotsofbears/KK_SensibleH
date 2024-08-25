@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d02b0c06-25b2-4c63-83d3-c3cc95d04823</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SensibleH</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AutoMode\LoopController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoMode\LoopProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Caress\Kiss.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Caress\MoMiCircles.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Caress\MoMiController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Caress\Thread.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\EyeNeckController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\EyeNeckDictionaries.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\NewNeckController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\PoiHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\SpecialNeckMovement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GirlController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MaleController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchEyes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchHandCtrl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchHandCtrlKiss.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchKoikatuVR.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\Obsolete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchEyeNeck.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchGame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchH.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchLoop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchMoMiVR.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchObi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\TestGame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\TestH.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SensibleH.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SensibleHController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VoiceController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VRHelper.cs" />
+  </ItemGroup>
+</Project>
