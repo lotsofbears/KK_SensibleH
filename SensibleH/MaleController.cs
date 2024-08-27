@@ -3,8 +3,6 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using static KK_SensibleH.SensibleH;
 using System.Linq;
-using KKAPI;
-using KKAPI.MainGame;
 
 namespace KK_SensibleH
 {

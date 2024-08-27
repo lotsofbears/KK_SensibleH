@@ -82,7 +82,7 @@ namespace KK_SensibleH.Caress
         private float _wait;
         private float _itemCountMultiplier;
         private float _itemCountTiny;
-        //private bool _drag;
+        private bool _drag;
         private Vector3 _targetScale;
         private Transform _pubicHair;
         //private Transform _eyes;
@@ -100,6 +100,7 @@ namespace KK_SensibleH.Caress
         internal bool IsTouchCrossFade => _touchAnim;
         private bool IsCrossFadeOver => _wait < Time.time;
         //private float GetFpsDelta => Time.deltaTime * 60f;
+        private bool IsKiss => _kissCo || _handCtrl.IsKissAction();
         private void Awake()
         {
             Instance = this;
@@ -278,7 +279,7 @@ namespace KK_SensibleH.Caress
             if (_moMiCo)
             {
                 _touchAnim = IsTouch && !IsCrossFadeOver;
-                //_drag = _handCtrl.ctrl == HandCtrl.Ctrl.drag;
+                _drag = _hFlag.drag;// _handCtrl.ctrl == HandCtrl.Ctrl.drag;
                 //// SensibleH.Logger.LogDebug($"[{GameCursor.isLock}][{_handCtrl.actionUseItem}][Hands[{hand[0] != null}][{hand[1] != null}]]");   
                 if (Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.IsKissAction())) //(!_touchAnim && _handCtrl.actionUseItem == -1 && !_handCtrl.isKiss)) _handCtrl.useItems[_trackItem] == null
                 {
@@ -369,6 +370,7 @@ namespace KK_SensibleH.Caress
             var kiss = _handCtrl.IsKissAction();
             // SensibleH.Logger.LogDebug($"MoMiCo[Start] kiss[{kiss}] vr[{_vr}]");
             MoMiActive = true;
+            FakeDragLength = Vector2.zero;
             if (!kiss)
             {
                 // SensibleH.Logger.LogDebug($"MoMiCo[PatchMoMi]");
@@ -510,7 +512,7 @@ namespace KK_SensibleH.Caress
                             yield return new WaitForSeconds(0.15f);
                         }
                         var num = 0.5f;
-                        while (Random.value < num)// || wait != 0f)
+                        while (Random.value < num || wait != 0f)
                         {
                             if (wait != 0f)
                             {
@@ -594,7 +596,7 @@ namespace KK_SensibleH.Caress
                         {
                             var vec = _circles[itemId].GetPosition(item.pattern, item.deg, item.step, item.intensity, item.peak, item.range, out item.deg);
                             _hFlag.xy[item.area] = vec;
-                            if (_hFlag.drag)
+                            if (_drag)
                             {
                                 AddToDragLength((_itemCountMultiplier + (item.speed + 2f - item.intensity) * _itemCountTiny) * Vector2.one); //  * (1f + _hFlag.gaugeFemale * 0.002f) 
                             }
@@ -755,7 +757,7 @@ namespace KK_SensibleH.Caress
         {
             // THE usual suspect if we broke the game.
             // It's way too much trouble to keep "JudgeProc()" during kiss, especially given that the player will hardly see/like it.
-            if (!fakeIt && (_kissCo || (_judgeCooldown && FakePostfix[item] == null))) //(_kissCo || _lickCo || 
+            if (!fakeIt && (IsKiss || (_judgeCooldown && FakePostfix[item] == null))) //(_kissCo || _lickCo || 
             {
                 // SensibleH.Logger.LogDebug($"JudgeProc[Attempt][{item}]");
                 return false;
@@ -904,7 +906,7 @@ namespace KK_SensibleH.Caress
 
             // Test.
             SetCrossFadeWait(waitTime);
-            _hFlag.SpeedUpClick(0.1f + Random.value * 0.2f, 1.5f);
+            //_hFlag.SpeedUpClick(0.25f + Random.value * 0.25f, 1.5f);
             return waitTime;
         }
         internal void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo = null)

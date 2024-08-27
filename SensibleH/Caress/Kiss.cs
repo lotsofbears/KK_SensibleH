@@ -16,7 +16,6 @@ namespace KK_SensibleH.Caress
 {
     /// <summary>
     /// Stripped down version of CyuVR, ported to MainGameVR, severely decreased overhead at the price of minor aesthetics.
-    /// Reasonably optimized.
     /// </summary>
     public class Kiss : MonoBehaviour
     {

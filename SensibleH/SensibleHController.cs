@@ -15,6 +15,7 @@ using KK_SensibleH.Patches.StaticPatches;
 using KK_SensibleH.AutoMode;
 using VRGIN.Helpers;
 using KK_SensibleH.Caress;
+using VRGIN.Core;
 
 namespace KK_SensibleH
 {
@@ -35,21 +36,13 @@ namespace KK_SensibleH
         private readonly int[] _clothes = { 1, 3, 5};
         private bool _hEnd;
         internal bool _vr;
-        private Scene _scene;
-        private bool _patched;
-        //private bool IsConfigScene => Scene.AddSceneName.StartsWith("Con", StringComparison.Ordinal);
-        // private bool IsPointMoveScene => Scene.AddSceneName.StartsWith("HPo", StringComparison.Ordinal);
-        /// <summary>
-        /// Pointless in KKS?
-        /// </summary>
-        private bool IsHProcScene => SceneApi.GetAddSceneName().Equals("HProc", StringComparison.Ordinal);
-
-        //private Transform _eyes;
         private void Update()   
         {
             if (Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => Input.GetKey(x)))
             {
-                //SensibleH.Logger.LogDebug($"{Scene.LoadSceneName}\n{Scene.AddSceneName}\n{SceneApi.GetIsOverlap()}");
+#if KK
+                SensibleH.Logger.LogDebug($"{VR.Camera.Head.position.y - Game.Instance.actScene.Player.chaCtrl.transform.position.y}");
+#endif
                 //var skinnedMeshes = _chaControl[0].GetComponentsInChildren<SkinnedMeshRenderer>();
                 //foreach(var skinnedMesh in skinnedMeshes)
                 //{
@@ -173,34 +166,28 @@ namespace KK_SensibleH
         }
         private void Start()
         {
-            SensibleH.Logger.LogDebug($"Start");
             Instance = this;
             _vr = SteamVRDetector.IsRunning;
-            if (!_patched)
-            {
-                SensibleH.Logger.LogDebug($"PersistentPatches");
-                _patched = true;
-                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchEyeNeck)));
-                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchH)));
-                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
-                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
-                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchGame)));
+            //SensibleH.Logger.LogDebug($"PersistentPatches");
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchEyeNeck)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchH)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchGame)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestGame)));
 #if KKS
                 if (SensibleH.ProlongObi.Value)
                 {
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchObi)));
                 }
 #endif
-                if (_vr)
-                {
-                    SensibleH.Logger.LogDebug($"PersistentPatches[VR]");
-                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchMoMiVR)));
-
-                }
+            if (_vr)
+            {
+                //SensibleH.Logger.LogDebug($"PersistentPatches[VR]");
+                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlVR)));
             }
-            //_persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestGame)));
+
         }
-        private Transform _testForm;
         protected override void OnStartH(MonoBehaviour proc, HFlag hFlag, bool vr)
         {
             SensibleH.Logger.LogDebug($"OnStartH");
@@ -253,13 +240,8 @@ namespace KK_SensibleH
                 heroine.Initialize(i, GetFamiliarity(i));
                 _girlControllers.Add(heroine);
             }
-            //foreach (var num in _clothes)
-            //{
-            //    SensibleH.Logger.LogDebug($"[{num}] Before {_chaControlM.fileStatus.clothesState[num]}");
-            //    _chaControlM.SetClothesStateNext(num);
-            //    SensibleH.Logger.LogDebug($"[{num}] After {_chaControlM.fileStatus.clothesState[num]}");
-            //}
             DressDudeForAction();
+
             // Gameplay Enhancements by ManlyMarco attempts to change this too, but the value changed is irrelevant in practice.
             if (_hFlag.isInsertOK[0])
             {
@@ -301,6 +283,7 @@ namespace KK_SensibleH
                 yield return new WaitForEndOfFrame();
                 if (_hFlag == null)
                 {
+                    SensibleH.Logger.LogDebug($"HEnd");
                     if (!_hEnd)
                     {
                         EndItAll();
@@ -359,7 +342,11 @@ namespace KK_SensibleH
             {
                 if (_hFlag.mode != HFlag.EMode.lesbian && _hFlag.mode != HFlag.EMode.masturbation)
                 {
+#if KK
+                    hExp *= 0.5f + heroine.intimacy * 0.05f;
+#else
                     hExp *= 0.5f + Mathf.Clamp(heroine.hCount, 0f, 10f) * 0.05f;//   (heroine.lewdness * 0.005f);
+#endif
                 }
                 else
                 {
@@ -454,20 +441,24 @@ namespace KK_SensibleH
             // rotor (6)
             { 151, 151, 149, -1, -1, -1 }
         };
+#if KK
+        protected override void OnPeriodChange(Cycle.Type period)
+        {
+            // Implemented by default in KKS.
+            foreach (var heroine in Game.Instance.HeroineList)
+            {
+                for (int i = 0; i < heroine.talkTemper.Count(); i++)
+                {
+                    heroine.talkTemper[i] = (byte)Random.Range(0, 3);
+                }
+            }
+        }
+#endif
         protected override void OnDayChange(Cycle.Week day)
         {
             // Shuffle talk tempers.
             LstHeroine = null;
             MaleOrgCount = 0;
-
-            // Implemented by default in KKS.
-            //foreach (var heroine in Game.HeroineList)
-            //{
-            //    for (int i = 0; i < heroine.talkTemper.Count(); i++)
-            //    {
-            //        heroine.talkTemper[i] = (byte)Random.Range(0, 3);
-            //    }
-            //}
         }
         //protected override void OnEndH(MonoBehaviour _proc, HFlag __hFlag, bool _vr)
         //{
@@ -529,11 +520,16 @@ namespace KK_SensibleH
                 var clothesState = chara.fileStatus.clothesState;
                 for (var i = 0; i < clothesState.Length; i++)
                 {
-                    clothesState[i] = 0; // target.Value[i];
-                }
-                // H Clone has messed up cooord index? 
-                //chara.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)target.Key.coordinates);
 #if KK
+                    clothesState[i] = target.Value[i];
+#else
+                    clothesState[i] = 0;
+#endif
+                }
+                // KKS H Clone has messed up coord index? Coord plugin interferes?
+
+#if KK
+                chara.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)target.Key.coordinates[0]);
                 _gameMgr.actScene.actCtrl.SetDesire(0, target.Key, 200);
 #endif
             }
@@ -545,7 +541,7 @@ namespace KK_SensibleH
             SensibleH.Logger.LogDebug($"EndItAll");
             if (SceneApi.GetLoadSceneName().Equals("Action"))
             {
-                // We are in main game.
+                // We are in the main game.
                 ReDress();
             }
             _hEnd = true;

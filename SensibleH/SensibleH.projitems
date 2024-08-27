@@ -31,7 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchGame.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchH.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchLoop.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchMoMiVR.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchHandCtrlVR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchObi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\TestGame.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\TestH.cs" />

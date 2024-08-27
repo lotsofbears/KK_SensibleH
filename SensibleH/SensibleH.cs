@@ -41,7 +41,9 @@ namespace KK_SensibleH
         public static ConfigEntry<bool> MomiMomi { get; set; }
         public static ConfigEntry<bool> EyeNeckControl { get; set; }
         public static ConfigEntry<bool> HoldPubicHair { get; set; }
+#if KKS
         public static ConfigEntry<bool> ProlongObi { get; set; }
+#endif
         public static ConfigEntry<float> ActionFrequency { get; set; }
         public static ConfigEntry<float> EdgeFrequency { get; set; }
         public static ConfigEntry<float> NeckLimit { get; set; }
@@ -195,12 +197,14 @@ namespace KK_SensibleH
                 new ConfigDescription("Decreases the speed of excitement gauge increase by value times.",
                 new AcceptableValueRange<int>(1, 5))
                 );
+#if KKS
             ProlongObi = Config.Bind(
                 section: "Tweaks",
                 key: "Fluids stay longer",
                 defaultValue: true,
                 "Increases the time when ejaculation fluid is present."
                 );
+#endif
             FrenchKiss = Config.Bind(
                 section: "Caress",
                 key: "KissType",

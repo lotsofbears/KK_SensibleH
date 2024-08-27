@@ -16,7 +16,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPrefix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeHohoAkaRate))]
         public static bool ChangeHohoAkaRatePrefix(float value, ChaControl __instance)
         {
-            if (!KKAPI.SceneApi.GetLoadSceneName().Equals("CustomScene") && !KKAPI.SceneApi.GetAddSceneName().Equals("CustomScene") && __instance.fileStatus.hohoAkaRate != value)
+            if (__instance.fileStatus.hohoAkaRate != value && !KKAPI.SceneApi.GetLoadSceneName().Equals("CustomScene") && !KKAPI.SceneApi.GetAddSceneName().Equals("CustomScene"))
             {
                 if (HoHoTracking.ContainsKey(__instance))
                 {

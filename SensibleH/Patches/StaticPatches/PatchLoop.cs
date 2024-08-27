@@ -149,52 +149,55 @@ namespace KK_SensibleH.Patches.StaticPatches
             var done = false;
             var hand = AccessTools.Field(typeof(HSonyu), "hand");
             var isKiss = AccessTools.Method(typeof(PatchLoop), nameof(Play70Voice));
-            var upThere = AccessTools.Field(typeof(PatchLoop), "FemaleUpThere");
-            //SensibleH.Logger.LogDebug($"LoopProc[Start][{hand}]\n[{isKiss}]");
-            foreach (var code in  instructions)
+            var upThere = AccessTools.Field(typeof(PatchLoop), nameof(FemaleUpThere));
+            SensibleH.Logger.LogDebug($"Patch:LoopProc:Start:{hand}:{isKiss}:{upThere}");
+            foreach (var code in instructions)
             {
                 if (!done)
                 {
                     if (part == -1)
                     {
-                        if (counter == 0 && code.opcode == OpCodes.Call && code.operand is MethodInfo info
-                            && info.Name.Equals("RangeEqualOn"))
+                        if (code.opcode == OpCodes.Ldc_R4 && code.operand is float number)
                         {
-                            counter++;
-                        }
-                        else if (counter == 1)
-                        {
-                            if (code.opcode == OpCodes.Ldc_R4)
+                            if (number == 100f)
                             {
-                                yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(PatchLoop), "FemaleCeiling"));
-                                counter = 0;
-                                part++;
+                                //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
+                                yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(PatchLoop), nameof(FemaleCeiling)));
                                 continue;
+                            }
+                            else if (number == 70f)
+                            {
+                                counter++;
+                                if (counter == 2)
+                                {
+                                    counter = 0;
+                                    part++;
+                                }
+                                else
+                                {
+                                    //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
+                                    yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
+                                    continue;
+                                }
                             }
                         }
                     }
                     else if (part < 2)
                     {
-                        if (counter == 0 && code.opcode == OpCodes.Ldc_R4
-                            && code.operand is float number
-                            && number == 70f)
+                        if (counter == 0)
                         {
-                            yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
-                            counter++;
-                            continue;
+                            if (code.opcode == OpCodes.Ldc_R4 && code.operand is float number
+                            && number == 70f)
+                            {
+                                //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
+                                yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
+                                counter++;
+                                continue;
+                            }
                         }
                         else if (counter == 1)
                         {
-                            if (code.opcode == OpCodes.Blt_Un)
-                            {
-                                //SensibleH.Logger.LogDebug($"LoopProc[Trans][{code.opcode}][{code.operand}]");
-                                counter++;
-                            }
-                            else
-                            {
-                                //SensibleH.Logger.LogDebug($"LoopProc[Trans][Wrong][{code.opcode}][{code.operand}]");
-                                counter = 0;
-                            }
+                            counter++;
                         }
                         else if (counter == 2)
                         {
@@ -228,17 +231,17 @@ namespace KK_SensibleH.Patches.StaticPatches
                         if (counter == 0 && code.opcode == OpCodes.Callvirt
                             && code.operand is MethodInfo info && info.Name.Equals("SetSonyuIdleTime"))
                         {
-                            //SensibleH.Logger.LogDebug($"LoopProc[Trans][Found][{code.opcode}][{code.operand}]");
+                            //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
                             counter++;
                         }
                         else if (counter == 1 && code.opcode == OpCodes.Br)
                         {
-                            //SensibleH.Logger.LogDebug($"LoopProc[Trans][Found][{code.opcode}][{code.operand}]");
+                            //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
                             counter++;
                         }
                         else if (counter == 2)
                         {
-                            //SensibleH.Logger.LogDebug($"LoopProc[Trans][{code.opcode}][{code.operand}]");
+                            //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
                             if (code.opcode == OpCodes.Ldarg_0)
                             {
                                 code.opcode = OpCodes.Ldc_I4_0;
@@ -247,34 +250,19 @@ namespace KK_SensibleH.Patches.StaticPatches
                             {
                                 yield return new CodeInstruction(OpCodes.Nop);
                                 continue;
-                                //if (field.Name.Equals("flags"))
-                                //{
-                                //    yield return new CodeInstruction(OpCodes.Nop);
-                                //    continue;
-                                //}
-                                //else if (field.Name.Equals("voice"))
-                                //{
-                                //    yield return new CodeInstruction(OpCodes.Ldfld, hand);
-                                //    continue;
-                                //}
-                                //else if (field.Name.Equals("isFemale70PercentageVoicePlay") || field.Name.Equals("isMale70PercentageVoicePlay"))
-                                //{
-                                //    yield return new CodeInstruction(OpCodes.Call, isKiss);
-                                //    continue;
-                                //}
                             }
                             else if (code.opcode == OpCodes.Brtrue)
                             {
                                 //yield return new CodeInstruction(OpCodes.Brfalse, code.operand);
                                 counter++;
-                                //SensibleH.Logger.LogDebug($"LoopProc[Trans][{part} is done]");
+                                SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
                                 //continue;
                             }
 
                         }
                         else if (counter == 3)
                         {
-                            //SensibleH.Logger.LogDebug($"LoopProc[Trans][Removing][{code.opcode}][{code.operand}]");
+                            //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
                             if (code.opcode == OpCodes.Brtrue)
                             {
                                 done = true;
@@ -288,21 +276,183 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
 
         }
+        /// <summary>
+        /// We introduce custom borders for voice play, and override condition to play 70 voice
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <returns></returns>
         [HarmonyTranspiler, HarmonyPatch(typeof(HAibu), nameof(HAibu.Proc))]
         public static IEnumerable<CodeInstruction> HAibuProcTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            var field = AccessTools.Field(typeof(PatchLoop), "FemaleCeiling");
+            var ceiling = AccessTools.Field(typeof(PatchLoop), "FemaleCeiling");
+            var upThere = AccessTools.Field(typeof(PatchLoop), nameof(FemaleUpThere));
+            SensibleH.Logger.LogDebug($"Trans:AibuProc:Start");
             foreach (var code in instructions)
             {
                 if (code.opcode == OpCodes.Ldc_R4 
-                    && code.operand is float number && number == 100f)
+                    && code.operand is float number)
                 {
-                    SensibleH.Logger.LogDebug($"HAibuProc:{code.opcode}:{code.operand}");
-                    yield return new CodeInstruction(OpCodes.Ldsfld, field);
-                    continue;
+                    //SensibleH.Logger.LogDebug($"Trans:AibuProc:{code.opcode}:{code.operand}");
+                    if (number == 100f)
+                    {
+                        yield return new CodeInstruction(OpCodes.Ldsfld, ceiling);
+                        continue;
+                    }
+                    else if (number == 70f)
+                    {
+                        yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
+                        continue;
+                    }
                 }
                 yield return code;
             }
         }
+        //[HarmonyTranspiler, HarmonyPatch(typeof(HSonyu), nameof(HSonyu.LoopProc))]
+        //public static IEnumerable<CodeInstruction> HSonyuLoopProcTranspiler(IEnumerable<CodeInstruction> instructions)
+        //{
+        //    var part = -1;
+        //    var counter = 0;
+        //    var done = false;
+        //    var hand = AccessTools.Field(typeof(HSonyu), "hand");
+        //    var isKiss = AccessTools.Method(typeof(PatchLoop), nameof(Play70Voice));
+        //    var upThere = AccessTools.Field(typeof(PatchLoop), nameof(FemaleUpThere));
+        //    SensibleH.Logger.LogDebug($"Patch:LoopProc:Start:{hand}:{isKiss}:{upThere}");
+        //    foreach (var code in instructions)
+        //    {
+        //        if (!done)
+        //        {
+        //            if (part == -1)
+        //            {
+        //                if (counter == 0 && code.opcode == OpCodes.Call && code.operand is MethodInfo info
+        //                    && info.Name.Equals("RangeEqualOn"))
+        //                {
+        //                    counter++;
+        //                }
+        //                else if (counter == 1)
+        //                {
+        //                    if (code.opcode == OpCodes.Ldc_R4)
+        //                    {
+        //                        yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(PatchLoop), nameof(FemaleCeiling)));
+        //                        counter = 0;
+        //                        part++;
+        //                        continue;
+        //                    }
+        //                }
+        //            }
+        //            else if (part < 2)
+        //            {
+        //                if (counter == 0 && code.opcode == OpCodes.Ldc_R4
+        //                    && code.operand is float number
+        //                    && number == 70f)
+        //                {
+        //                    yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
+        //                    counter++;
+        //                    continue;
+        //                }
+        //                else if (counter == 1)
+        //                {
+        //                    if (code.opcode == OpCodes.Blt_Un)
+        //                    {
+        //                        //SensibleH.Logger.LogDebug($"LoopProc[Trans][{code.opcode}][{code.operand}]");
+        //                        counter++;
+        //                    }
+        //                    else
+        //                    {
+        //                        //SensibleH.Logger.LogDebug($"LoopProc[Trans][Wrong][{code.opcode}][{code.operand}]");
+        //                        counter = 0;
+        //                    }
+        //                }
+        //                else if (counter == 2)
+        //                {
+        //                    //SensibleH.Logger.LogDebug($"LoopProc[Trans][{code.opcode}][{code.operand}]");
+        //                    if (code.opcode == OpCodes.Ldfld
+        //                        && code.operand is FieldInfo field)
+        //                    {
+        //                        if (field.Name.Equals("flags"))
+        //                        {
+        //                            yield return new CodeInstruction(OpCodes.Nop);
+        //                            continue;
+        //                        }
+        //                        else if (field.Name.Equals("voice"))
+        //                        {
+        //                            yield return new CodeInstruction(OpCodes.Ldfld, hand);
+        //                            continue;
+        //                        }
+        //                        else if (field.Name.Equals("isFemale70PercentageVoicePlay") || field.Name.Equals("isMale70PercentageVoicePlay"))
+        //                        {
+        //                            //SensibleH.Logger.LogDebug($"LoopProc[Trans][{part} is done]");
+        //                            yield return new CodeInstruction(OpCodes.Call, isKiss);
+        //                            counter = 0;
+        //                            part++;
+        //                            continue;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            else if (part == 2)
+        //            {
+        //                if (counter == 0 && code.opcode == OpCodes.Callvirt
+        //                    && code.operand is MethodInfo info && info.Name.Equals("SetSonyuIdleTime"))
+        //                {
+        //                    //SensibleH.Logger.LogDebug($"LoopProc[Trans][Found][{code.opcode}][{code.operand}]");
+        //                    counter++;
+        //                }
+        //                else if (counter == 1 && code.opcode == OpCodes.Br)
+        //                {
+        //                    //SensibleH.Logger.LogDebug($"LoopProc[Trans][Found][{code.opcode}][{code.operand}]");
+        //                    counter++;
+        //                }
+        //                else if (counter == 2)
+        //                {
+        //                    //SensibleH.Logger.LogDebug($"LoopProc[Trans][{code.opcode}][{code.operand}]");
+        //                    if (code.opcode == OpCodes.Ldarg_0)
+        //                    {
+        //                        code.opcode = OpCodes.Ldc_I4_0;
+        //                    }
+        //                    else if (code.opcode == OpCodes.Ldfld)
+        //                    {
+        //                        yield return new CodeInstruction(OpCodes.Nop);
+        //                        continue;
+        //                        //if (field.Name.Equals("flags"))
+        //                        //{
+        //                        //    yield return new CodeInstruction(OpCodes.Nop);
+        //                        //    continue;
+        //                        //}
+        //                        //else if (field.Name.Equals("voice"))
+        //                        //{
+        //                        //    yield return new CodeInstruction(OpCodes.Ldfld, hand);
+        //                        //    continue;
+        //                        //}
+        //                        //else if (field.Name.Equals("isFemale70PercentageVoicePlay") || field.Name.Equals("isMale70PercentageVoicePlay"))
+        //                        //{
+        //                        //    yield return new CodeInstruction(OpCodes.Call, isKiss);
+        //                        //    continue;
+        //                        //}
+        //                    }
+        //                    else if (code.opcode == OpCodes.Brtrue)
+        //                    {
+        //                        //yield return new CodeInstruction(OpCodes.Brfalse, code.operand);
+        //                        counter++;
+        //                        //SensibleH.Logger.LogDebug($"LoopProc[Trans][{part} is done]");
+        //                        //continue;
+        //                    }
+
+        //                }
+        //                else if (counter == 3)
+        //                {
+        //                    //SensibleH.Logger.LogDebug($"LoopProc[Trans][Removing][{code.opcode}][{code.operand}]");
+        //                    if (code.opcode == OpCodes.Brtrue)
+        //                    {
+        //                        done = true;
+        //                    }
+        //                    yield return new CodeInstruction(OpCodes.Nop);
+        //                    continue;
+        //                }
+        //            }
+        //        }
+        //        yield return code;
+        //    }
+
+        //}
     }
 }

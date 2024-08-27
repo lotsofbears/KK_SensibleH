@@ -13,7 +13,6 @@ namespace KK_SensibleH.Caress
 {
     /// <summary>
     /// CyuVR's ito (thread) part.
-    /// There is still a room for optimization.
     /// </summary>
     internal class Thread : MonoBehaviour
     {
@@ -231,8 +230,6 @@ namespace KK_SensibleH.Caress
         }
         private void Update()
         {
-            // Still far from being cheap/optimized. 
-
             if (_attachment == null || (siruAmount == 0f && (_kissPhase < Phase.InAction || _timeToGo)))
             {
                 if (_timeToGo)

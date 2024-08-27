@@ -141,7 +141,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (__instance.flags.voice.playVoices[_main] != -1)
             {
-                if (__instance.flags.gaugeFemale > PatchLoop.FemaleUpThere && __instance.hand.actionUseItem != -1
+                if (__instance.hand.actionUseItem != -1 && __instance.flags.gaugeFemale > PatchLoop.FemaleUpThere
                     && UnityEngine.Random.value < 0.5f)
                 {
                     __instance.flags.voice.playVoices[_main] = 141;

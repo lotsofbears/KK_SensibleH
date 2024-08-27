@@ -4,14 +4,16 @@ using VRGIN.Controls;
 using VRGIN.Core;
 using KKAPI;
 using KKAPI.MainGame;
+using KK_SensibleH;
 
 internal static class VRHelper
 {
     private static Controller _controller;
     private static Controller _controller1;
-    public static Transform GetOrigin()
+    public static Vector3 GetOriginPosition()
     {
-        return VR.Camera.Origin;
+        SensibleH.Logger.LogWarning($"VRHelper:OriginPosition");
+        return VR.Camera.Origin.position;
     }
     public static void SetController(Controller controller)
     {
