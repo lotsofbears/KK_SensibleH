@@ -63,6 +63,10 @@
     <Reference Include="KK_BetterSquirt">
       <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\KK_BetterSquirt.dll</HintPath>
     </Reference>
+    <Reference Include="KK_Fix_ResourceUnloadOptimizations, Version=21.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\KK_Fix_ResourceUnloadOptimizations.dll</HintPath>
+    </Reference>
     <Reference Include="KoikatuVR">
       <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\KoikatuVR.dll</HintPath>
     </Reference>

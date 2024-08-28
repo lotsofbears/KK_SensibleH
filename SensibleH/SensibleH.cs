@@ -262,11 +262,6 @@ namespace KK_SensibleH
             sLoopInfo = (AnimatorStateInfo)dummyInfo;
 
             GameAPI.RegisterExtraBehaviour<SensibleHController>(GUID);
-            UpdateSettings();
-        }
-        internal static void UpdateSettings()
-        {
-            gaugeMultiplier = 1f / (float)GaugeSpeed.Value;
         }
     }
 }

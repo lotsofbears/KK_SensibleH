@@ -180,7 +180,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.FinishAction))]
         //public static void FinishActionPrefix(HandCtrl __instance)
         //{
-        //    SensibleH.Logger.LogDebug($"FinishAction\n{new StackTrace(0)}");
+        //    SensibleH.Logger.LogDebug($"FinishAction");
         //}
         //[HarmonyPrefix]
         //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ClickAction))]
@@ -192,7 +192,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ForceFinish))]
         //public static void ForceFinishPrefix()
         //{
-        //    SensibleH.Logger.LogDebug($"ForceFinish {new StackTrace(0)}\n");
+        //    SensibleH.Logger.LogDebug($"ForceFinish");
         //}
         ////[HarmonyPrefix]
         ////[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.OnCollision))]

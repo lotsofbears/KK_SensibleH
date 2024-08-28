@@ -13,14 +13,6 @@ namespace KK_SensibleH.Patches.StaticPatches
 {
     internal class PatchLoop
     {
-        struct CodeInfo
-        {
-            public OpCode firstOpcode;
-            public string firstOperand;
-            public OpCode secondOpcode;
-            public string secondOperand;
-        }
-
         public static bool FakeButtonUp;
         /// <summary>
         /// We get rid of pesky sound on button clicks.
@@ -38,13 +30,12 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnOutsideClick))]
         public static IEnumerable<CodeInstruction> OnClickTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            var methodToPatch = nameof(Utils.Sound.Play);
+            //var methodToPatch = nameof(Utils.Sound.Play);
             var codes = new List<CodeInstruction>(instructions);
             for (var i = 0; i < codes.Count; i++)
             {
                 if (codes[i].opcode == OpCodes.Call && codes[i].operand is MethodInfo methodInfo
-                    && methodInfo.Name.Equals(methodToPatch))
-                //if (codes[i].opcode == OpCodes.Call && codes[i].operand.ToString().Contains("Play"))
+                    && methodInfo.Name.Equals("Play"))
                 {
                     //SensibleH.Logger.LogDebug("Transpiler[Loop]");
                     codes[i].opcode = OpCodes.Nop;
@@ -137,7 +128,16 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static float FemaleCeiling = 100f;
         public static float FemaleUpThere = 70f;
         private static bool RandomBinary() => UnityEngine.Random.value < 0.5f;
-        public static bool Play70Voice(HandCtrl handCtrl) => handCtrl.IsKissAction() || RandomBinary();
+        public static bool Play70Voice(HandCtrl handCtrl)
+        {
+            var result = handCtrl.IsKissAction() || RandomBinary();
+            if (result)
+            {
+                // Set proper voice timing if we didn't roll 70+ voice;
+                handCtrl.flags.voice.SetSonyuWaitTime(true);
+            }
+            return result;
+        }
         /// <summary>
         /// We override 70+ voice lines with kiss lines, otherwise we play them with 50% chance instead of once per gauge fill. 
         /// </summary>
@@ -150,7 +150,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             var hand = AccessTools.Field(typeof(HSonyu), "hand");
             var isKiss = AccessTools.Method(typeof(PatchLoop), nameof(Play70Voice));
             var upThere = AccessTools.Field(typeof(PatchLoop), nameof(FemaleUpThere));
-            SensibleH.Logger.LogDebug($"Patch:LoopProc:Start:{hand}:{isKiss}:{upThere}");
+            SensibleH.Logger.LogDebug($"Patch:LoopProc:Start");
             foreach (var code in instructions)
             {
                 if (!done)
@@ -170,6 +170,8 @@ namespace KK_SensibleH.Patches.StaticPatches
                                 counter++;
                                 if (counter == 2)
                                 {
+                                    // Second 70 number is male, we..
+                                    code.operand = 80f;
                                     counter = 0;
                                     part++;
                                 }
@@ -190,9 +192,16 @@ namespace KK_SensibleH.Patches.StaticPatches
                             && number == 70f)
                             {
                                 //SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
-                                yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
                                 counter++;
-                                continue;
+                                if (part == 0)
+                                {
+                                    yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
+                                    continue;
+                                }
+                                else
+                                {
+                                    code.operand = 80f;
+                                }
                             }
                         }
                         else if (counter == 1)
@@ -201,7 +210,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                         }
                         else if (counter == 2)
                         {
-                            //SensibleH.Logger.LogDebug($"LoopProc[Trans][{code.opcode}][{code.operand}]");
+                            //SensibleH.Logger.LogDebug($"Trans:LoopProc{code.opcode}:{code.operand}");
                             if (code.opcode == OpCodes.Ldfld
                                 && code.operand is FieldInfo field)
                             {
@@ -217,7 +226,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                                 }
                                 else if (field.Name.Equals("isFemale70PercentageVoicePlay") || field.Name.Equals("isMale70PercentageVoicePlay"))
                                 {
-                                    //SensibleH.Logger.LogDebug($"LoopProc[Trans][{part} is done]");
+                                    //SensibleH.Logger.LogDebug($"Trans:LoopProc:PartDone:{code.opcode}:{code.operand}");
                                     yield return new CodeInstruction(OpCodes.Call, isKiss);
                                     counter = 0;
                                     part++;
@@ -255,7 +264,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                             {
                                 //yield return new CodeInstruction(OpCodes.Brfalse, code.operand);
                                 counter++;
-                                SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
+                               // SensibleH.Logger.LogDebug($"Trans:LoopProc:{code.opcode}:{code.operand}");
                                 //continue;
                             }
 
@@ -274,10 +283,59 @@ namespace KK_SensibleH.Patches.StaticPatches
                 }
                 yield return code;
             }
-
         }
+
+       //[HarmonyTranspiler, HarmonyPatch(typeof(HSonyu), nameof(HSonyu.Proc))]
+       // public static IEnumerable<CodeInstruction> HSonyuLoopTranspiler(IEnumerable<CodeInstruction> instructions)
+       // {
+       //     var done = false;
+       //     var counter = 0;
+       //     var part = 0;
+       //     foreach (var code in instructions)
+       //     {
+       //         if (!done)
+       //         {
+       //             if (counter == 0)
+       //             {
+       //                 if (code.opcode == OpCodes.Ldfld && code.operand is FieldInfo info
+       //                     && info.Name.Equals("is70Voices"))
+       //                 {
+       //                     SensibleH.Logger.LogDebug($"Trans:LoopProc:2:{code.opcode}:{code.operand}");
+       //                     counter++;
+       //                 }
+       //             }
+       //             else if (counter == 1)
+       //             {
+       //                 SensibleH.Logger.LogDebug($"Trans:LoopProc:2:{code.opcode}:{code.operand}");
+       //                 if (code.opcode == OpCodes.Ldc_I4_0)
+       //                 {
+       //                     counter++;
+       //                 }
+       //                 else
+       //                 {
+       //                     counter = 0;
+       //                 }
+       //             }
+       //             else if (counter == 2)
+       //             {
+       //                 if (code.opcode == OpCodes.Ldc_I4_0)
+       //                 {
+       //                     SensibleH.Logger.LogDebug($"Trans:LoopProc:2:{code.opcode}:{code.operand}");
+       //                     code.opcode = OpCodes.Ldc_I4_1;
+       //                     counter = 0;
+       //                     part++;
+       //                     if (part == 2)
+       //                     {
+       //                         done = true;
+       //                     }
+       //                 }
+       //             }
+       //         }
+       //         yield return code;
+       //     }
+       // }
         /// <summary>
-        /// We introduce custom borders for voice play, and override condition to play 70 voice
+        /// We introduce custom borders for voice play.
         /// </summary>
         /// <param name="instructions"></param>
         /// <returns></returns>

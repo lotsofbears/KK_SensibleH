@@ -16,6 +16,7 @@ using KK_SensibleH.AutoMode;
 using VRGIN.Helpers;
 using KK_SensibleH.Caress;
 using VRGIN.Core;
+using KK_SensibleH.Patches.DynamicPatches;
 
 namespace KK_SensibleH
 {
@@ -35,13 +36,13 @@ namespace KK_SensibleH
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
         private readonly int[] _clothes = { 1, 3, 5};
         private bool _hEnd;
-        internal bool _vr;
+        internal static bool _vr;
         private void Update()   
         {
             if (Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => Input.GetKey(x)))
             {
 #if KK
-                SensibleH.Logger.LogDebug($"{VR.Camera.Head.position.y - Game.Instance.actScene.Player.chaCtrl.transform.position.y}");
+                SensibleH.Logger.LogDebug($"{!Manager.Scene.IsInstance()}:{Manager.Scene.Instance.IsNowLoadingFade}");
 #endif
                 //var skinnedMeshes = _chaControl[0].GetComponentsInChildren<SkinnedMeshRenderer>();
                 //foreach(var skinnedMesh in skinnedMeshes)
@@ -168,13 +169,18 @@ namespace KK_SensibleH
         {
             Instance = this;
             _vr = SteamVRDetector.IsRunning;
-            //SensibleH.Logger.LogDebug($"PersistentPatches");
+            SensibleH.Logger.LogDebug($"PersistentPatches");
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchClickAction)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchDragAction)));
             _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchEyeNeck)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchH)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
             _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchGame)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchH)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrl)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
             _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestGame)));
+            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
+
+
 #if KKS
                 if (SensibleH.ProlongObi.Value)
                 {
@@ -183,7 +189,7 @@ namespace KK_SensibleH
 #endif
             if (_vr)
             {
-                //SensibleH.Logger.LogDebug($"PersistentPatches[VR]");
+                SensibleH.Logger.LogDebug($"PersistentPatches[VR]");
                 _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlVR)));
             }
 
@@ -343,20 +349,21 @@ namespace KK_SensibleH
                 if (_hFlag.mode != HFlag.EMode.lesbian && _hFlag.mode != HFlag.EMode.masturbation)
                 {
 #if KK
-                    hExp *= 0.5f + heroine.intimacy * 0.05f;
+                    hExp *= 0.5f + heroine.lewdness * 0.05f;
 #else
                     hExp *= 0.5f + Mathf.Clamp(heroine.hCount, 0f, 10f) * 0.05f;//   (heroine.lewdness * 0.005f);
 #endif
                 }
                 else
                 {
-                    hExp *= 1f + (heroine.lewdness * 0.005f);
+                    hExp *= 0.75f + (heroine.lewdness * 0.0025f);
                 }
             }
             else if (_hFlag.mode == HFlag.EMode.lesbian)
             {
                 hExp = 1f;
             }
+            SensibleH.Logger.LogDebug($"Familiarity:{hExp}");
             return hExp;
         }
         public void OnVoiceProc(int main)
@@ -389,8 +396,13 @@ namespace KK_SensibleH
                 {
                     girl.OnPositionChange();
                 }
+                UpdateSettings();
             }
 
+        }
+        internal static void UpdateSettings()
+        {
+            _hFlag.rateClickGauge = 2f / (float)GaugeSpeed.Value;
         }
         public void DoFirstTouchProc()
         {
@@ -482,7 +494,7 @@ namespace KK_SensibleH
         private void ReDress()
         {
 #if KK
-            SensibleH.Logger.LogDebug($"ReDress");
+            SensibleH.Logger.LogDebug($"ReDress:{_chaControl.Count}:{_redressTargets.Count}:{_redressTargets.ElementAt(0).Key.Name}");
             for (var i = 0; i < _chaControl.Count; i++)
             {
                 //var heroine = _heroineList[i];
@@ -514,23 +526,23 @@ namespace KK_SensibleH
 #if KK
             var _gameMgr = Game.Instance;
 #endif
-            foreach (var target in _redressTargets)
+            foreach (var heroine in _redressTargets)
             {
-                var chara = target.Key.chaCtrl;
+                var chara = heroine.Key.chaCtrl;
                 var clothesState = chara.fileStatus.clothesState;
                 for (var i = 0; i < clothesState.Length; i++)
                 {
 #if KK
-                    clothesState[i] = target.Value[i];
+                    clothesState[i] = heroine.Value[i];
 #else
                     clothesState[i] = 0;
 #endif
                 }
-                // KKS H Clone has messed up coord index? Coord plugin interferes?
+                // KKS H Clone has messed up coord index? Coord plugin interference?
 
 #if KK
-                chara.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)target.Key.coordinates[0]);
-                _gameMgr.actScene.actCtrl.SetDesire(0, target.Key, 200);
+                chara.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)heroine.Key.coordinates[0]);
+                _gameMgr.actScene.actCtrl.SetDesire(0, heroine.Key, 200);
 #endif
             }
             _redressTargets.Clear();
@@ -545,13 +557,8 @@ namespace KK_SensibleH
                 ReDress();
             }
             _hEnd = true;
-            //StopAllCoroutines();
             FemalePoI = null;
             MalePoI = null;
-
-            //_maleController = null;
-            //_loopController = null;
-            //_moMiController = null;
 
             Destroy(_moMiController);
             Destroy(_loopController);
@@ -559,7 +566,6 @@ namespace KK_SensibleH
             {
                 Destroy(controller);
             }
-            //_girlControllers = null;
 
             MoMiActive = false;
             OLoop = false;

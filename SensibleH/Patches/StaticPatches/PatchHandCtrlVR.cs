@@ -96,55 +96,71 @@ namespace KK_SensibleH.Patches.StaticPatches
         //}
 #endif
 
-        // No clue why i did this.
-        //[HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
-        //public static IEnumerable<CodeInstruction> DragActionTranspiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var pop = 0;
-        //    var firstPart = false;
-        //    var secondPart = false;
-        //    var getButton = 0;
-        //    foreach (var code in instructions)
-        //    {
-        //        //if (pop != 2)
-        //        //{
-        //        //    if (code.opcode == OpCodes.Pop)
-        //        //    {
-        //        //        pop += 1;
-        //        //        SensibleH.Logger.LogDebug($"DragActionTranspiler[{code.opcode} {code.operand}]");
-        //        //    }
-        //        //}
-        //        if (!firstPart)
-        //        {
-        //            if (code.opcode == OpCodes.Callvirt
-        //                && code.operand.ToString().Contains("set_useDOF"))
-        //                firstPart = true;
-        //            SensibleH.Logger.LogDebug($"DragActionTranspiler[firstPart] {code.opcode} {code.operand}]");
-        //            yield return new CodeInstruction(OpCodes.Nop);
-        //            continue;
-        //        }
-        //        else if (getButton != 2 && code.opcode == OpCodes.Call &&
-        //            code.operand is MethodInfo methodInfo &&
-        //            methodInfo.Name.Equals("GetMouseButton"))
-        //        {
-        //            SensibleH.Logger.LogDebug($"DragActionTranspiler[button]{code.opcode} {code.operand}]");
-        //            getButton++;
-        //            //if (getButton == 2)
-        //            //    pop = 0;
-        //        }
-        //        else if (getButton == 2 && !secondPart)
-        //        {
-        //            SensibleH.Logger.LogDebug($"DragActionTranspiler[secondPart]{code.opcode} {code.operand}]");
-        //            if (code.opcode == OpCodes.Callvirt
-        //                && code.operand.ToString().Contains("set_useDOF"))
-        //                secondPart = true;
-
-        //            yield return new CodeInstruction(OpCodes.Nop);
-        //            continue;
-        //        }
-
-        //        yield return code;
-        //    }
-        //}
+        // Still works? No clue why it helps, but it does with KK kiss stutter.
+        [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
+        public static IEnumerable<CodeInstruction> DragActionVRTranspiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var found = false;
+            var first = false;
+            var counter  = 0;
+            SensibleH.Logger.LogDebug($"Trans:Drag:VR:Start");
+            foreach (var code in instructions)
+            {
+                if (!first)
+                {
+                    if (!found)
+                    {
+                        if (counter == 0 && code.opcode == OpCodes.Call && code.operand is MethodInfo info
+                            && info.Name.Equals("FinishAction"))
+                        {
+                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
+                            counter++;
+                        }
+                        else if (counter == 1)
+                        {
+                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
+                            found = true;
+                            counter = 0;
+                        }
+                    }
+                    else
+                    {
+                        if (code.opcode == OpCodes.Callvirt && code.operand is MethodInfo info
+                            && info.Name.Equals("SetCameraData"))
+                        {
+                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
+                            found = false;
+                            first = true;
+                        }
+                        yield return new CodeInstruction(OpCodes.Nop);
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (!found)
+                    {
+                        if (code.opcode == OpCodes.Stfld && code.operand is FieldInfo info
+                            && info.Name.Equals("isCursorLock"))
+                        {
+                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
+                            found = true;
+                        }
+                    }
+                    else
+                    {
+                        SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
+                        if (code.opcode == OpCodes.Callvirt
+                            && code.operand.ToString().Contains("set_useDOF"))
+                        {
+                            found = false;
+                        }
+                        yield return new CodeInstruction(OpCodes.Nop);
+                        continue;
+                    }
+                }
+                yield return code;
+            }
+        }
     }
 }

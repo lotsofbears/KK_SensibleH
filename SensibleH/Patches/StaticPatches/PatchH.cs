@@ -4,6 +4,7 @@ using KK_SensibleH.AutoMode;
 using KK_SensibleH.Caress;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Emit;
 using UnityEngine;
@@ -13,19 +14,6 @@ namespace KK_SensibleH.Patches.StaticPatches
 {
     public static class PatchH
     {
-        public struct CodeInfo
-        {
-            public OpCode firstOpcode;
-            public string firstOperand;
-            public OpCode secondOpcode;
-            public string secondOperand;
-        }
-
-        public struct JudgeState
-        {
-            public float ActionMove;
-            public int ActionLoop;
-        }
 
         public static int PrettyNumber(int number)
         {
@@ -160,7 +148,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             //if (_addPoint < 0)// && biasF < 1f)
             //    _addPoint = _addPoint * 0.25f;
             //else
-            _addPoint = _addPoint * gaugeMultiplier * BiasF;
+            _addPoint = _addPoint * BiasF;
         }
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HFlag), nameof(HFlag.MaleGaugeUp))]
@@ -169,126 +157,10 @@ namespace KK_SensibleH.Patches.StaticPatches
             //if (_addPoint < 0)// && biasM < 1f)
             //    _addPoint = _addPoint * 0.25f;
             // else
-            _addPoint = _addPoint * gaugeMultiplier * BiasM;
+            _addPoint = _addPoint * BiasM;
         }
-        /// <summary>
-        /// We delete the restriction to play caress voice only in Aibu.
-        /// </summary>
-        [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
-        public static IEnumerable<CodeInstruction> DragActionTranspiler(IEnumerable<CodeInstruction> instructions)
-        {
-            //SensibleH.Logger.LogDebug($"DragActionTranspiler[start]");
-            var targets = new Dictionary<int, CodeInfo>()
-            {
-                {
-                    0, new CodeInfo {
-                        firstOpcode = OpCodes.Call,
-                        firstOperand = "Range",
-                        secondOpcode = OpCodes.Stfld,
-                        secondOperand = "voicePlayActionLoop"
-                    }
-                },
-                {
-                    1, new CodeInfo {
-                        firstOpcode = OpCodes.Ldfld,
-                        firstOperand = "voicePlayActionMove",
-                        secondOpcode = OpCodes.Ble_Un,
-                        secondOperand = ""
-                    }
-                }
-            };
-            var counter = 0;
-            var tarCount = 0;
-            var done = false;
-            foreach (var code in instructions)
-            {
-                if (!done)
-                {
-                    if (counter == 0 && code.opcode == targets[tarCount].firstOpcode
-                        && code.operand.ToString().Contains(targets[tarCount].firstOperand))
-                    {
-                        counter++;
-                        //SensibleH.Logger.LogDebug($"DragActionTranspiler[first] {code.opcode}");
-                    }
-                    else if (counter == 1 && code.opcode == targets[tarCount].secondOpcode
-                        && code.operand.ToString().Contains(targets[tarCount].secondOperand))
-                    {
-                        counter++;
-                        //SensibleH.Logger.LogDebug($"DragActionTranspiler[second] {code.opcode}");
-                    }
-                    else if (counter == 2)
-                    {
-                        //SensibleH.Logger.LogDebug($"DragActionTranspiler[found] {code.opcode}");
-                        if (code.opcode == OpCodes.Brtrue)
-                        {
-                            counter = 0;
-                            tarCount++;
-                            if (tarCount == 2)
-                            {
-                                done = true;
-                            }
-                        }
-                        yield return new CodeInstruction(OpCodes.Nop);
-                        continue;
-                    }
-                    else
-                        counter = 0;
-                }
-                yield return code;
-            }
-        }
-        /// <summary>
-        /// We delete the restriction to play caress voice only in Aibu.
-        /// </summary>
-        [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
-        public static IEnumerable<CodeInstruction> ClickActionTranspiler(IEnumerable<CodeInstruction> instructions)
-        {
-            //SensibleH.Logger.LogDebug($"DragActionTranspiler[start]");
-            var targets = new Dictionary<int, CodeInfo>()
-            {
-                {
-                    0, new CodeInfo {
-                        firstOpcode = OpCodes.Call,
-                        firstOperand = "Range",
-                        secondOpcode = OpCodes.Stfld,
-                        secondOperand = "voicePlayClickLoop"
-                    }
-                }
-            };
-            var counter = 0;
-            var done = false;
-            foreach (var code in instructions)
-            {
-                if (!done)
-                {
-                    if (counter == 0 && code.opcode == targets[0].firstOpcode
-                        && code.operand.ToString().Contains(targets[0].firstOperand))
-                    {
-                        counter++;
-                        //SensibleH.Logger.LogDebug($"ClickActionTranspiler[first] {code.opcode} / {code.operand}");
-                    }
-                    else if (counter == 1 && code.opcode == targets[0].secondOpcode
-                        && code.operand.ToString().Contains(targets[0].secondOperand))
-                    {
-                        counter++;
-                        //SensibleH.Logger.LogDebug($"ClickActionTranspiler[second] {code.opcode} / {code.operand}");
-                    }
-                    else if (counter == 2)
-                    {
-                        //SensibleH.Logger.LogDebug($"ClickActionTranspiler[found] {code.opcode}");
-                        if (code.opcode == OpCodes.Brtrue)
-                        {
-                            done = true;
-                        }
-                        yield return new CodeInstruction(OpCodes.Nop);
-                        continue;
-                    }
-                    else
-                        counter = 0;
-                }
-                yield return code;
-            }
-        }
+        
+        
         /// <summary>
         /// We adjust CrossFader's FadeTime for specific animations.
         /// </summary>
@@ -373,81 +245,6 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             return true;
         }
-
-        /// <summary>
-        /// We disable (half the time) override of a voice with the short by HitReactionPlay().
-        /// Otherwise happens way too often in non-Aibu modes during caress.
-        /// </summary>
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.HitReactionPlay))]
-        public static void HitReactionPlayPrefix(ref bool _playShort, HandCtrl __instance)
-        {
-            if (__instance.actionUseItem != -1 && __instance.voice.nowVoices[__instance.numFemale].state == HVoiceCtrl.VoiceKind.voice && UnityEngine.Random.value < 0.67f)
-            {
-                _playShort = false;
-            }
-        }
-        /// <summary>
-        /// We run voiceProc for first item attached.
-        /// </summary>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.FinishAction))]
-        public static void HandCtrlFinishActionPostfix(HandCtrl __instance)
-        {
-            if (FirstTouch)
-            {
-                //SensibleH.Logger.LogDebug($"FinishAction:FirstTouch:{__instance.actionUseItem != -1}");
-                if (__instance.flags.mode == HFlag.EMode.aibu)
-                {
-                    __instance.flags.voice.timeAibu.timeIdle = 0.75f;
-                }
-                else
-                {
-                    SensibleHController.Instance.DoFirstTouchProc();
-                }
-                FirstTouch = false;
-            }
-            // Obsolete due to CyuVR.
-            //if (__instance.IsKissAction() && __instance.flags.mode != HFlag.EMode.aibu
-            //    && __instance.voice.nowVoices[0].state != HVoiceCtrl.VoiceKind.voice)
-            //{
-            //    __instance.flags.voice.playVoices[0] = 102;
-            //}
-        }
-
-        /// <summary>
-        /// We prevent counters for voiceProc from resetting on consecutive click actions.
-        /// Disable click counter for voice when we have drag running simultaneously ?
-        /// </summary>
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.JudgeProc))]
-        public static void HandCtrlJudgeProcPrefix(HandCtrl __instance, ref JudgeState __state)
-        {
-            if (MoMiActive)
-            {
-                __state = new JudgeState
-                {
-                    ActionMove = __instance.voicePlayActionMove,
-                    ActionLoop = __instance.voicePlayActionLoop
-                };
-                //if (__instance.GetUseItemNumber().Count == 1)
-                //{
-                //    __state.ActionMove += UnityEngine.Random.Range(25f, 50f);
-                //}
-            }
-        }
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.JudgeProc))]
-        public static void HandCtrlJudgeProcPostfix(HandCtrl __instance, JudgeState __state)
-        {
-            if (MoMiActive)
-            {
-                __instance.voicePlayActionMove = __state.ActionMove;
-                __instance.voicePlayActionMoveOld = __state.ActionMove;
-                __instance.voicePlayActionLoop = __state.ActionLoop;
-            }
-        }
-
         /// <summary>
         /// OLoop outside of orgasm enabler.
         /// </summary>

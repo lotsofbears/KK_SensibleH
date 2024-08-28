@@ -58,14 +58,16 @@ namespace KK_SensibleH.Caress
         //}
         public static string[] FakePrefix = new string[3];
         public static string[] FakePostfix = new string[3];
-        public static bool TouchAnimation;
+        public static bool ResetDrag;
+        public static bool FakeDrag;
         public static Vector2 FakeDragLength;
+        public static bool FakeMouseButton;
         public static MoMiController Instance;
 
-        private static bool _kissCo;
-        //internal static bool _endKissCo;
-        internal static bool _lickCo;
-        internal static bool _moMiCo;
+
+        private bool _kissCo;
+        internal bool _lickCo;
+        private bool _moMiCo;
 
         private float[] _postfixTimers = new float[3];
         //private bool _endLickCo;
@@ -77,7 +79,6 @@ namespace KK_SensibleH.Caress
         internal bool _houshi;
         internal bool _sonyu;
         private bool _mousePressDown;
-        private int _trackItem;
         private float _inactiveTimestamp;
         private float _wait;
         private float _itemCountMultiplier;
@@ -100,7 +101,7 @@ namespace KK_SensibleH.Caress
         internal bool IsTouchCrossFade => _touchAnim;
         private bool IsCrossFadeOver => _wait < Time.time;
         //private float GetFpsDelta => Time.deltaTime * 60f;
-        private bool IsKiss => _kissCo || _handCtrl.IsKissAction();
+        private bool IsKiss => _handCtrl.IsKissAction(); // _kissCo ||
         private void Awake()
         {
             Instance = this;
@@ -135,6 +136,15 @@ namespace KK_SensibleH.Caress
                     _pubicHair = acc.Children().FirstOrDefault();
                     _targetScale = _pubicHair.transform.lossyScale;
                 }
+            }
+            FakeMouseButton = false;
+            FakeDrag = false;
+            ResetDrag = false;
+            FakeDragLength = Vector2.zero;
+            for (var i = 0; i < 3; i++)
+            {
+                FakePrefix[i] = null;
+                FakePostfix[i] = null;
             }
             OnPositionChange();
         }
@@ -173,18 +183,19 @@ namespace KK_SensibleH.Caress
             if (colliderKind == HandCtrl.AibuColliderKind.none)
             {
                 // SensibleH.Logger.LogDebug($"OnLickStart[1]");
-                if (_moMiCo)
+                if (Instance._moMiCo)
                 {
                     Instance.Halt();
                 }
             }
             else
             {
-                _lickCo = true;
+                Instance._lickCo = true;
                 // // SensibleH.Logger.LogDebug($"OnLickStart[2]");
                 Instance.JudgeProc(2, fakeIt: true);
                 Kiss.Instance.Cyu(colliderKind);
             }
+            SensibleH.Logger.LogDebug($"Kiss:Start:{FakeMouseButton}:{FakeDrag}");
         }
         /// <summary>
         /// Hook for MainGameVR.
@@ -193,18 +204,22 @@ namespace KK_SensibleH.Caress
         {
             if (colliderKind == HandCtrl.AibuColliderKind.none)
             {
-                if (_moMiCo)
+                if (Instance._moMiCo)
                 {
                     Instance.Halt();
                 }
                 _girlControllers[0]._neckController.OnKissVrStart();
+#if KK
+                IllusionFixes.ResourceUnloadOptimizations.DisableUnload.Value = true;
+#endif
             }
             else
             {
-                _kissCo = true;
+                Instance._kissCo = true;
                 Kiss.Instance.Cyu(HandCtrl.AibuColliderKind.mouth);
                 //Instance.StartCoroutine(Instance.KissEngageCo());
             }
+            SensibleH.Logger.LogDebug($"Kiss:Start:{FakeMouseButton}:{FakeDrag}");
         }
         //private IEnumerator KissEngageCo()
         //{
@@ -222,19 +237,15 @@ namespace KK_SensibleH.Caress
         public static void OnKissEnd()
         {
             _girlControllers[0]._neckController.OnKissVrEnd();
-            if (_moMiCo)
+            if (Instance._moMiCo)
             {
                 Instance.Halt();
             }
         }
         private void Halt(bool disengage = true)
         {
-            // // SensibleH.Logger.LogDebug($"MoMi[HaltReason][Button = {UnityEngine.Input.GetMouseButtonDown(0)}] [Item = {_handCtrl.actionUseItem != -1}] [Kiss = {_handCtrl.IsKissAction()}]");
-            //foreach (var coroutine in _activeCoroutines)
-            //{
-            //    if (coroutine != null)
-            //        StopCoroutine(coroutine);
-            //}
+            SensibleH.Logger.LogDebug($"MoMi:Halt:Reason:Button - {UnityEngine.Input.GetMouseButtonDown(0)}:Item = {_handCtrl.actionUseItem != -1}:Kiss - {_handCtrl.IsKissAction()}");
+            MoMiActive = false;
             StopAllCoroutines();
             foreach (var patch in _activePatches)
             {
@@ -250,14 +261,6 @@ namespace KK_SensibleH.Caress
 
             if (_vr)
             {
-                //if (_kissCo)
-                //{
-                //    _girlControllers[0]._eyeNeckController.OnKissVrEnd();
-                //}
-                //if (disengage && (_kissCo || _lickCo))
-                //{
-                //    _activeCoroutines.Add(StartCoroutine(EndKissCo()));
-                //}
                 if (_mousePressDown)
                 {
                     // This case applicable only when action is initiated by trigger(button on controller).
@@ -268,18 +271,22 @@ namespace KK_SensibleH.Caress
 #endif
                     _mousePressDown = false;
                 }
+#if KK
+                IllusionFixes.ResourceUnloadOptimizations.DisableUnload.Value = false;
+#endif
             }
             _moMiCo = false;
             _kissCo = false;
             _lickCo = false;
-            MoMiActive = false;
+            FakeDrag = false; 
+            FakeMouseButton = false;
         }
         private void Update()
         {
             if (_moMiCo)
             {
                 _touchAnim = IsTouch && !IsCrossFadeOver;
-                _drag = _hFlag.drag;// _handCtrl.ctrl == HandCtrl.Ctrl.drag;
+                _drag = _handCtrl.ctrl == HandCtrl.Ctrl.drag;
                 //// SensibleH.Logger.LogDebug($"[{GameCursor.isLock}][{_handCtrl.actionUseItem}][Hands[{hand[0] != null}][{hand[1] != null}]]");   
                 if (Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.IsKissAction())) //(!_touchAnim && _handCtrl.actionUseItem == -1 && !_handCtrl.isKiss)) _handCtrl.useItems[_trackItem] == null
                 {
@@ -351,7 +358,7 @@ namespace KK_SensibleH.Caress
         /// </summary>
         private IEnumerator MoMiCo(bool skipWait = false)
         {
-            // SensibleH.Logger.LogDebug($"MoMiCo[StartReason] item[{_handCtrl.actionUseItem != -1}] kiss[{_handCtrl.IsKissAction()}]");
+            SensibleH.Logger.LogDebug($"MoMiCo:Start:Item - {_handCtrl.actionUseItem != -1}:Kiss - {_handCtrl.IsKissAction()}");
             _moMiCo = true;
             if (!skipWait)
             {
@@ -361,49 +368,42 @@ namespace KK_SensibleH.Caress
                 yield return new WaitUntil(() => !_touchAnim);
                 yield return new WaitForSeconds(1f);
 
-                if (!_handCtrl.IsKissAction() && _handCtrl.actionUseItem == -1)
+                if (!IsKiss && _handCtrl.actionUseItem == -1)
                 {
                     Halt();
                     yield break;
                 }
             }
-            var kiss = _handCtrl.IsKissAction();
-            // SensibleH.Logger.LogDebug($"MoMiCo[Start] kiss[{kiss}] vr[{_vr}]");
+            var kiss = IsKiss;
             MoMiActive = true;
-            FakeDragLength = Vector2.zero;
-            if (!kiss)
+            if (_vr)
             {
-                // SensibleH.Logger.LogDebug($"MoMiCo[PatchMoMi]");
-                _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrl)));
-                //if (!_lickCo)
-                //{
-                if (_vr)
+                if (!_lickCo && !_kissCo)
                 {
-                    if (!_lickCo)
-                    {
-                        _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchKoikatuVR)));
-                        if (VRHelper.IsTriggerPress())
-                        {
-                            yield return new WaitUntil(() => VRHelper.IsTriggerPress());
-                        }
-                        _mousePressDown = true;
-                    }
+                    //if (VRHelper.IsTriggerPress())
+                    //{
+                    //    yield return new WaitUntil(() => !VRHelper.IsTriggerPress());
+                    //}
+                    FakeMouseButton = true;
+                    _mousePressDown = true;
+                }
+            }
+            else
+            {
+                FakeMouseButton = true;
+                Utils.Sound.Play(SystemSE.ok_l);
+                if (UnityEngine.Input.GetMouseButton(0))
+                {
+                    yield return new WaitUntil(() => UnityEngine.Input.GetMouseButtonUp(0));
                 }
                 else
                 {
-                    Utils.Sound.Play(SystemSE.ok_l);
-                    if (UnityEngine.Input.GetMouseButton(0))
-                    {
-                        yield return new WaitUntil(() => UnityEngine.Input.GetMouseButtonUp(0));
-                    }
-                    else
-                    {
-                        //// SensibleH.Logger.LogDebug($"MoMiCo[Halt] Mouse button was released too soon");
-                        _moMiCo = false;
-                        yield break;
-                    }
+                    SensibleH.Logger.LogDebug($"MoMiCo:MouseButton:EarlyRelease");
+                    _moMiCo = false;
+                    yield break;
                 }
             }
+
             foreach (var item in _handCtrl.useItems)
             {
                 if (item != null)
@@ -415,27 +415,37 @@ namespace KK_SensibleH.Caress
                             pattern = -1
                         });
             }
+            
             var count = _items.Count;
-            _itemCountMultiplier = 1.5f / count;// + ((1 - count) * 0.1f);
-            _itemCountTiny = _itemCountMultiplier * 0.1f;
-            foreach (var item in _items)
+            FakeDrag = !(_sonyu && _hFlag.nowAnimStateName.EndsWith("Loop", StringComparison.Ordinal));
+            if (count != 0)
             {
-                if (item.Value.area == 0 || item.Value.area == 4)
-                {
-                    var otherItem = _items.Values
-                        .Where(i => i.area - 1 == item.Value.area)
-                        .FirstOrDefault();
-                    if (otherItem != null)
-                    {
-                        // SensibleH.Logger.LogDebug($"Found the pair[{item.Value.area}][{otherItem.area}] in _items");
-                        item.Value.hasPair = true;
-                        otherItem.hasPair = true;
-                    }
-                }
-                _activeCoroutines.Add(StartCoroutine(ItemCo(kiss, item.Key)));
-                //yield return new WaitForSeconds(0.1f);
-                //yield return new WaitForEndOfFrame();
+                ResetDrag = true;
+                FakeDragLength = Vector2.zero;
 
+                _itemCountMultiplier = 1.5f / count;// + ((1 - count) * 0.1f);
+                _itemCountTiny = _itemCountMultiplier * 0.1f;
+                foreach (var item in _items)
+                {
+                    if (item.Value.area == 0 || item.Value.area == 4)
+                    {
+                        var otherItem = _items.Values
+                            .Where(i => i.area - 1 == item.Value.area)
+                            .FirstOrDefault();
+                        if (otherItem != null)
+                        {
+                            // SensibleH.Logger.LogDebug($"Found the pair[{item.Value.area}][{otherItem.area}] in _items");
+                            item.Value.hasPair = true;
+                            otherItem.hasPair = true;
+                        }
+                    }
+                    _activeCoroutines.Add(StartCoroutine(ItemCo(kiss, item.Key)));
+                }
+            }
+            else
+            {
+                ResetDrag = false;
+                FakeDragLength = Vector2.one;
             }
         }
         /// <summary>

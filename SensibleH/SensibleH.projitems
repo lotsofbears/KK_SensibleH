@@ -23,10 +23,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)GirlController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MaleController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchEyes.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchHandCtrl.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchHandCtrlKiss.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchKoikatuVR.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\Obsolete.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\[obsolete]PatchHandCtrlKiss.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\[obsolete]PatchKoikatuVR.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)patches\staticpatches\PatchClickAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)patches\staticpatches\PatchDragAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)patches\staticpatches\PatchHandCtrl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\[obsolete].cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchEyeNeck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchGame.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchH.cs" />

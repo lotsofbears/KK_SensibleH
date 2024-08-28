@@ -410,7 +410,10 @@ namespace KK_SensibleH.Caress
             tangBonePos = Vector3.zero;
             tangBoneRot = Quaternion.identity;
             _kissPhase = Phase.None;
-            _hFlag.voice.playVoices[0] = 102;
+            if (_hFlag.mode != HFlag.EMode.sonyu || Random.value < 0.5f)
+            {
+                _hFlag.voice.playVoices[0] = 102;
+            }
 
             _female.ChangeEyesBlinkFlag(true);
             kissAction = false;
