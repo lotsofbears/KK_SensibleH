@@ -10,17 +10,7 @@ namespace KK_SensibleH.Patches.StaticPatches
 #if KKS
     public static class PatchObi
     {
-        #region Allows to render fluids on all animations.
-
-        //public static string _currentAnimation { get; set; }
-        //public static bool _shouldClearObi { get; set; }
-        //public static bool _obiShouldPersist { get; set; }
-        //[HarmonyPrefix, HarmonyPatch(typeof(ObiCtrl), nameof(ObiCtrl.Clear))]
-        //public static void ObiCtrlClear()
-        //{
-        //    SensibleH.Logger.LogDebug($"ObiCtrlClear\n{new StackTrace(0)}");
-        //}
-        //public static void SetObiPersistence(bool state) => _obiShouldPersist = state;
+        #region Allows render of fluids on all animations.
 
         [HarmonyPrefix, HarmonyPatch(typeof(HitCollisionEnableCtrl), nameof(HitCollisionEnableCtrl.SetPlayObi))]
         public static void StopResettingObi(string _animation, HitCollisionEnableCtrl __instance)
@@ -29,7 +19,6 @@ namespace KK_SensibleH.Patches.StaticPatches
             var dic = __instance.dicInfo;
             if (dic.Count != 0 && !dic.ContainsKey(_animation))
             {
-                //SensibleH.Logger.LogDebug($"ObiAdjustments:ObiGang[AddedDic]");
                 AddToDic(__instance);
             }
         }
@@ -40,7 +29,6 @@ namespace KK_SensibleH.Patches.StaticPatches
             var dic = __instance.dicInfo;
             if (dic.Count != 0 && !dic.ContainsKey(_nameNextAnimation))
             {
-                //SensibleH.Logger.LogDebug($"ObiAdjustments:ObiGang[AddedDic]");
                 AddToDic(__instance);
             }
         }
@@ -133,7 +121,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                     && code[i].operand is MethodInfo method
                     && method.Name.Equals("Clear"))
                 {
-                    //SensibleH.Logger.LogDebug($"HSonyuProcRemovalOfObiTranspiler[found]");
                     counter = 0;
                     code[i].opcode = OpCodes.Nop;
                     code[i].operand = null;
@@ -149,12 +136,6 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             return code.AsEnumerable();
         }
-
-        //[HarmonyPostfix, HarmonyPatch(typeof(ObiEmitterCtrl), nameof(ObiEmitterCtrl.Play))]
-        //public static void ObiEmitterCtrlPlay()
-        //{
-        //    SetObiPersistence(true);
-        //}
 
         #endregion
     }

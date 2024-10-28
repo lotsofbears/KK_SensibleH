@@ -12,9 +12,6 @@ using UnityEngine;
 using static KK_SensibleH.Caress.Kiss;
 using UniRx;
 using KKAPI;
-using KK_SensibleH.AutoMode;
-using KKAPI;
-using KKAPI.MainGame;
 
 namespace KK_SensibleH
 {
@@ -35,12 +32,13 @@ namespace KK_SensibleH
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<AutoModeKind> AutoMode { get; set; }
-        public static ConfigEntry<AutoPosMode> AutoPickPosition { get; set; }
+        public static ConfigEntry<AutoPoseType> AutoPickPose{ get; set; }
         public static ConfigEntry<bool> AutoRestartAction { get; set; }
         public static ConfigEntry<EdgeType> Edge { get; set; }
         public static ConfigEntry<bool> MomiMomi { get; set; }
         public static ConfigEntry<bool> EyeNeckControl { get; set; }
         public static ConfigEntry<bool> HoldPubicHair { get; set; }
+        public static ConfigEntry<bool> DisablePeskySounds { get; set; }
 #if KKS
         public static ConfigEntry<bool> ProlongObi { get; set; }
 #endif
@@ -61,7 +59,7 @@ namespace KK_SensibleH
         internal static HandCtrl _handCtrl1;
         internal static HMotionEyeNeckFemale _eyeneckFemale;
         internal static HMotionEyeNeckFemale _eyeneckFemale1;
-        internal static HFlag _hFlag;
+        internal static HFlag hFlag;
         internal static List<ChaControl> _chaControl;
         internal static ChaControl _chaControlM;
         internal static HVoiceCtrl _hVoiceCtrl;
@@ -94,7 +92,7 @@ namespace KK_SensibleH
             //PromptAtStartAndDisableOnFinish,
             Automatic
         }
-        public enum AutoPosMode
+        public enum AutoPoseType
         {
             Disabled,
             OnlyService,
@@ -127,10 +125,10 @@ namespace KK_SensibleH
                 "Warning. All proactive functions have mild disrespect for persistent user input, bad things (that will be solved only by the reboot of the game) may happen " +
                 "for those who seek two pilots in one seat." 
                 );
-            AutoPickPosition = Config.Bind(
+            AutoPickPose = Config.Bind(
                 section: "AutoMode",
                 key: "PositionChange",
-                defaultValue: AutoPosMode.AllPositions,
+                defaultValue: AutoPoseType.AllPositions,
                 "Allows auto change of positions after climax.\n" +
                 "Disabled - Waits for setting to change any moment.\n" +
                 "FemdomOnly - Choses only position where the girl is dominant. By default it's only one (game's default) cowgirl position. With modified AnimationLoader manifest comes much more.\n" +
@@ -189,6 +187,18 @@ namespace KK_SensibleH
                 key: "HoldPubicHair",
                 defaultValue: true,
                 "Hold the scale of pubic hair accessory attached to the crouch."
+                );
+            //AutoADV = Config.Bind(
+            //    section: "Tweaks",
+            //    key: "ADV Auto",
+            //    defaultValue: true,
+            //    "Enables auto mode in any text scenario by default."
+            //    );
+            DisablePeskySounds = Config.Bind(
+                section: "Tweaks",
+                key: "Disable button click sfx",
+                defaultValue: true,
+                "."
                 );
             GaugeSpeed = Config.Bind(
                 section: "Tweaks",

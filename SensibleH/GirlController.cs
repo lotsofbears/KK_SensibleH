@@ -86,11 +86,11 @@ namespace KK_SensibleH
         internal void PlayVoice(int voiceId)
         {
             SensibleH.Logger.LogDebug($"GirlController[{_main}] PlayVoices[{voiceId}] was supposed to happen");
-            _hFlag.voice.playVoices[_main] = voiceId;
+            hFlag.voice.playVoices[_main] = voiceId;
         }
         internal void PlayShort(bool notOverwrite = false)
         {
-            _hFlag.voice.playShorts[_main] = Random.Range(0, 9);
+            hFlag.voice.playShorts[_main] = Random.Range(0, 9);
             if (notOverwrite)
                 _hVoiceCtrl.nowVoices[_main].notOverWrite = true;
             SensibleH.Logger.LogDebug($"GirlController[{_main}] - A Short Gasp has escaped");
@@ -98,7 +98,7 @@ namespace KK_SensibleH
 
         internal bool SquirtHandler()
         {
-            if ((_hFlag.gaugeFemale - 25f) * 0.005f > Random.value)
+            if ((hFlag.gaugeFemale - 25f) * 0.005f > Random.value)
             {
                 OverrideSquirt = true;
                 var hand = _main == 0 ? _handCtrl : _handCtrl1;
@@ -115,16 +115,16 @@ namespace KK_SensibleH
             if (_voiceController.IsVoiceActive && _hVoiceCtrl.nowVoices[CurrentMain].voiceInfo.id == id)
             {
 #if KK
-                Manager.Voice.Instance.Stop(_hFlag.transVoiceMouth[0]);
+                Manager.Voice.Instance.Stop(hFlag.transVoiceMouth[0]);
 #else
-                Manager.Voice.Stop(_hFlag.transVoiceMouth[0]);
+                Manager.Voice.Stop(hFlag.transVoiceMouth[0]);
 #endif
             }
         }
         internal bool Reaction(bool shortPlay = true)
         {
             HandCtrl.AibuColliderKind touchType;
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.aibu:
                 case HFlag.EMode.houshi:

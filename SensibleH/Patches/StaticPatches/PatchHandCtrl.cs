@@ -57,13 +57,11 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static IEnumerable<CodeInstruction> JudgeProcDynamicTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             var code = new List<CodeInstruction>(instructions);
-            SensibleH.Logger.LogDebug($"Trans:JudgeProc:Start");
             for (var i = 0; i < code.Count; i++)
             {
                 if (code[i].opcode == OpCodes.Ldfld &&
                     code[i].operand.ToString().Contains("useItems"))
                 {
-                    //SensibleH.Logger.LogDebug($"Trans:JudgeProc:{code[i].opcode}:{code[i].operand}");
                     code[i].opcode = OpCodes.Nop;
                     code[i + 2].opcode = OpCodes.Call;
                     code[i + 2].operand = AccessTools.FirstMethod(typeof(PatchHandCtrl), m => m.Name.Equals(nameof(PatchHandCtrl.IsUseItemPrefix)));
@@ -113,7 +111,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             var code = new List<CodeInstruction>(instructions);
             var retFound = false;
-            SensibleH.Logger.LogDebug($"Trans:AnimatrotRestrart:Start");
             for (var i = 0; code.Count > 0; i++)
             {
                 if (!retFound)
@@ -127,7 +124,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 {
                     if (code[i].opcode == OpCodes.Ldarg_0)
                     {
-                        //SensibleH.Logger.LogDebug($"Trans:AnimatrotRestrart:{code[i].opcode}:{code[i].operand}");
                         code[i + 1].opcode = OpCodes.Nop;
                         code[i + 3].opcode = OpCodes.Call;
                         code[i + 3].operand = AccessTools.FirstMethod(typeof(PatchHandCtrl), m => m.Name.Equals(nameof(PatchHandCtrl.IsUseItemPrefix))); 
@@ -148,12 +144,10 @@ namespace KK_SensibleH.Patches.StaticPatches
             var firstPart = false;
             var secondPart = 0;
 
-            SensibleH.Logger.LogDebug($"Trans:SetDragStartLayer:Start");
             for (var i = 0; code.Count > 0; i++)
             {
                 if (!firstPart && code[i].opcode == OpCodes.Ldarg_0)
                 {
-                    //SensibleH.Logger.LogDebug($"Trans:SetDragStartLayer:{code[i].opcode}:{code[i].operand}");
                     code[i + 1].opcode = OpCodes.Nop;
                     code[i + 3].opcode = OpCodes.Call;
                     code[i + 3].operand = AccessTools.FirstMethod(typeof(PatchHandCtrl), m => m.Name.Equals(nameof(PatchHandCtrl.IsUseItemPostfix)));
@@ -161,7 +155,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 }
                 else if (secondPart > 0)
                 {
-                    SensibleH.Logger.LogDebug($"Trans:SetDragStartLayer:{code[i].opcode}:{code[i].operand}");
 #if KK
                     if (code[i].opcode == OpCodes.Stobj)
 #else
@@ -177,7 +170,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 else if (code[i].opcode == OpCodes.Bne_Un)
                 {
                     secondPart++;
-                    //SensibleH.Logger.LogDebug($"Trans:SetDragStartLayer:{code[i].opcode}:{code[i].operand}");
                 }
 
             }

@@ -7,6 +7,12 @@ using KK_SensibleH.Caress;
 using Illusion.Game;
 using KKAPI;
 using KKAPI.MainGame;
+using Studio;
+using System.Security.Cryptography;
+using UnityEngine.SocialPlatforms.Impl;
+using Manager;
+using static Manager.Game.Expression;
+using static Illusion.Game.Utils;
 #if KKS
 using SaveData;
 #endif
@@ -31,8 +37,8 @@ namespace KK_SensibleH
         internal void Initialize(GirlController master, int main)
         {
             _main = main;
-            _heroine = _hFlag.lstHeroine[main];
-            _nickAvailable = _heroine.isNickNameEvent || _hFlag.isFreeH;
+            _heroine = hFlag.lstHeroine[main];
+            _nickAvailable = _heroine.isNickNameEvent || hFlag.isFreeH;
             _voice = _hVoiceCtrl.nowVoices[main];
             _chara = _chaControl[main];
             _master = master;
@@ -40,7 +46,7 @@ namespace KK_SensibleH
         public void OnVoiceProc()
         {
             
-            var id = _hFlag.voice.playVoices[_main];
+            var id = hFlag.voice.playVoices[_main];
             if (id == _lastVoice)
             {
                 return;
@@ -105,15 +111,15 @@ namespace KK_SensibleH
         private void PlayInsteadOfVoice(int pattern)
         {
             SensibleH.Logger.LogDebug($"PlayInsteadOfVoice");
-            _hFlag.voice.playVoices[_main] = -1;
+            hFlag.voice.playVoices[_main] = -1;
             PlayNickname(pattern);
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.aibu:
-                    _hFlag.voice.timeAibu.timeIdle /=  4f;
+                    hFlag.voice.timeAibu.timeIdle /=  4f;
                     break;
                 case HFlag.EMode.sonyu:
-                    _hFlag.voice.timeSonyu.timeIdle /=  4f;
+                    hFlag.voice.timeSonyu.timeIdle /=  4f;
                     break;
             }
         }
@@ -126,10 +132,10 @@ namespace KK_SensibleH
         }
         private CallTypes PickNickname(out int voicePtn)
         {
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.aibu:
-                    if (_hFlag.nowAnimStateName.EndsWith("_Idle"))
+                    if (hFlag.nowAnimStateName.EndsWith("_Idle"))
                     {
                         voicePtn = Random.value > 0.5f ? 0 : 2;
                         if (voicePtn == 0)
@@ -139,9 +145,9 @@ namespace KK_SensibleH
                     }
                     break;
                 case HFlag.EMode.sonyu:
-                    if (_hFlag.nowAnimStateName.EndsWith("Loop") && !_hFlag.nowAnimStateName.StartsWith("I") && !_hFlag.nowAnimationInfo.isFemaleInitiative && _hFlag.speedCalc < 0.5f)
+                    if (hFlag.nowAnimStateName.EndsWith("Loop") && !hFlag.nowAnimStateName.StartsWith("I") && !hFlag.nowAnimationInfo.isFemaleInitiative && hFlag.speedCalc < 0.5f)
                     {
-                        if (_hFlag.nowAnimStateName.StartsWith("W"))
+                        if (hFlag.nowAnimStateName.StartsWith("W"))
                             voicePtn = Random.value > 0.5f ? 0 : 2;
                         else
                             voicePtn = 2;
@@ -187,7 +193,7 @@ namespace KK_SensibleH
             // 100 / Aibu Idle
         };
 
-        private void PlayNickname(int pattern)
+        public void PlayNickname(int pattern)
         {
             SensibleH.Logger.LogDebug($"PlayNickname[{pattern}]");
 #if KK
@@ -195,16 +201,17 @@ namespace KK_SensibleH
 #else
             var callFileData = WorldData.FindCallFileData(_heroine.personality, _heroine.callMyID);
 #endif
-            
+
             var setting = new Utils.Voice.Setting
             {
                 no = _heroine.voiceNo,
                 assetBundleName = callFileData.bundle,
                 assetName = callFileData.GetFileName(pattern),
                 pitch = _heroine.voicePitch,
-                voiceTrans = _hFlag.transVoiceMouth[_main]
+                voiceTrans = hFlag.transVoiceMouth[_main]
             };
 
+            SensibleH.Logger.LogDebug($"{callFileData.bundle} + {callFileData.GetFileName(pattern)}");
             _chara.ChangeMouthPtn(0, true);
 #if KK
             _chara.SetVoiceTransform(Utils.Voice.OnecePlayChara(setting));
@@ -237,6 +244,81 @@ namespace KK_SensibleH
             return true;
 
         }
+#if KK
+        public void LoadVoice()
+        {
+
+            var chara = _heroine.chaCtrl;
+            var personalityId = _heroine.personality.ToString();
+
+            var bundle = laughs[Random.Range(0,laughs.Count)];
+            bundle = bundle.Replace("**",personalityId);
+            var index = bundle.LastIndexOf('/');
+            var asset = bundle.Substring(index + 1);
+            bundle = bundle.Remove(index + 1) + GetBundle(personalityId, hVoice: false);
+
+            SensibleH.Logger.LogDebug($"{bundle} + {asset}");
+            var setting = new Utils.Voice.Setting
+            {
+                no = _heroine.voiceNo,
+                assetBundleName = bundle,
+                assetName = asset,
+                pitch = _heroine.voicePitch,
+                voiceTrans = chara.objHead.transform
+
+            };
+            chara.ChangeMouthPtn(0, true);
+            chara.SetVoiceTransform(Utils.Voice.OnecePlayChara(setting));
+        }
+        private string GetBundle(string id, bool hVoice)
+        {
+            var bundle = "00";
+            if (extraPersonalities.Contains(id))
+            {
+                bundle = extraBundles[extraPersonalities.IndexOf(id)];
+            }
+            if (hVoice)
+            {
+                return bundle + "_00.unity3d";
+            }
+            else
+                return bundle + ".unity3d";
+        }
+#endif
+        private static readonly List<string> extraPersonalities = new List<string>()
+        {
+            "c30",
+            "c31",
+            "c32",
+            "c33",
+            "c34",
+            "c35",
+            "c36",
+            "c37",
+            "c38"
+        };
+        private static readonly List<string> extraBundles = new List<string>()
+        {
+            "14",
+            "15",
+            "16",
+            "17",
+            "20",
+            "20",
+            "20",
+            "20",
+            "50"
+        }; 
+        public static List<string> laughs = new List<string>
+        {
+            "sound/data/pcm/c**/adv/com_ev_**_464_00",
+            "sound/data/pcm/c**/adv/com_ev_**_464_01",
+            "sound/data/pcm/c**/adv/com_ev_**_464_02",
+            "sound/data/pcm/c**/adv/com_ev_**_465_00",
+            "sound/data/pcm/c**/adv/com_ev_**_465_01",
+            "sound/data/pcm/c**/adv/com_ev_**_465_02",
+            "sound/data/pcm/c**/adm/adm_**_tanon_02"
+        };
     }
 }
         

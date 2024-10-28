@@ -22,22 +22,17 @@ namespace KK_SensibleH.Patches.StaticPatches
             else
                 return (number / 5) * 5;
         }
-        //[HarmonyPrefix, HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.ChangeAnimator))]
-        //public static void ChangeAnimatorPrefix()
-        //{
-        //    PatchObi.SetObiPersistence(false);
-        //}
-
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.ChangeAnimator))]
         public static void ChangeAnimatorPostfix(HSceneProc.AnimationListInfo _nextAinmInfo, HSceneProc __instance)
         {
             // Pre heat of masturbation/lesbian scene. They didn't wait for us to start.
-            //if ((__instance.flags.mode == HFlag.EMode.masturbation || __instance.flags.mode == HFlag.EMode.lesbian)) // !__instance.flags.isFreeH && 
-            //{
-            //    __instance.flags.gaugeFemale = UnityEngine.Random.Range(0, 70);
-            //}
+            // This breaks better squirt of all things? How in hell?
+            if (__instance.flags.mode == HFlag.EMode.masturbation || __instance.flags.mode == HFlag.EMode.lesbian) // !__instance.flags.isFreeH && 
+            {
+                __instance.flags.gaugeFemale = UnityEngine.Random.Range(0, 70);
+            }
             if (__instance.flags.mode == HFlag.EMode.masturbation)
             {
                 __instance.flags.timeMasturbation.timeMin = 25f; //UnityEngine.Random.Range(20, 30);
@@ -78,6 +73,11 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             SensibleHController.Instance.OnPositionChange(_nextAinmInfo);
         }
+        //[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.ChangeCategory))]
+        //public static void ChangeCategoryPostfix()
+        //{
+        //    SensibleHController.Instance.RepositionDirLight();
+        //}
 
         /// <summary>
         /// We check for non Orgasm/OrgasmAfter loops and run the timer that by default is being used only for the action restart after the finish.
@@ -145,18 +145,12 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HFlag), nameof(HFlag.FemaleGaugeUp))]
         public static void PrefixFemaleGaugeUp(ref float _addPoint)
         {
-            //if (_addPoint < 0)// && biasF < 1f)
-            //    _addPoint = _addPoint * 0.25f;
-            //else
             _addPoint = _addPoint * BiasF;
         }
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HFlag), nameof(HFlag.MaleGaugeUp))]
         public static void PrefixMaleGaugeUp(ref float _addPoint)
         {
-            //if (_addPoint < 0)// && biasM < 1f)
-            //    _addPoint = _addPoint * 0.25f;
-            // else
             _addPoint = _addPoint * BiasM;
         }
         
@@ -176,7 +170,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (stateName.Equals("K_Touch"))
             {
-                SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:Kiss");
+                //SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:Kiss");
                 transitionDuration = 1f;
             }
             else if (stateName.Equals("Idle"))
@@ -188,7 +182,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                 else
                 {
                     transitionDuration = UnityEngine.Random.Range(1.5f, 2.5f);
-                    SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:AfterAction");
+                    //SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:AfterAction");
                 }
             }
             if (MoMiController.Instance != null)
@@ -300,6 +294,21 @@ namespace KK_SensibleH.Patches.StaticPatches
                 }
                     
             }
+        }
+        [HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.GotoPointMoveScene))]
+        public static void GotoPointMoveScenePrefix(HSceneProc __instance)
+        {
+            for (int i = 0; i < __instance.lstFemale.Count; i++)
+            {
+                __instance.lstFemale[i].visibleAll = __instance.lstOldFemaleVisible[i];
+            }
+            __instance.male.visibleAll = __instance.lstOldMaleVisible[0];
+            if (__instance.male1)
+            {
+                __instance.male1.visibleAll = __instance.lstOldMaleVisible[1];
+            }
+            __instance.item.SetVisible(true);
+            __instance.hand.SceneChangeItemEnable(true);
         }
     }
 }

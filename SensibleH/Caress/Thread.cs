@@ -192,7 +192,7 @@ namespace KK_SensibleH.Caress
         private void ChangeColor()
         {
             var main = particleSystem.main;
-            if (_hFlag.gaugeFemale < 70f)
+            if (hFlag.gaugeFemale < 70f)
             {
                 main.startColor = new Color(1f, 1f, 1f, 1f);
                 _exited = false;
@@ -242,7 +242,7 @@ namespace KK_SensibleH.Caress
             tail.position = GetHeadsetPosition;
             head.position = GetAttachmentPosition;
 
-            if (_hFlag.gaugeFemale > 70f)
+            if (hFlag.gaugeFemale > 70f)
             {
                 if (!_exited)
                     ChangeColor();

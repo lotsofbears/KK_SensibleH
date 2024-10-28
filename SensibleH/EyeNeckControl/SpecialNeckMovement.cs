@@ -10,6 +10,7 @@ using VRGIN.Core;
 using ADV.Commands.Base;
 using KKAPI;
 using KKAPI.MainGame;
+using ADV.Commands.Object;
 
 namespace KK_SensibleH.EyeNeckControl
 {
@@ -147,6 +148,15 @@ namespace KK_SensibleH.EyeNeckControl
                     DoFixationalNeck(neck, eyes);
                 }
             }
+        }
+        public void SetAuxCamForStaticNeck()
+        {
+            AuxCam.transform.localPosition = Vector3.zero;
+            AuxCam.transform.position = _eyes.position + _eyes.forward;
+
+            AuxCam.transform.SetParent(_chara.transform, worldPositionStays: true);
+            _auxCamParent = _chara.transform;
+            _auxCamParentLastPos = _auxCamParent.position;
         }
         public void SetAuxCamProperParent(int eyeCamId)
         {

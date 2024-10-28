@@ -34,7 +34,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                     if (!firstPart && codes[i].opcode == OpCodes.Stfld
                         && codes[i].operand.ToString().Contains("ctrl"))
                     {
-                        //SensibleH.Logger.LogDebug($"OnCollisionTranspiler[FirstPart] {codes[i].opcode} - {codes[i].operand}");
                         firstPart = true;
                         codes[i + 1].opcode = OpCodes.Nop;
                         codes[i + 2].opcode = OpCodes.Nop;
@@ -103,7 +102,6 @@ namespace KK_SensibleH.Patches.StaticPatches
             var found = false;
             var first = false;
             var counter  = 0;
-            SensibleH.Logger.LogDebug($"Trans:Drag:VR:Start");
             foreach (var code in instructions)
             {
                 if (!first)
@@ -113,12 +111,10 @@ namespace KK_SensibleH.Patches.StaticPatches
                         if (counter == 0 && code.opcode == OpCodes.Call && code.operand is MethodInfo info
                             && info.Name.Equals("FinishAction"))
                         {
-                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
                             counter++;
                         }
                         else if (counter == 1)
                         {
-                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
                             found = true;
                             counter = 0;
                         }
@@ -128,7 +124,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                         if (code.opcode == OpCodes.Callvirt && code.operand is MethodInfo info
                             && info.Name.Equals("SetCameraData"))
                         {
-                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
                             found = false;
                             first = true;
                         }
@@ -143,13 +138,11 @@ namespace KK_SensibleH.Patches.StaticPatches
                         if (code.opcode == OpCodes.Stfld && code.operand is FieldInfo info
                             && info.Name.Equals("isCursorLock"))
                         {
-                            SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
                             found = true;
                         }
                     }
                     else
                     {
-                        SensibleH.Logger.LogDebug($"Trans:Drag:VR:{code.opcode}:{code.operand}");
                         if (code.opcode == OpCodes.Callvirt
                             && code.operand.ToString().Contains("set_useDOF"))
                         {

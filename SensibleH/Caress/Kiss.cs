@@ -197,7 +197,7 @@ namespace KK_SensibleH.Caress
                 {
                     _proximity = false;
                     if (FrenchKiss.Value == FrenchType.Always || (FrenchKiss.Value == FrenchType.Auto
-                        && Random.value < 0.7f && (_hFlag.gaugeFemale > 70f || _hFlag.lstHeroine[0].HExperience > SaveData.Heroine.HExperienceKind.不慣れ)))
+                        && Random.value < 0.7f && (hFlag.gaugeFemale > 70f || hFlag.lstHeroine[0].HExperience > SaveData.Heroine.HExperienceKind.不慣れ)))
                     {
                         _frenchKiss = true;
                         SuppressVoice = true;
@@ -248,7 +248,7 @@ namespace KK_SensibleH.Caress
             {
                 toEyeValue = 25f + Random.value * 50f;
             }
-            _lastVoice = Time.time + 4f + Random.value * 2f;
+            _lastVoice = Time.time + 3f + Random.value * 3f;
         }
         private void RandomMoveFloatTest(ref float cur, ref float to, ref float speed, float min, float max, ref float time, float timeMin = 1f, float timeMax = 5f)
         {
@@ -301,7 +301,7 @@ namespace KK_SensibleH.Caress
             
             var changeRate = Random.Range(10f, 20f);
             var initMouthOpenness = 25f + Random.value * 25f;
-            while (_handCtrl.IsKissAction())
+            while (_handCtrl.IsKissAction()) // (_handCtrl.IsKissAction())
             {
                 var frameChange = Time.deltaTime * changeRate * 3f;
                 if (!_proximity)
@@ -330,7 +330,7 @@ namespace KK_SensibleH.Caress
             }
             _kissPhase = Phase.InAction;
             //SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_kissCo}");
-            while (_handCtrl.IsKissAction())
+            while (_handCtrl.IsKissAction()) // _handCtrl.IsKissAction())
             {
                 RandomMoveFloatTest(ref npWeight, ref npWeightTo, ref npWeightSpeed, 0f, 1f, ref npWeightTime, 0.1f, 0.5f);
                 RandomMoveFloatTest(ref npWeight2, ref npWeight2To, ref npWeightSpeed2, 0f, 1f, ref npWeightTime2, 0.1f, 0.5f);
@@ -360,9 +360,9 @@ namespace KK_SensibleH.Caress
                 if (_hVoiceCtrl.nowVoices[0].state == HVoiceCtrl.VoiceKind.voice)
                 {
 #if KK
-                    Manager.Voice.Instance.Stop(_hFlag.transVoiceMouth[0]);
+                    Manager.Voice.Instance.Stop(hFlag.transVoiceMouth[0]);
 #else
-                    Manager.Voice.Stop(_hFlag.transVoiceMouth[0]);
+                    Manager.Voice.Stop(hFlag.transVoiceMouth[0]);
 #endif
 
                 }
@@ -410,9 +410,9 @@ namespace KK_SensibleH.Caress
             tangBonePos = Vector3.zero;
             tangBoneRot = Quaternion.identity;
             _kissPhase = Phase.None;
-            if (_hFlag.mode != HFlag.EMode.sonyu || Random.value < 0.5f)
+            if (hFlag.mode != HFlag.EMode.sonyu || Random.value < 0.5f)
             {
-                _hFlag.voice.playVoices[0] = 102;
+                hFlag.voice.playVoices[0] = 102;
             }
 
             _female.ChangeEyesBlinkFlag(true);
@@ -485,7 +485,7 @@ namespace KK_SensibleH.Caress
             //{
             //    SuppressVoice = true;
             //    if (_hVoiceCtrl.nowVoices[0].state == HVoiceCtrl.VoiceKind.voice)
-            //        Manager.Voice.Stop(_hFlag.transVoiceMouth[0]);
+            //        Manager.Voice.Stop(hFlag.transVoiceMouth[0]);
             //    _female.ChangeMouthPtn(0);
             //    // 23 - kiss
             //}
@@ -530,7 +530,7 @@ namespace KK_SensibleH.Caress
             //tangBonePos = Vector3.zero;
             //tangBoneRot = Quaternion.identity;
             _kissPhase = Phase.None;
-            //_hFlag.voice.playVoices[0] = 102;
+            //hFlag.voice.playVoices[0] = 102;
 
             //_female.ChangeEyesBlinkFlag(true);
             kissAction = false;

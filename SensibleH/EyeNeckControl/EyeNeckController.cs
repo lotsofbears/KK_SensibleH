@@ -72,25 +72,25 @@
 //        {
 //            get
 //            {
-//                switch (_hFlag.mode)
+//                switch (hFlag.mode)
 //                {
 //                    case HFlag.EMode.aibu:
-//                        return _hFlag.voice.timeAibu.timeIdle - _hFlag.voice.timeAibu.timeIdleCalc;
+//                        return hFlag.voice.timeAibu.timeIdle - hFlag.voice.timeAibu.timeIdleCalc;
 //                    case HFlag.EMode.houshi:
-//                        return _hFlag.voice.timeHoushi.timeIdle - _hFlag.voice.timeHoushi.timeIdleCalc;
+//                        return hFlag.voice.timeHoushi.timeIdle - hFlag.voice.timeHoushi.timeIdleCalc;
 //                    case HFlag.EMode.sonyu:
-//                        return _hFlag.voice.timeSonyu.timeIdle - _hFlag.voice.timeSonyu.timeIdleCalc;
+//                        return hFlag.voice.timeSonyu.timeIdle - hFlag.voice.timeSonyu.timeIdleCalc;
 //                    case HFlag.EMode.masturbation:
-//                        return _hFlag.timeMasturbation.timeIdle - _hFlag.timeMasturbation.timeIdleCalc;
+//                        return hFlag.timeMasturbation.timeIdle - hFlag.timeMasturbation.timeIdleCalc;
 //                    //case HFlag.EMode.lesbian:
-//                    //    return _hFlag.timeLesbian.timeIdle - _hFlag.timeLesbian.timeIdleCalc;
+//                    //    return hFlag.timeLesbian.timeIdle - hFlag.timeLesbian.timeIdleCalc;
 //                    default:
 //                        return 10f;
 //                }
 //            }
 //        }
-//        private int GetNeckFromCurrentAnimation => _main == 0 ? _eyeneckFemale.dicEyeNeck[_hFlag.nowAnimStateName].idEyeNecks[(int)_hFlag.lstHeroine[_main].HExperience] / 17 * 17 :
-//            _eyeneckFemale1.dicEyeNeck[_hFlag.nowAnimStateName].idEyeNecks[(int)_hFlag.lstHeroine[_main].HExperience] / 17 * 17;
+//        private int GetNeckFromCurrentAnimation => _main == 0 ? _eyeneckFemale.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] / 17 * 17 :
+//            _eyeneckFemale1.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] / 17 * 17;
 
 //        private int GetCurrentNeck
 //        {
@@ -100,9 +100,9 @@
 //                {
 //                    return (EyeNeckPtn[_main] / 17) * 17;
 //                }
-//                else if (_hFlag.voice.eyenecks[_main] != -1)
+//                else if (hFlag.voice.eyenecks[_main] != -1)
 //                {
-//                    return (_hFlag.voice.eyenecks[_main] / 17) * 17;
+//                    return (hFlag.voice.eyenecks[_main] / 17) * 17;
 //                }
 //                else
 //                    return GetNeckFromCurrentAnimation;
@@ -119,20 +119,20 @@
 //                    else
 //                        return EyeNeckPtn[_main] % 17;
 //                }
-//                else if (_hFlag.voice.eyenecks[_main] != -1)
+//                else if (hFlag.voice.eyenecks[_main] != -1)
 //                {
 
-//                    if (_hFlag.voice.eyenecks[_main] < 13)
-//                        return _hFlag.voice.eyenecks[_main] == 0 ? 0 : _hFlag.voice.eyenecks[_main] - 1;
+//                    if (hFlag.voice.eyenecks[_main] < 13)
+//                        return hFlag.voice.eyenecks[_main] == 0 ? 0 : hFlag.voice.eyenecks[_main] - 1;
 //                    else
-//                        return _hFlag.voice.eyenecks[_main] % 17;
+//                        return hFlag.voice.eyenecks[_main] % 17;
 //                }
 //                else
 //                {
 //                    if (_main == 0)
-//                        return _eyeneckFemale.dicEyeNeck[_hFlag.nowAnimStateName].idEyeNecks[(int)_hFlag.lstHeroine[_main].HExperience] % 17;
+//                        return _eyeneckFemale.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] % 17;
 //                    else
-//                        return _eyeneckFemale1.dicEyeNeck[_hFlag.nowAnimStateName].idEyeNecks[(int)_hFlag.lstHeroine[_main].HExperience] % 17;
+//                        return _eyeneckFemale1.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] % 17;
 //                }
 //            }
 //        }
@@ -144,7 +144,7 @@
 //                    return false;
 //                else
 //                {
-//                    switch (_hFlag.mode)
+//                    switch (hFlag.mode)
 //                    {
 //                        case HFlag.EMode.aibu:
 //                            var animName = _chara.animBody.runtimeAnimatorController.name;
@@ -152,18 +152,18 @@
 //                            {
 //                                foreach (var neck in DontMoveNeckSpecialCases[animName])
 //                                {
-//                                    if (_hFlag.nowAnimStateName.StartsWith(neck, StringComparison.Ordinal))
+//                                    if (hFlag.nowAnimStateName.StartsWith(neck, StringComparison.Ordinal))
 //                                        return false;
 //                                }
 //                                //for (int i = 0; i < DontMoveNeckSpecialCases[animName].Count; i++)
 //                                //{
-//                                //    if (_hFlag.nowAnimStateName.StartsWith(DontMoveNeckSpecialCases[animName].ElementAt(i), StringComparison.Ordinal))
+//                                //    if (hFlag.nowAnimStateName.StartsWith(DontMoveNeckSpecialCases[animName].ElementAt(i), StringComparison.Ordinal))
 //                                //        return false;
 //                                //}
 //                            }
 //                            return true;
 //                        case HFlag.EMode.houshi:
-//                            if (_hFlag.nowAnimationInfo.kindHoushi == 1)
+//                            if (hFlag.nowAnimationInfo.kindHoushi == 1)
 //                                return false;
 //                            else
 //                                return true;
@@ -174,7 +174,7 @@
 //                        case HFlag.EMode.peeping:
 //                            return false;
 //                        case HFlag.EMode.lesbian:
-//                            //if (NoNeckMoveList.Contains(main == 0 ?  _hFlag.nowAnimationInfo.paramFemale.path.file : _hFlag.nowAnimationInfo.paramFemale1.path.file))
+//                            //if (NoNeckMoveList.Contains(main == 0 ?  hFlag.nowAnimationInfo.paramFemale.path.file : hFlag.nowAnimationInfo.paramFemale1.path.file))
 //                            return true;
 //                        //    return false;
 //                        //else
@@ -199,7 +199,7 @@
 //            {
 //                //if (!lookPoI && !lookAway && IsVoiceActive)
 //                //    return GetCurrentNeck; // GetCurrentEyes;
-//                switch (_hFlag.mode)
+//                switch (hFlag.mode)
 //                {
 //                    case HFlag.EMode.aibu:
 //                        return 17;
@@ -357,7 +357,7 @@
 //                    SetNeck(GetProperEyeCam);
 //                    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}][EyeCam] changing [{curNeck}] to [eyeCam]");
 //                }
-//                else if (_hFlag.nowAnimStateName.StartsWith("A", StringComparison.Ordinal) || _hFlag.nowAnimStateName.StartsWith("M", StringComparison.Ordinal))
+//                else if (hFlag.nowAnimStateName.StartsWith("A", StringComparison.Ordinal) || hFlag.nowAnimStateName.StartsWith("M", StringComparison.Ordinal))
 //                {
 //                    // Aibu "asoko" / "mune".
 //                    var list = GetAibuActionDir(CurrentNeck);
@@ -392,13 +392,13 @@
 //            //    newNeck = NeckFollowEyeDir[EyeDirForNeckFollow[GetCurrentEyes]].FirstOrDefault();
 //            //    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:NeckFollowEyesPosition, changing [{curNeck}] to [{newNeck}]");
 //            //}
-//            //else if (_hFlag.nowAnimStateName.StartsWith("A", StringComparison.Ordinal) || _hFlag.nowAnimStateName.StartsWith("M", StringComparison.Ordinal))
+//            //else if (hFlag.nowAnimStateName.StartsWith("A", StringComparison.Ordinal) || hFlag.nowAnimStateName.StartsWith("M", StringComparison.Ordinal))
 //            //{
 //            //    // AsokoMunePositions
 //            //    newNeck = AibuFrontActionNeckDirections[curNeck].ElementAt(Random.Range(0, AibuFrontActionNeckDirections[curNeck].Count));
 //            //    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:Asoko/MunePositions, changing [{curNeck}] to [{newNeck}]");
 //            //}
-//            //else //if (_hFlag.nowAnimStateName.StartsWith("I"))
+//            //else //if (hFlag.nowAnimStateName.StartsWith("I"))
 //            //{
 //            //    // FrontPositionsIdle
 //            //    if (Random.value < camChance && AibuFrontIdleNeckDirections[curNeck].Contains(DirectionNeck.Cam))
@@ -457,7 +457,7 @@
 //            if (_neckActive)
 //                EyeNeckPtn[_main] = id;
 //            else
-//                _hFlag.voice.eyenecks[_main] = id;
+//                hFlag.voice.eyenecks[_main] = id;
 //            CurrentEyes = EyeDirections[GetCurrentEyes];
 //            SensibleH.Logger.LogDebug($"SetEyes[{_main}][{CurrentEyes}]");
 //        }

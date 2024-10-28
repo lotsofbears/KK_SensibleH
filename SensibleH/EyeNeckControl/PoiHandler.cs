@@ -8,7 +8,7 @@ using KKAPI.MainGame;
 namespace KK_SensibleH.EyeNeckControl
 {
     internal class PoiHandler
-    {
+    {// BepInEx_Manager (RuntimeUnityEditor.Core.Gizmos.lib.GizmosInstance)
         internal PoiHandler(int main)
         {
             _main = main;
@@ -86,7 +86,7 @@ namespace KK_SensibleH.EyeNeckControl
         internal bool SetFemalePoI(int item)
         {
             Transform transform = null;
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.aibu:
                 case HFlag.EMode.sonyu:
@@ -111,7 +111,7 @@ namespace KK_SensibleH.EyeNeckControl
                     }
                     break;
                 //case HFlag.EMode.houshi:
-                //    if(_hFlag.nowAnimationInfo.kindHoushi != 1)
+                //    if(hFlag.nowAnimationInfo.kindHoushi != 1)
                 //    {
                 //        transform = GetPoi((HandCtrl.AibuColliderKind)(Random.value < 0.5f ? 1 : 4), Target.MalePartner);
                 //    }
@@ -156,7 +156,7 @@ namespace KK_SensibleH.EyeNeckControl
                 //    break;
                 case HFlag.EMode.lesbian:
 
-                    //if (NoNeckMoveList.Contains(main == 0 ?  _hFlag.nowAnimationInfo.paramFemale.path.file : _hFlag.nowAnimationInfo.paramFemale1.path.file))
+                    //if (NoNeckMoveList.Contains(main == 0 ?  hFlag.nowAnimationInfo.paramFemale.path.file : hFlag.nowAnimationInfo.paramFemale1.path.file))
                     //switch (Random.Range(0, 3))
                     //{
                     //    case 0:

@@ -15,10 +15,12 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoMiController.FakeMouseButton)
             {
+                //SensibleH.Logger.LogDebug($"FakeMouse:Press:Reroute:Vr");
                 return true;
             }
             else if (SensibleHController._vr)
             {
+                //SensibleH.Logger.LogDebug($"FakeMouse:Press:Reroute:Vr");
 #if KK
                 return KK_VR.Caress.HandCtrlHooks.GetMouseButton(button);
 #else
@@ -26,13 +28,16 @@ namespace KK_SensibleH.Patches.StaticPatches
 #endif
             }
             else
+            {
+                //SensibleH.Logger.LogDebug($"FakeMouse:Press:Reroute:Original");
                 return Input.GetMouseButton(button);
+            }
         }
         public static void GetDragLength(HandCtrl hand)
         {
             if (MoMiController.FakeDrag)
             {
-                hand.calcDragLength = MoMiController.FakeDragLength; 
+                hand.calcDragLength = MoMiController.FakeDragLength;
                 if (MoMiController.ResetDrag)
                 {
                     MoMiController.FakeDragLength = Vector2.zero;
@@ -86,7 +91,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             var first = false;
             var counter = 0;
-            SensibleH.Logger.LogDebug($"Trans:DragAction:Start");
             foreach (var code in instructions)
             {
                 if (!first)
@@ -96,7 +100,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                         if (code.opcode == OpCodes.Ldflda && code.operand is FieldInfo field
                             && field.Name.Equals("calcDragLength"))
                         {
-                            SensibleH.Logger.LogDebug($"Trans:DragAction:{code.opcode}:{code.operand}");
                             yield return new CodeInstruction(OpCodes.Call, AccessTools.FirstMethod(typeof(PatchDragAction), m => m.Name.Equals(nameof(PatchDragAction.GetDragLength))));
                             counter++;
                             continue;
@@ -104,8 +107,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                     }
                     else
                     {
-                        SensibleH.Logger.LogDebug($"Trans:DragAction:{code.opcode}:{code.operand}");
-
                         if (code.opcode == OpCodes.Call && code.operand is MethodInfo method
                             && method.Name.Equals("Set"))
                         {
@@ -119,13 +120,11 @@ namespace KK_SensibleH.Patches.StaticPatches
                 else if (code.opcode == OpCodes.Call && code.operand is MethodInfo method &&
                     method.Name.Equals("GetMouseButton"))
                 {
-                    SensibleH.Logger.LogDebug($"Trans:DragAction:{code.opcode}:{code.operand}");
                     yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PatchDragAction), nameof(PatchDragAction.GetMouseButton)));
                     continue;
                 }
                 else if (code.opcode == OpCodes.Ldc_I4 && code.operand is int number)
                 {
-                    SensibleH.Logger.LogDebug($"Trans:DragAction:{code.opcode}:{code.operand}");
                     if (number == 300)
                     {
                         code.operand = 1000;
@@ -144,7 +143,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
         public static IEnumerable<CodeInstruction> DragActionConstantTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            SensibleH.Logger.LogDebug($"Trans:DragAction:2:Start");
             var targets = new Dictionary<int, PatchHandCtrl.CodeInfo>()
             {
                 {
@@ -175,17 +173,14 @@ namespace KK_SensibleH.Patches.StaticPatches
                         && code.operand.ToString().Contains(targets[tarCount].firstOperand))
                     {
                         counter++;
-                        SensibleH.Logger.LogDebug($"Trans:DragAction:2:{code.opcode}:{code.operand}");
                     }
                     else if (counter == 1 && code.opcode == targets[tarCount].secondOpcode
                         && code.operand.ToString().Contains(targets[tarCount].secondOperand))
                     {
                         counter++;
-                        SensibleH.Logger.LogDebug($"Trans:DragAction:2:{code.opcode}:{code.operand}");
                     }
                     else if (counter == 2)
                     {
-                        SensibleH.Logger.LogDebug($"Trans:DragAction:2:{code.opcode}:{code.operand}");
                         if (code.opcode == OpCodes.Brtrue)
                         {
                             counter = 0;
@@ -204,21 +199,81 @@ namespace KK_SensibleH.Patches.StaticPatches
                 yield return code;
             }
         }
+        //public static Vector2[] testArray = new Vector2[2];
         /// <summary>
         /// We DragAction during crossfader.
         /// </summary>
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
-        public static bool DragActionPrefix(HandCtrl __instance)
+        public static bool DragActionPrefix()
         {
             if (SensibleH.MoMiActive && MoMiController.Instance.IsTouchCrossFade)
             {
                 return false;
-            }
+            } 
             else
             {
                 return true;
             }
         }
+        /// <summary>
+        /// This is a fix for KK(S)_VR, to be able to move items separately.
+        /// MoMi uses EndOfFrame timings, which completely disrespect DragAction, and thus don't require fix.
+        /// We simply substitute count of additional items with 0, thus it doesn't perform adjustment.
+        /// It resides here for organization purposes.
+        /// </summary>
+        [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
+        public static IEnumerable<CodeInstruction> DragActionFixKKVR(IEnumerable<CodeInstruction> instructions)
+        {
+            var counter = 0;
+            var found = false;
+            var done = false;
+            foreach (var code in instructions)
+            {
+                if (!done)
+                {
+                    if (!found)
+                    {
+                        if (counter == 0)
+                        {
+                            if (code.opcode == OpCodes.Newobj)
+                            {
+                                counter++;
+                            }
+                        }
+                        else if (counter == 1)
+                        {
+                            if (code.opcode == OpCodes.Stobj)
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                            }
+                        }
+                        else if (counter == 2)
+                        {
+                            // Label
+                            code.opcode = OpCodes.Nop;
+                            found = true;
+
+                        }
+                    }
+                    else
+                    {
+                        //SensibleH.Logger.LogDebug($"DragActionFixKKVR:{code.opcode}:{code.operand}");
+                        if (code.opcode == OpCodes.Sub)
+                        {
+                            yield return new CodeInstruction(OpCodes.Ldc_I4_0);
+                            done = true;
+                        }
+                        continue;
+                    }
+                }
+                yield return code;
+            }
+        }
+
     }
 }

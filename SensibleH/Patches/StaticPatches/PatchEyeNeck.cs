@@ -10,7 +10,6 @@ namespace KK_SensibleH.Patches.StaticPatches
 {
     class PatchEyeNeck
     {
-        //public static int TestNumber;
         public static int[] NeckTargetTag = { 0, 0 };
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetEyeNeckPtn))]
@@ -18,7 +17,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoveNeckGlobal && __instance.chara.sex == 1)
             {
-                //SensibleH.Logger.LogDebug($"SetEyeNeckPtn");
                 if (__instance.chara == _chaControl[0])
                 {
                     _id = EyeNeckPtn[0];
@@ -28,13 +26,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                     _id = EyeNeckPtn[1];
                 }
             }
-            //if (__instance.chara.sex == 0 && _chaControlM != null && _chaControlM.visibleAll)
-            //{
-            //    _id = EyeNeckPtn[2];
-            //    if (MalePoI != null)
-            //        _objCamera = MalePoI;
-            //}
-
         }
         /// <summary>
         /// 
@@ -45,11 +36,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoveNeckGlobal && __instance.chara.sex == 1)
             {
-                //if (_tag != TestNumber)
-                //{
-                //    TestNumber = _tag;
-                //    SensibleH.Logger.LogDebug($"SetNeckTarget[NewNeck - {_tag}]");
-                //}
                 if (__instance.chara == _chaControl[0])
                 {
                     if (!IsNeckSet[0])
@@ -80,11 +66,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 }
             }
             return true;
-            //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
-            //{
-            //    _tag = 0;
-            //}
-
         }
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckTarget))]
@@ -92,7 +73,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoveNeckGlobal && __instance.sex == 1)
             {
-                //SensibleH.Logger.LogDebug($"ChangeLookNeckTarget");
                 if (__instance == _chaControl[0])
                 {
                     if (!IsNeckSet[0])
@@ -115,11 +95,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 }
             }
             return true;
-            //if (__instance.chara.sex == 0 && _tag != 0 && MalePoI != null)
-            //{
-            //    _tag = 0;
-            //}
-
         }
     }
 }

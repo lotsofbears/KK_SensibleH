@@ -73,9 +73,9 @@ namespace KK_SensibleH.EyeNeckControl
             {0, DirectionNeck.Pose},
             {17, DirectionNeck.Cam},
             {34, DirectionNeck.Away},
-            {51, DirectionNeck.Cam}, // Look at partners head is possible.
+            {51, DirectionNeck.Cam}, 
             {68,  DirectionNeck.Away},
-            {85,  DirectionNeck.Cam}, // Look at partners kokan is possible.
+            {85,  DirectionNeck.Cam}, 
             {102, DirectionNeck.Away},
             {119, DirectionNeck.DownLeft},
             {136, DirectionNeck.UpRightFar},
@@ -109,6 +109,8 @@ namespace KK_SensibleH.EyeNeckControl
             {15, DirectionEye.PoiUp},
             {16, DirectionEye.PoiRollAway}
         };
+
+
         public static Vector3 GetAuxCamDic(DirectionEye direction)
         {
             switch (direction)
@@ -307,7 +309,7 @@ namespace KK_SensibleH.EyeNeckControl
             DirectionNeck.MidLeft,
             DirectionNeck.MidRight,
             DirectionNeck.Mid,
-            DirectionNeck.Pose
+            //DirectionNeck.Pose
         };
         private static readonly List<DirectionNeck> AibuBackDirections = new List<DirectionNeck>
         {
@@ -319,457 +321,457 @@ namespace KK_SensibleH.EyeNeckControl
             DirectionNeck.UpMid,
             DirectionNeck.UpRight,
             DirectionNeck.UpLeft,
-            DirectionNeck.Pose
+            //DirectionNeck.Pose
         };
-        public static Dictionary<DirectionNeck, List<DirectionNeck>> AibuFrontIdleNeckDirections = new Dictionary<DirectionNeck, List<DirectionNeck>>()
-        {
-            // Keep it simple, mess almost always is a detractor.
-            {
-                DirectionNeck.Mid,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.MidRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.Mid,
-                    DirectionNeck.MidRight
-                }
-            },
-            {
-                DirectionNeck.MidLeft,
-                new List<DirectionNeck> {
-                    //DirectionNeck.Pose,
-                    DirectionNeck.MidRight,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.DownMid,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.DownDownLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.DownRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.Pose,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.Cam,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.UpMid,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.UpRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.UpLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.Away,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            },
-            {
-                DirectionNeck.UpRightFar,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.Mid
-                }
-            }
-        };
-        public static Dictionary<DirectionNeck, List<DirectionNeck>> AibuFrontActionNeckDirections = new Dictionary<DirectionNeck, List<DirectionNeck>>()
-        {
-            {
-                DirectionNeck.Mid,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam,
-                    DirectionNeck.Pose,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.DownMid,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.MidRight
-                }
-            },
-            {
-                DirectionNeck.MidRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam,
-                    DirectionNeck.Pose,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.DownMid,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.MidLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam,
-                    DirectionNeck.Pose,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.DownMid,
-                    DirectionNeck.MidRight
-                }
-            },
-            {
-                DirectionNeck.DownMid,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam,
-                    DirectionNeck.Pose,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.DownDownLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam,
-                    DirectionNeck.Pose,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.DownMid,
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.DownRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam,
-                    DirectionNeck.Pose,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownMid,
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.Pose,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.DownMid,
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.Cam,
-                new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.DownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.DownMid,
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionNeck.UpMid,
-                new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Cam
-                }
-            },
-            {
-                DirectionNeck.UpRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Cam
-                }
-            },
-            {
-                DirectionNeck.UpLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Cam
-                }
-            },
-            {
-                DirectionNeck.Away,
-                new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Cam
-                }
-            },
-            {
-                DirectionNeck.UpRightFar,
-                new List<DirectionNeck> {
-                    DirectionNeck.Pose,
-                    DirectionNeck.Cam
-                }
-            }
-        };
-        public static Dictionary<DirectionNeck, List<DirectionNeck>> AibuBackNeckDirections = new Dictionary<DirectionNeck, List<DirectionNeck>>()
-        {
-            {
-                DirectionNeck.Mid,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.Pose,
-                    DirectionNeck.UpMid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                }
-            },
-            {
-                DirectionNeck.MidRight, // looks off
-                new List<DirectionNeck> {
-                    //DirectionNeck.Mid,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.Pose,
-                    DirectionNeck.UpMid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                }
-            },
-            {
-                DirectionNeck.MidLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.Pose,
-                    DirectionNeck.UpMid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                }
-            },
-            {
-                DirectionNeck.DownMid,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.Pose,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                }
-            },
-            {
-                DirectionNeck.DownDownLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.Pose,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                }
-            },
-            {
-                DirectionNeck.DownRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.Pose,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                }
-            },
-            {
-                DirectionNeck.Pose,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                }
-            },
-            {
-                DirectionNeck.Cam,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.UpLeft,
-                    DirectionNeck.Pose
-                }
-            },
-            {
-                DirectionNeck.UpMid,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Pose,
-                    DirectionNeck.UpLeft,
-                    DirectionNeck.UpRight
-                }
-            },
-            {
-                DirectionNeck.UpLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpRight,
-                    DirectionNeck.Pose
-                }
-            },
-            {
-                DirectionNeck.UpRight, // looks funny
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpLeft,
-                    DirectionNeck.Pose
-                }
-            },
-            {
-                DirectionNeck.UpRightFar,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.Pose
-                }
-            },
-            {
-                DirectionNeck.Away,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight,
-                    DirectionNeck.MidLeft,
-                    DirectionNeck.DownDownLeft,
-                    DirectionNeck.DownRight,
-                    DirectionNeck.UpMid,
-                    //DirectionNeck.Mid,
-                    DirectionNeck.UpLeft,
-                    DirectionNeck.Pose
-                }
-            }
-        };
-        public static Dictionary<DirectionEye, List<DirectionNeck>> NeckFollowEyeDir = new Dictionary<DirectionEye, List<DirectionNeck>>()
-        {
-            {
-                DirectionEye.MidLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionEye.MidRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight
-                }
-            },
-            {
-                DirectionEye.DownLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionEye.DownRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight
-                }
-            },
-            {
-                DirectionEye.UpLeft,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidLeft
-                }
-            },
-            {
-                DirectionEye.UpRight,
-                new List<DirectionNeck> {
-                    DirectionNeck.MidRight
-                }
-            },
-            {
-                DirectionEye.Cam,
-                new List<DirectionNeck> {
-                    DirectionNeck.Cam
-                }
-            }
-        };
+        //public static Dictionary<DirectionNeck, List<DirectionNeck>> AibuFrontIdleNeckDirections = new Dictionary<DirectionNeck, List<DirectionNeck>>()
+        //{
+        //    // Keep it simple, mess almost always is a detractor.
+        //    {
+        //        DirectionNeck.Mid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.MidRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Mid,
+        //            DirectionNeck.MidRight
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.MidLeft,
+        //        new List<DirectionNeck> {
+        //            //DirectionNeck.Pose,
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownMid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownDownLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Pose,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Cam,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpMid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Away,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpRightFar,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.Mid
+        //        }
+        //    }
+        //};
+        //public static Dictionary<DirectionNeck, List<DirectionNeck>> AibuFrontActionNeckDirections = new Dictionary<DirectionNeck, List<DirectionNeck>>()
+        //{
+        //    {
+        //        DirectionNeck.Mid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.DownMid,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.MidRight
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.MidRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.DownMid,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.MidLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.DownMid,
+        //            DirectionNeck.MidRight
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownMid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownDownLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.DownMid,
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownMid,
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Pose,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.DownMid,
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Cam,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.DownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.DownMid,
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpMid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.Cam
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.Cam
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.Cam
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Away,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.Cam
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpRightFar,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.Cam
+        //        }
+        //    }
+        //};
+        //public static Dictionary<DirectionNeck, List<DirectionNeck>> AibuBackNeckDirections = new Dictionary<DirectionNeck, List<DirectionNeck>>()
+        //{
+        //    {
+        //        DirectionNeck.Mid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.UpMid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.MidRight, // looks off
+        //        new List<DirectionNeck> {
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.UpMid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.MidLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.UpMid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownMid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownDownLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.DownRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Pose,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Cam,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.UpLeft,
+        //            DirectionNeck.Pose
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpMid,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.Pose,
+        //            DirectionNeck.UpLeft,
+        //            DirectionNeck.UpRight
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpRight,
+        //            DirectionNeck.Pose
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpRight, // looks funny
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpLeft,
+        //            DirectionNeck.Pose
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.UpRightFar,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.Pose
+        //        }
+        //    },
+        //    {
+        //        DirectionNeck.Away,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight,
+        //            DirectionNeck.MidLeft,
+        //            DirectionNeck.DownDownLeft,
+        //            DirectionNeck.DownRight,
+        //            DirectionNeck.UpMid,
+        //            //DirectionNeck.Mid,
+        //            DirectionNeck.UpLeft,
+        //            DirectionNeck.Pose
+        //        }
+        //    }
+        //};
+        //public static Dictionary<DirectionEye, List<DirectionNeck>> NeckFollowEyeDir = new Dictionary<DirectionEye, List<DirectionNeck>>()
+        //{
+        //    {
+        //        DirectionEye.MidLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionEye.MidRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight
+        //        }
+        //    },
+        //    {
+        //        DirectionEye.DownLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionEye.DownRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight
+        //        }
+        //    },
+        //    {
+        //        DirectionEye.UpLeft,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidLeft
+        //        }
+        //    },
+        //    {
+        //        DirectionEye.UpRight,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.MidRight
+        //        }
+        //    },
+        //    {
+        //        DirectionEye.Cam,
+        //        new List<DirectionNeck> {
+        //            DirectionNeck.Cam
+        //        }
+        //    }
+        //};
         public static Dictionary<int, DirectionNeck> SpecialNeckDirections = new Dictionary<int, DirectionNeck>()
         {
             {34, DirectionNeck.Away},
@@ -937,7 +939,7 @@ namespace KK_SensibleH.EyeNeckControl
         };
         public static Dictionary<string, List<string>> DontMoveNeckSpecialCases = new Dictionary<string, List<string>>()
         {
-            // Key - animationId in question
+            // Key - controller in question
             // Value - First letter of animation
             //     A for A_Touch/A_Loop, and so on. 
             {

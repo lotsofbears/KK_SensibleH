@@ -26,8 +26,8 @@ namespace KK_SensibleH.AutoMode
         public static LoopController Instance;
         private Coroutine _edgeRoutine;
         private HSceneProc.AnimationListInfo nextAnimation;
-        private List<HActionBase> lstProc;
-        private Traverse<List<HSceneProc.AnimationListInfo>[]> lstUseAnimInfo;
+        private List<HActionBase> _lstProc;
+        private List<HSceneProc.AnimationListInfo>[] lstUseAnimInfo;
         private GameObject fakeAnimButton;
         private int _actionTimer;
         private int _nextSpeedChange;
@@ -47,27 +47,38 @@ namespace KK_SensibleH.AutoMode
         {
             Instance = this;
             _master = master;
-            lstUseAnimInfo = Traverse.Create(_proc).Field<List<HSceneProc.AnimationListInfo>[]>("lstUseAnimInfo");
-            lstProc = Traverse.Create(_proc).Field("lstProc").GetValue<List<HActionBase>>();
-            _sprite = Traverse.Create(_proc).Field("sprite").GetValue<HSprite>();
+            var traverse = Traverse.Create(_proc);
+            lstUseAnimInfo = traverse.Field("lstUseAnimInfo").GetValue<List<HSceneProc.AnimationListInfo>[]>();
+            _lstProc = traverse.Field("lstProc").GetValue<List<HActionBase>>();
+            SensibleH.Logger.LogDebug($"lstProc = {_lstProc}:{_lstProc != null}");
+            _sprite = traverse.Field("sprite").GetValue<HSprite>();
             fakeAnimButton = Instantiate(_sprite.objMotionListNode, gameObject.transform, false);
             fakeAnimButton.AddComponent<HSprite.AnimationInfoComponent>();
             fakeAnimButton.SetActive(true);
             OnPositionChange();
             SetCeiling();
+            var type = AccessTools.TypeByName("KK_MaleBreathVR.MaleBreathController");
+            if (type != null )
+            {
+                PatchLoop.maleBreathDelegate = AccessTools.MethodDelegate<Func<int, bool>>(AccessTools.FirstMethod(type, m => m.Name.Equals("ButtonClick")));
+            }
         }
         private Coroutine _speedChangerCo;
-        private Coroutine runAfterCoroutine; // It really is necessary due to crossFader, other way is a mess;
+        private Coroutine runAfterCoroutine;
         private int GetNextTimer(float multiplier = 1f) => _actionTimer + (int)((5f + Random.value * 15f) * multiplier * ActionFrequency.Value);
         private float GetRandomRange(float multiplier = 1f) => (5f + Random.value * 15f) * multiplier * ActionFrequency.Value;
         private bool IsActionable => GetAvailableActions().Count > 0;
 
         private bool IsVoiceActive => _hVoiceCtrl.nowVoices[CurrentMain].state == HVoiceCtrl.VoiceKind.voice;
 
-        private List<Button> GetAvailableActions(string name = "")
+        /// <summary>
+        /// If name if specified, will most likely appear at 0 index.
+        /// Checks start of the string.
+        /// </summary>
+        private static List<Button> GetAvailableActions(string name = "")
         {
             List<Button> menu;
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.houshi:
                     menu = _sprite.houshi.categoryActionButton.lstButton;
@@ -75,59 +86,118 @@ namespace KK_SensibleH.AutoMode
                 case HFlag.EMode.houshi3P:
                     menu = _sprite.houshi3P.categoryActionButton.lstButton;
                     break;
+                case HFlag.EMode.houshi3PMMF:
+                    menu = _sprite.houshi3PDark.categoryActionButton.lstButton;
+                    break;
                 case HFlag.EMode.sonyu:
                     menu = _sprite.sonyu.categoryActionButton.lstButton;
                     break;
                 case HFlag.EMode.sonyu3P:
                     menu = _sprite.sonyu3P.categoryActionButton.lstButton;
                     break;
+                case HFlag.EMode.sonyu3PMMF:
+                    menu = _sprite.sonyu3PDark.categoryActionButton.lstButton;
+                    break;
                 default:
                     return new List<Button>();
             }
             // StartsWith instead of Equal for Dark houshi.
-            var choices = name == String.Empty ? menu
+            var choices = name == "" ? menu
                 .Where(button => button.isActiveAndEnabled && button.interactable
                 && !button.name.StartsWith("Fast", StringComparison.Ordinal) && !button.name.StartsWith("Slow", StringComparison.Ordinal))
                 .ToList()
+
                 : menu
                 .Where(button => button.isActiveAndEnabled && button.interactable && button.name.StartsWith(name, StringComparison.Ordinal))
                 .ToList();
             return choices;
         }
-        public List<HSceneProc.AnimationListInfo> GetAvailableAnimations
+        public List<HSceneProc.AnimationListInfo> GetAvailableAnimations(int id = -2)
         {
-            get
             {
                 if (lstUseAnimInfo == null)
                 {
                     return new List<HSceneProc.AnimationListInfo>();
                 }
-                switch (SensibleH.AutoPickPosition.Value)
+                var mode =  HFlag.EMode.none;
+                if (id != -2)
                 {
-                    case AutoPosMode.OnlyService:
-                        return lstUseAnimInfo.Value
+                    mode = (HFlag.EMode)id;
+                }
+                else
+                {
+                    if (SensibleH.AutoPickPose.Value > AutoPoseType.OnlyIntercourse)
+                    {
+                        switch (SensibleH.AutoPickPose.Value)
+                        {
+                            case AutoPoseType.FemdomOnly:
+                                return lstUseAnimInfo
+                                    .SelectMany(e => e, (e, anim) => anim)
+                                    .Where(anim => anim.mode != HFlag.EMode.aibu && anim.isFemaleInitiative == true)
+                                    .ToList();
+                            case AutoPoseType.AllPositions:
+                                return lstUseAnimInfo
+                                    .SelectMany(e => e, (e, anim) => anim)
+                                    .Where(anim => anim.mode != HFlag.EMode.aibu)
+                                    .ToList();
+                        }
+                    }
+                    else
+                    {
+                        mode = (HFlag.EMode)SensibleH.AutoPickPose.Value;
+                    }
+                }
+                switch (mode)
+                {
+                    case HFlag.EMode.none:
+                        return lstUseAnimInfo
                             .SelectMany(e => e, (e, anim) => anim)
-                            .Where(anim => anim.mode != HFlag.EMode.aibu && anim.mode == HFlag.EMode.houshi)
                             .ToList();
-                    case AutoPosMode.OnlyIntercourse:
-                        return lstUseAnimInfo.Value
+                    case HFlag.EMode.aibu:
+                        return lstUseAnimInfo
                             .SelectMany(e => e, (e, anim) => anim)
-                            .Where(anim => anim.mode != HFlag.EMode.aibu && anim.mode == HFlag.EMode.sonyu)
+                            .Where(anim => anim.mode == HFlag.EMode.aibu)
                             .ToList();
-                    case AutoPosMode.FemdomOnly:
-                        return lstUseAnimInfo.Value
+                    case HFlag.EMode.houshi:
+                        return lstUseAnimInfo
                             .SelectMany(e => e, (e, anim) => anim)
-                            .Where(anim => anim.mode != HFlag.EMode.aibu && anim.isFemaleInitiative == true)
+                            .Where(anim => anim.mode == HFlag.EMode.houshi || anim.mode == HFlag.EMode.houshi3P || anim.mode == HFlag.EMode.houshi3PMMF)
                             .ToList();
-                    case AutoPosMode.AllPositions:
-                        return lstUseAnimInfo.Value
+                    case HFlag.EMode.sonyu:
+                        return lstUseAnimInfo
                             .SelectMany(e => e, (e, anim) => anim)
-                            .Where(anim => anim.mode != HFlag.EMode.aibu)
+                            .Where(anim => anim.mode == HFlag.EMode.sonyu || anim.mode == HFlag.EMode.sonyu3P || anim.mode == HFlag.EMode.sonyu3PMMF)
                             .ToList();
                     default:
-                        return new List<HSceneProc.AnimationListInfo>();
+                        return lstUseAnimInfo
+                            .SelectMany(e => e, (e, anim) => anim)
+                            .Where(anim => anim.mode == hFlag.mode)
+                            .ToList();
                 }
             }
+        }
+        public static void AlterLoop(int id)
+        {
+            switch (id)
+            {
+                case 0:
+                    if (IsWeakLoop)
+                    {
+                        Instance.ChangeSpeed(request: Speed.Slow);
+                    }
+                    else
+                    {
+                        Instance.ChangeLoop(request: Loop.Weak);
+                    }
+                    break;
+                case 1:
+                    Instance.ChangeLoop(request: Loop.Strong);
+                    break;
+                case 2:
+                    Instance.ChangeLoop(request: Loop.Orgasm);
+                    break;
+            }
+
         }
         public void Proc()
         {
@@ -146,7 +216,7 @@ namespace KK_SensibleH.AutoMode
                 {
                     ChangeLoop(request: Loop.Weak);
                 }
-                else if (_hFlag.speedCalc > 0.25f)
+                else if (hFlag.speedCalc > 0.25f)
                 {
                     ChangeSpeed(request: Speed.Slow);
                 }
@@ -164,7 +234,7 @@ namespace KK_SensibleH.AutoMode
                 {
                     if (SensibleH.Edge.Value != EdgeType.Disabled  && _nextEdge < _actionTimer)
                     {
-                        if (_hFlag.gaugeFemale > 90f || _hFlag.gaugeMale > _climaxAt || Random.value < 0.5f)// 0.5f)
+                        if (hFlag.gaugeFemale > 90f || hFlag.gaugeMale > _climaxAt || Random.value < 0.5f)// 0.5f)
                         {
                             _nextEdge = GetNextTimer(3f * SensibleH.EdgeFrequency.Value);
                             return;
@@ -176,7 +246,7 @@ namespace KK_SensibleH.AutoMode
 
                     if (_sonyu)
                     {
-                        if (_nextLoopChange < _actionTimer && _hFlag.gaugeMale > 10f)
+                        if (_nextLoopChange < _actionTimer && hFlag.gaugeMale > 10f)
                         {
                             ChangeLoop();
                         }
@@ -198,16 +268,16 @@ namespace KK_SensibleH.AutoMode
             if (timer % 30 == 0)
             {
                 // Even though those are patched, voices at those "random" timings can be quite nice too. In aibu only perhaps.
-                //if (_hFlag.voice.isFemale70PercentageVoicePlay)
-                //    _hFlag.voice.isFemale70PercentageVoicePlay = false;
-                //if (_hFlag.voice.isMale70PercentageVoicePlay)
-                //    _hFlag.voice.isMale70PercentageVoicePlay = false;
+                //if (hFlag.voice.isFemale70PercentageVoicePlay)
+                //    hFlag.voice.isFemale70PercentageVoicePlay = false;
+                //if (hFlag.voice.isMale70PercentageVoicePlay)
+                //    hFlag.voice.isMale70PercentageVoicePlay = false;
 
                 // No clue if this one patched.
-                if (_hFlag.voice.isAfterVoicePlay)
-                    _hFlag.voice.isAfterVoicePlay = false;
+                if (hFlag.voice.isAfterVoicePlay)
+                    hFlag.voice.isAfterVoicePlay = false;
 
-                //if (_hFlag.gaugeFemale > 70 && Random.value < 0.25f)
+                //if (hFlag.gaugeFemale > 70 && Random.value < 0.25f)
                 //    Convulsion(Random.value);
             }
         }
@@ -215,6 +285,7 @@ namespace KK_SensibleH.AutoMode
         {
             PatchLoop.FemaleCeiling = Random.Range(70f, 100f);
             PatchLoop.FemaleUpThere = PatchLoop.FemaleCeiling - (10f + Random.value * 10f);
+            SensibleH.Logger.LogDebug($"SetCeiling:{PatchLoop.FemaleCeiling}:{PatchLoop.FemaleUpThere}");
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo = null)
         {
@@ -232,14 +303,14 @@ namespace KK_SensibleH.AutoMode
                 //_userInput = true;
                 _busy = false;
             }
-            if (_hFlag.isCondom)
+            if (hFlag.isCondom)
             {
                 _sprite.CondomClick();
             }
             _restart = false;
             _hadClimax = false;
             GetBias();
-            var mode = nextAnimInfo == null ? _hFlag.mode : nextAnimInfo.mode;
+            var mode = nextAnimInfo == null ? hFlag.mode : nextAnimInfo.mode;
             switch (mode)
             {
                 case HFlag.EMode.houshi:
@@ -251,7 +322,7 @@ namespace KK_SensibleH.AutoMode
                         _sprite.houshi.tglRely.isOn = false;
                     _houshi = true;
                     _sonyu = false;
-                    //_hFlag.rely = true;
+                    //hFlag.rely = true;
                     //Sprite.rely.InitTimer();
                     break;
                 case HFlag.EMode.sonyu:
@@ -322,7 +393,7 @@ namespace KK_SensibleH.AutoMode
                 {
                     StartCoroutine(RunAfterTimer(() => _girlControllers[CurrentMain].PlayVoice(309), Random.Range(1f, 3f)));
                 }
-                //_hFlag.voice.playVoices[CurrentMain] = 309;
+                //hFlag.voice.playVoices[CurrentMain] = 309;
             }
             else
             {
@@ -330,10 +401,10 @@ namespace KK_SensibleH.AutoMode
                 {
                     StartCoroutine(RunAfterTimer(() => _girlControllers[CurrentMain].PlayVoice(200), Random.Range(1f, 2f)));
                 }
-                _wasAnalPlay = _hFlag.isAnalPlay;
+                _wasAnalPlay = hFlag.isAnalPlay;
             }
             var edgeTimer = Time.time + GetRandomRange();
-            if (_hFlag.nowAnimationInfo.isFemaleInitiative || _hFlag.mode == HFlag.EMode.houshi)
+            if (hFlag.nowAnimationInfo.isFemaleInitiative || hFlag.mode == HFlag.EMode.houshi)
             {
                 while (edgeTimer > Time.time || IsVoiceActive)
                 {
@@ -371,19 +442,19 @@ namespace KK_SensibleH.AutoMode
             _edgeActive = false;
             SensibleH.Logger.LogDebug($"Loop:Edge:End");
         }
-        private void ActionButton(string name = "")
+        public static void ClickButton(string name = "")
         {
-            List<Button> choices;
 
-            choices = GetAvailableActions(name);
+            var choices = GetAvailableActions(name);
             var count = choices.Count;
-            SensibleH.Logger.LogDebug($"Loop:Action:Button:{count}");
+            SensibleH.Logger.LogDebug($"Loop:ClickButton:Count:{count}");
             if (count == 0)
                 return;
-
-            var nextAction = choices[Random.Range(0, count)];
-            SensibleH.Logger.LogDebug($"Loop:Action:Button:{nextAction}");
+            // Specific button should be at index 0;
+            var number = name.Equals("") ? Random.Range(0, count) : 0;
+            var nextAction = choices[number];
             PatchLoop.FakeButtonUp = true; // koikatsu actions check for left click mouse up
+            SensibleH.Logger.LogDebug($"Loop:ClickButton:Button:{nextAction.name}");
             nextAction.onClick.Invoke(); 
             PatchLoop.FakeButtonUp = false;
         }
@@ -395,7 +466,7 @@ namespace KK_SensibleH.AutoMode
             {
                 _restart = true;
                 SensibleH.Logger.LogDebug($"Loop:Action:Pick:Restart");
-                if (SensibleH.AutoPickPosition.Value == AutoPosMode.Disabled)
+                if (SensibleH.AutoPickPose.Value == AutoPoseType.Disabled)
                 {
                     RestartAction();
                     return;
@@ -406,12 +477,12 @@ namespace KK_SensibleH.AutoMode
                     return;
                 }
             }
-            if (SensibleH.AutoPickPosition.Value != AutoPosMode.Disabled && _hadClimax && (IsIdleOutside || IsEndOutside))
+            if (SensibleH.AutoPickPose.Value != AutoPoseType.Disabled && _hadClimax && (IsIdleOutside || IsEndOutside))
             {
                 SensibleH.Logger.LogDebug($"Loop:Action:Pick:Animation");
                 PickNextAnimation();
             }
-            else if (IsActionLoop && _hFlag.gaugeMale > _climaxAt)
+            else if (IsActionLoop && hFlag.gaugeMale > _climaxAt)
             {
                 SensibleH.Logger.LogDebug($"Loop:Action:Pick:Climax");
                 if (IsOrgasmLoop)
@@ -421,15 +492,15 @@ namespace KK_SensibleH.AutoMode
                 else if (Random.value < 0.25f)
                 {
                     ToggleOutsideFinish();
-                    StartCoroutine(RunAfterTimer(() => ActionButton(), timer: 0.5f));
+                    StartCoroutine(RunAfterTimer(() => ClickButton(), timer: 0.5f));
                 }
                 else
-                    ActionButton();
+                    ClickButton();
             }
             else if (IsEndInside || IsIdleInside || IsIdleOutside)
             {
                 SensibleH.Logger.LogDebug($"Loop:Action:Pick:Desperate");
-                ActionButton();
+                ClickButton();
             }
         }
 
@@ -449,17 +520,17 @@ namespace KK_SensibleH.AutoMode
 
             PickHStats(0);
             var familiarity = _master.GetFamiliarity(CurrentMain);
-            var lewdness = _hFlag.lstHeroine[CurrentMain].lewdness * 0.0033f;
-            var numOfClimaxes = LstHeroine[_hFlag.lstHeroine[CurrentMain].Name];
+            var lewdness = hFlag.lstHeroine[CurrentMain].lewdness * 0.0033f;
+            var numOfClimaxes = LstHeroine[hFlag.lstHeroine[CurrentMain].Name];
             float coefficient;
             if (familiarity < 0.8f) // After 90 intimacy on 2nd Exp.stage, and after 60 on 3rd Exp.stage
                 coefficient = 5f / (5f + numOfClimaxes);
             else
                 coefficient = 1 + (numOfClimaxes * 0.1f);
 
-            BiasF = familiarity * (_hFlag.isCondom ? 0.75f : 1f) * coefficient + lewdness;
+            BiasF = familiarity * (hFlag.isCondom ? 0.75f : 1f) * coefficient + lewdness;
 
-            BiasM = (_hFlag.isCondom ? 0.75f : 1f) + lewdness - (MaleOrgCount * 0.2f);
+            BiasM = (hFlag.isCondom ? 0.75f : 1f) + lewdness - (MaleOrgCount * 0.2f);
 
             SensibleH.Logger.LogDebug($"Loop:Bias:F:{BiasF}:M:{BiasM}");
         }
@@ -472,11 +543,11 @@ namespace KK_SensibleH.AutoMode
             GetBias();
             if (IsOrgasmLoop)
             {
-                AnimSetPlay(_hFlag.isAnalPlay ? "A_WLoop" : "WLoop");
+                AnimSetPlay(hFlag.isAnalPlay ? "A_WLoop" : "WLoop");
                 OLoop = false;
             }
             else
-                _hFlag.click = HFlag.ClickKind.modeChange;
+                hFlag.click = HFlag.ClickKind.modeChange;
         }
         public void OnPreClimax()
         {
@@ -508,7 +579,7 @@ namespace KK_SensibleH.AutoMode
             bool result = true;
             if (request == Loop.Random)
             {
-                if (!IsOrgasmLoop && _hFlag.speedCalc > 0.5f && _hFlag.gaugeFemale < 85f)
+                if (!IsOrgasmLoop && hFlag.speedCalc > 0.5f && hFlag.gaugeFemale < 85f)
                     request = (Loop)Random.Range(1, 4);
                 else
                     request = (Loop)(Random.value > 0.5f ? 1 : 2);
@@ -518,13 +589,13 @@ namespace KK_SensibleH.AutoMode
                 case Loop.Weak:
                     if (IsOrgasmLoop)
                     {
-                        AnimSetPlay(_hFlag.isAnalPlay ? "A_WLoop" : "WLoop");
+                        AnimSetPlay(hFlag.isAnalPlay ? "A_WLoop" : "WLoop");
                         OLoop = false;
                         ChangeSpeed(request: Speed.Slow);
                     }
                     else if (IsStrongLoop)
                     {
-                        _hFlag.click = HFlag.ClickKind.motionchange;
+                        hFlag.click = HFlag.ClickKind.motionchange;
                     }
                     else
                         result = false;
@@ -532,13 +603,13 @@ namespace KK_SensibleH.AutoMode
                 case Loop.Strong:
                     if (IsOrgasmLoop)
                     {
-                        AnimSetPlay(_hFlag.isAnalPlay ? "A_SLoop" : "SLoop");
+                        AnimSetPlay(hFlag.isAnalPlay ? "A_SLoop" : "SLoop");
                         OLoop = false;
                         ChangeSpeed(request: Speed.Slow);
                     }
                     else if (IsWeakLoop)
                     {
-                        _hFlag.click = HFlag.ClickKind.motionchange;
+                        hFlag.click = HFlag.ClickKind.motionchange;
                     }
                     else
                         result = false;
@@ -547,11 +618,11 @@ namespace KK_SensibleH.AutoMode
                     if (IsStrongLoop || IsWeakLoop)
                     {
                         OLoop = true;
-                        AnimSetPlay(_hFlag.isAnalPlay ? "A_OLoop" : "OLoop");
+                        AnimSetPlay(hFlag.isAnalPlay ? "A_OLoop" : "OLoop");
                         ChangeSpeed(request: Speed.Max, urgent: true);
                         if (!IsVoiceActive && Random.value < 0.5f)
                         {
-                            _hFlag.voice.playVoices[CurrentMain] = 313;
+                            hFlag.voice.playVoices[CurrentMain] = 313;
                         }
                     }
                     else
@@ -565,28 +636,28 @@ namespace KK_SensibleH.AutoMode
         }
         internal void AnimSetPlay(string _animation)
         {
-            lstProc[(int)_hFlag.mode].SetPlay(_animation, true);
+            _lstProc[(int)hFlag.mode].SetPlay(_animation, true);
         }
         private void ChangeEdge(bool _pullOut = false)
         {
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.houshi:
                     if (!_pullOut && IsIdleOutside)
                     {
                         SensibleH.Logger.LogDebug($"Loop:Change:Edge:1");
                         //_girlController[CurrentMain].PlayVoice()
-                        _hFlag.click = HFlag.ClickKind.speedup;
-                        _hFlag.rely = true;
+                        hFlag.click = HFlag.ClickKind.speedup;
+                        hFlag.rely = true;
                         GetBias();
                     }
                     else if (_pullOut && IsActionLoop)
                     {
                         SensibleH.Logger.LogDebug($"Loop:Change:Edge:3");
                         //_girlController[CurrentMain].PlayVoice()
-                        _hFlag.rely = false;
-                        _hFlag.speedCalc = 0f;
-                        lstProc[(int)_hFlag.mode].MotionChange(0);
+                        hFlag.rely = false;
+                        hFlag.speedCalc = 0f;
+                        _lstProc[(int)hFlag.mode].MotionChange(0);
                     }
                     break;
                 case HFlag.EMode.sonyu:
@@ -594,25 +665,25 @@ namespace KK_SensibleH.AutoMode
                     {
                         SensibleH.Logger.LogDebug($"Loop:Change:Edge:1");
 
-                        //if (_hFlag.nowAnimationInfo.isFemaleInitiative)
+                        //if (hFlag.nowAnimationInfo.isFemaleInitiative)
                         //    ActionButton("Insert_novoice_female");
-                        if (_wasAnalPlay || (_hFlag.isAnalInsertOK && Random.value < 0.2f))
-                            ActionButton("InsertAnal_novoice");
+                        if (_wasAnalPlay || (hFlag.isAnalInsertOK && Random.value < 0.2f))
+                            ClickButton("InsertAnal_novoice");
                         else
-                            ActionButton("Insert_novoice");
+                            ClickButton("Insert_novoice");
                     }
                     else if (IsActionLoop)
                     {
                         SensibleH.Logger.LogDebug($"Loop:Change:Edge:2");
-                        _hFlag.speedCalc = 0f;
+                        hFlag.speedCalc = 0f;
                         ChangeMotion();
                     }
                     else if (_pullOut && IsIdleInside && IsActionable)
                     {
-                        //if (_hFlag.nowAnimationInfo.isFemaleInitiative)
+                        //if (hFlag.nowAnimationInfo.isFemaleInitiative)
                         //    _girlControllers[CurrentMain].SupressVoice(341);
                         SensibleH.Logger.LogDebug($"Loop:Change:Edge:3");
-                        ActionButton("Pull");
+                        ClickButton("Pull");
                     }
                     break;
             }
@@ -628,9 +699,9 @@ namespace KK_SensibleH.AutoMode
         private void ChangeSpeed(Speed request = Speed.Random, bool urgent = false)
         {
             SensibleH.Logger.LogDebug("Loop:Change:Speed");
-            var speedCalc = _hFlag.speedCalc;
+            var speedCalc = hFlag.speedCalc;
             var speedOfChange = 1f;
-            var excitementBias = _hFlag.gaugeMale * 0.0033f;
+            var excitementBias = hFlag.gaugeMale * 0.0033f;
             switch (request)
             {
                 case Speed.Random:
@@ -657,11 +728,11 @@ namespace KK_SensibleH.AutoMode
 
             if (!urgent)
             {
-                speedOfChange = Mathf.Abs(_hFlag.speedCalc - speedCalc) * GetRandomRange();
+                speedOfChange = Mathf.Abs(hFlag.speedCalc - speedCalc) * GetRandomRange();
             }
             _nextSpeedChange = GetNextTimer(1f);
             StopSpeedChangeCo();
-            _speedChangerCo = StartCoroutine(SpeedChangeCo(_hFlag.speedCalc, speedCalc, speedOfChange));
+            _speedChangerCo = StartCoroutine(SpeedChangeCo(hFlag.speedCalc, speedCalc, speedOfChange));
         }
         private void StopSpeedChangeCo()
         {
@@ -682,10 +753,10 @@ namespace KK_SensibleH.AutoMode
             while (Mathf.Abs(start - target) > absStep)
             {
                 start += step;
-                _hFlag.speedCalc = start;
+                hFlag.speedCalc = start;
                 yield return null;
             }
-            _hFlag.speedCalc = target;
+            hFlag.speedCalc = target;
         }
 
         private void RestartAction()
@@ -700,11 +771,11 @@ namespace KK_SensibleH.AutoMode
             //_userInput = true;
             if (_houshi)
             {
-                _hFlag.click = HFlag.ClickKind.again;
+                hFlag.click = HFlag.ClickKind.again;
             }
             else if (_sonyu && IsEndOutside)
             {
-                ActionButton();
+                ClickButton();
             }
         }
         public void OnUserInput()
@@ -747,7 +818,7 @@ namespace KK_SensibleH.AutoMode
         private void ToggleOutsideFinish()
         {
             SensibleH.Logger.LogDebug($"Loop:Action:Climax:Toggle");
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.houshi:
 #if KK
@@ -807,10 +878,17 @@ namespace KK_SensibleH.AutoMode
         /// <summary>
         /// We load chosen animation in fake button and "click" it.
         /// </summary>
-        private void PickNextAnimation()
+        public static void PickAnimation(int id)
+        {
+            if (Instance != null)
+            {
+                Instance.PickNextAnimation(id);
+            }
+        }
+        private void PickNextAnimation(int id = -2)
         {
             SensibleH.Logger.LogDebug($"Loop:Action:Animation:Pick");
-            var choices = GetAvailableAnimations;
+            var choices = GetAvailableAnimations(id);
             if (choices.Count == 0)
             {
                 return;
@@ -852,7 +930,7 @@ namespace KK_SensibleH.AutoMode
             SensibleH.Logger.LogDebug($"Loop:RunAfter:Insert");
             yield return null;
 
-            if (_hFlag.isDenialvoiceWait)
+            if (hFlag.isDenialvoiceWait)
             {
                 _hadClimax = true;
                 yield break;
@@ -882,7 +960,7 @@ namespace KK_SensibleH.AutoMode
         /// </summary>
         private void PickHStats(int _addOrg)
         {
-            var name = _hFlag.lstHeroine[CurrentMain].Name;
+            var name = hFlag.lstHeroine[CurrentMain].Name;
             SensibleH.Logger.LogDebug($"Loop:HStats:{name}");
             if (!LstHeroine.ContainsKey(name))
                 LstHeroine.Add(name, 0);
@@ -907,7 +985,7 @@ namespace KK_SensibleH.AutoMode
             else
             {
                 var specificVoice = -1;
-                if (!_hFlag.nowAnimationInfo.isFemaleInitiative)
+                if (!hFlag.nowAnimationInfo.isFemaleInitiative)
                 {
                     if (_hadClimax)
                         specificVoice = 303;
@@ -929,7 +1007,7 @@ namespace KK_SensibleH.AutoMode
         //}
         public void DoAnalClick()
         {
-            if (_hFlag.isAnalInsertOK)
+            if (hFlag.isAnalInsertOK)
                 OnSonyuClick(pullOut: false);
         }
         public void OnOrgasmF()
@@ -960,7 +1038,7 @@ namespace KK_SensibleH.AutoMode
         }
         private void SetHoushiAutoMode(bool state)
         {
-            switch (_hFlag.mode)
+            switch (hFlag.mode)
             {
                 case HFlag.EMode.houshi:
                     _sprite.houshi.tglRely.Set(state);

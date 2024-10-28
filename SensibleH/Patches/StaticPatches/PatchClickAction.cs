@@ -15,10 +15,12 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoMiController.FakeMouseButton)
             {
+                //SensibleH.Logger.LogDebug($"FakeMouse:Up:Reroute:MoMi");
                 return false;
             }
             else if (SensibleHController._vr)
             {
+                //SensibleH.Logger.LogDebug($"FakeMouse:Up:Reroute:Vr");
 #if KK
                 return KK_VR.Caress.HandCtrlHooks.GetMouseButtonUp(button);
 #else
@@ -26,7 +28,10 @@ namespace KK_SensibleH.Patches.StaticPatches
 #endif
             }
             else
+            {
+                //SensibleH.Logger.LogDebug($"FakeMouse:Up:Reroute:Original");
                 return Input.GetMouseButtonUp(button);
+            }
         }
         public static bool IsFinishAction(HandCtrl hand)
         {
@@ -39,14 +44,13 @@ namespace KK_SensibleH.Patches.StaticPatches
         }
         /// <summary>
         /// We substitute original mouse button up with the fake that returns "false".
-        /// And remove one termination condition, which will most likely break the game immediately if we leave it around.
+        /// And remove one termination condition.
         /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ClickAction))]
         public static IEnumerable<CodeInstruction> ClickActionDynamicTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             var first = false;
             var field = AccessTools.Field(typeof(HFlag), "rateWeakPoint");
-            SensibleH.Logger.LogDebug($"Trans:Dynamic:ClickAction:Start");
             foreach (var code in instructions)
             {
                 if (code.opcode == OpCodes.Call && code.operand is MethodInfo method)
@@ -81,7 +85,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static IEnumerable<CodeInstruction> ClickActionConstantTranspiler(IEnumerable<CodeInstruction> instructions)
         {
             // TODO Consolidate static patches that crossover with dynamic ones.
-            SensibleH.Logger.LogDebug($"Trans:Static:ClickAction:Start");
             var targets = new Dictionary<int, PatchHandCtrl.CodeInfo>()
             {
                 {
@@ -103,11 +106,9 @@ namespace KK_SensibleH.Patches.StaticPatches
                         && code.operand.ToString().Contains(targets[0].firstOperand))
                     {
                         counter++;
-                        //SensibleH.Logger.LogDebug($"Trans:ClickAction:{code.opcode}:{code.operand}");
                     }
                     else if (counter == 1)
                     {
-                        //SensibleH.Logger.LogDebug($"Trans:ClickAction:{code.opcode}:{code.operand}");
                         if (code.opcode == targets[0].secondOpcode
                         && code.operand.ToString().Contains(targets[0].secondOperand))
                         {
@@ -118,7 +119,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                     }
                     else if (counter == 2)
                     {
-                        //SensibleH.Logger.LogDebug($"Trans:ClickAction:{code.opcode}:{code.operand}");
                         if (code.opcode == OpCodes.Brtrue)
                         {
                             done = true;

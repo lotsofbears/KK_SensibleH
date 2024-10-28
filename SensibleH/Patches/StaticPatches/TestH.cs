@@ -19,13 +19,13 @@ namespace KK_SensibleH.Patches.StaticPatches
     {
         public static float size = 1f;
         /// <summary>
-        /// Adjustments for non-standard dick diameters in houshi.
+        /// Adjustments for non-standard(small) dick diameters in houshi.
         /// </summary>
         [HarmonyPrefix, HarmonyPatch(typeof(FaceListCtrl), nameof(FaceListCtrl.SetFace))]
         public static void SetFacePrefix(int _idFace, int _voiceKind, int _action, FaceListCtrl __instance)
         {
             var dic = __instance.facelib[_voiceKind][_action][_idFace];
-            if (SensibleH._hFlag != null && SensibleH._hFlag.mode == HFlag.EMode.houshi && dic.openMinMouth == 1f && (dic.mouth == 22 || dic.mouth == 21))
+            if (SensibleH.hFlag != null && SensibleH.hFlag.mode == HFlag.EMode.houshi && dic.openMinMouth == 1f && (dic.mouth == 22 || dic.mouth == 21))
             {
                 //SensibleH.Logger.LogDebug($"TestH:SetFace:AlteringHoushiMouth[{_idFace}][{_voiceKind}][{_action}]");
                 dic.openMinMouth = size;
@@ -121,11 +121,15 @@ namespace KK_SensibleH.Patches.StaticPatches
                 SensibleHController.Instance.OnTouch(_arrayArea);
             }
         }
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiEmitterCtrl), MethodType.Constructor)]
-        //public static void ObiEmitterCtrlPrefix()
+        //[HarmonyPostfix]
+        //[HarmonyPatch(typeof(MotionIK), nameof(MotionIK.LinkIK))]
+        //public static void LinkIKPostfix(int index, MotionIKData.State state, MotionIK.IKTargetPair pair, float __state)
         //{
-        //    SensibleH.Logger.LogDebug($"ObiEmitterCtrlConstructorPrefix");
+        //    if (__state == 1f && pair.effector.positionWeight != 1f)
+        //    {
+        //        SensibleH.Logger.LogWarning($"LinkIK:ChangedPositionWeight:{pair.effector.bone.name}");
+        //    }
+
         //}
         //[HarmonyPrefix]
         //[HarmonyPatch(typeof(ObiEmitterCtrl), nameof(ObiEmitterCtrl.OnEnable))]
@@ -165,64 +169,128 @@ namespace KK_SensibleH.Patches.StaticPatches
         //    SensibleH.Logger.LogDebug($"ObiCtrlContructorPrefix");
         //}
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiSolver), "OnEnable")]
-        //public static void ObiSolverOnEnablePrefix()
+        //[HarmonyPatch(typeof(HActionBase), nameof(HActionBase.SetPlay))]
+        //public static void SetPlayPrefix(HActionBase __instance)
         //{
-        //    SensibleH.Logger.LogDebug($"ObiSolverOnEnablePrefix");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HSceneProc), MethodType.Constructor)]
-        //public static void HSceneProcConstructorPrefix()
-        //{
-        //    SensibleH.Logger.LogDebug($"HSceneProcConstructorPrefix");
+        //    SensibleH.Logger.LogDebug($"SetPlay:{__instance.flags.nowAnimStateName}:{__instance.hand.action}\n{new StackTrace(0)}");
         //}
         //[HarmonyPrefix]
         //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.FinishAction))]
         //public static void FinishActionPrefix(HandCtrl __instance)
         //{
         //    SensibleH.Logger.LogDebug($"FinishAction");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ClickAction))]
-        //public static void ClickActionPrefix(HandCtrl __instance)
-        //{
-        //    SensibleH.Logger.LogDebug($"ClickAction {__instance.useItems[__instance.actionUseItem] == null}");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ForceFinish))]
-        //public static void ForceFinishPrefix()
-        //{
-        //    SensibleH.Logger.LogDebug($"ForceFinish");
-        //}
-        ////[HarmonyPrefix]
-        ////[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.OnCollision))]
-        ////public static void OnCollisionPrefix()
-        ////{
-        ////    SensibleH.Logger.LogDebug($"OnCollision");
         ////}
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetAnimation))]
-        //public static void SetAnimationPrefix(HandCtrl __instance)
+        //[HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.BreathProc))]
+        //public static void ForceFinishPrefix()
         //{
-        //    SensibleH.Logger.LogDebug($"SetAnimation");
+        //    SensibleH.Logger.LogDebug($"BreathProc");
+        ////}
+        //[HarmonyPostfix]
+        //[HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.GetPLayNumBreathList))]
+        //public static void OnCollisionPrefix(List<HVoiceCtrl.VoiceSelect> __result)
+        //{
+        //    SensibleH.Logger.LogDebug($"GetPLayNumBreathList:{__result.Count}");
+        //}
+        //[HarmonyPostfix]
+        //[HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.IsPlayBreathVoicePtn))]
+        //public static void SetAnimationPrefix(bool __result)
+        //{
+        //    SensibleH.Logger.LogDebug($"IsPlayBreathVoicePtn:{__result}");
+        //}
+#if KK
+        /// <summary>
+        /// A clutch to synchronize cloth states between action/talk scenes after H. Ugly but can't seem to find a culprit otherwise.
+        /// </summary>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(TalkScene), nameof(TalkScene.Start), MethodType.Enumerator)]
+        public static void TalkSceneStartPrefix(TalkScene __instance)
+        {
+            SensibleH.Logger.LogDebug($"TalkScene:Start:{__instance}:{__instance.GetType()}");
+            // Coroutine yields few times before cloning a chara, we grab the original and wait for a clone.
+            // For some reason the clone comes with cloth states from a previous H Scene. We overwrite them with original states.
+            // No clue where it hides those states, all the SaveData and ChaFiles are actual. 
+
+            TalkSceneClothesState();
+        }
+        public static TalkScene talkScene;
+        public static ChaControl originalChara;
+        public static void TalkSceneClothesState()
+        {
+            if (talkScene == null)
+            {
+                talkScene = UnityEngine.Object.FindObjectOfType<TalkScene>();
+            }
+            if (talkScene.targetHeroine != null)
+            {
+                if (originalChara == null)
+                {
+                    originalChara = talkScene.targetHeroine.chaCtrl;
+                }
+                else if (originalChara != talkScene.targetHeroine.chaCtrl)
+                {
+                    var target = talkScene.targetHeroine.chaCtrl.fileStatus.clothesState;
+                    var precursor = originalChara.fileStatus.clothesState;
+                    for (var i = 0; i < precursor.Length; i++)
+                    {
+                        target[i] = precursor[i];
+                    }
+                    originalChara = null;
+                }
+            }
+        }
+#endif
+        //[HarmonyPrefix]
+        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), typeof(int))]
+        //public static void AnimatorPlay1(int stateNameHash)
+        //{
+        //    SensibleH.Logger.LogDebug($"PlayInFixedTime:6:{stateNameHash}");
         //}
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.AnimatrotRestrart))]
-        //public static void AnimatrotRestrartPrefix()
+        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
+        //    typeof(int),
+        //    typeof(int)
+        //})]
+        //public static void AnimatorPlay2(int stateNameHash, int layer)
         //{
-        //    SensibleH.Logger.LogDebug($"AnimatrotRestrart");
+        //    SensibleH.Logger.LogDebug($"PlayInFixedTime:5:{stateNameHash}:{layer}");
         //}
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetDragStartLayer))]
-        //public static void SetDragStartLayernPrefix()
+        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
+        //    typeof(int),
+        //    typeof(int),
+        //    typeof(float)
+        //})]
+        //public static void AnimatorPlay3(int stateNameHash, int layer, float fixedTime)
         //{
-        //    SensibleH.Logger.LogDebug($"SetDragStartLayer");
+        //    SensibleH.Logger.LogDebug($"PlayInFixedTime:4:{stateNameHash}:{layer}:{fixedTime}");
         //}
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.EnableDynamicBone))]
-        //public static void EnableDynamicBonePrefix()
+        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
+        //    typeof(string),
+        //    typeof(int),
+        //    typeof(float)
+        //})]
+        //public static void AnimatorPlay4(string stateName, int layer, float fixedTime)
         //{
-        //    SensibleH.Logger.LogDebug($"EnableDynamicBone");
+        //    SensibleH.Logger.LogDebug($"AnimatorPlayInFixedTime:3:{stateName}:{layer}:{fixedTime}");
+        //}
+        //[HarmonyPrefix]
+        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
+        //    typeof(string)
+        //})]
+        //public static void AnimatorPlay5(string stateName)
+        //{
+        //    SensibleH.Logger.LogDebug($"AnimatorPlayInFixedTime:2:{stateName}");
+        //}
+        //[HarmonyPrefix]
+        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
+        //    typeof(string),
+        //    typeof (int)
+        //})]
+        //public static void AnimatorPlay6(string stateName, int layer)
+        //{
+        //    SensibleH.Logger.LogDebug($"AnimatorPlayInFixedTime:1:{stateName}:{layer}");
         //}
         //[HarmonyPrefix]
         //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetLayerWeightDefault))]
@@ -237,10 +305,10 @@ namespace KK_SensibleH.Patches.StaticPatches
         //    SensibleH.Logger.LogDebug($"SetLayerWeight");
         //}
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetIdleLayerWeight))]
-        //public static void SetIdleLayerWeightPrefix()
+        //[HarmonyPatch(typeof(HandCtrl.AibuItem), nameof(HandCtrl.AibuItem.SetHandColor), typeof(Color))]
+        //public static void SetHandColorPrefix(Color _color)
         //{
-        //    SensibleH.Logger.LogDebug($"SetIdleLayerWeight");
+        //    SensibleH.Logger.LogInfo($"SetHandColor:{_color}");
         //}
         //[HarmonyPrefix]
         //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.EnableShape))]

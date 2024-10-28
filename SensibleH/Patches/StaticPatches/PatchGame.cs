@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using ADV;
+using HarmonyLib;
+using Illusion.Game;
 using Manager;
 using System;
 using System.Collections;
@@ -12,6 +14,10 @@ namespace KK_SensibleH.Patches.StaticPatches
         private static Dictionary<ChaControl, bool> HoHoTracking = new Dictionary<ChaControl, bool>();
 
         //public static int[] PersonalitiesKKS = { 39, 40, 41, 42, 43 };
+
+        /// <summary>
+        /// We change blush over time instead of instant. A game changer in VR. LF that Marco plugin with skin effects like this too. 
+        /// </summary>
 
         [HarmonyPrefix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeHohoAkaRate))]
         public static bool ChangeHohoAkaRatePrefix(float value, ChaControl __instance)
@@ -46,6 +52,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static IEnumerator ChangeOverTime(float from, float to, ChaControl instance)
         {
             // There is a bug that leaves the loop hanging at "to" value. Trying to catch it.
+            // Correlation with disabled behavior? loop is still running though.
             HoHoTracking[instance] = true;
             var timeDelta = Time.deltaTime;
             var absStep = Time.deltaTime * 0.2f;
@@ -79,16 +86,43 @@ namespace KK_SensibleH.Patches.StaticPatches
         
         [HarmonyPrefix, HarmonyPatch(typeof(GameAssist), nameof(GameAssist.DecreaseTalkTime))]
 #else
-        [HarmonyPrefix, HarmonyPatch(typeof(Manager.Communication), nameof(Manager.Communication.DecreaseTalkTime))]
+        /// <summary>
+        /// We set 10 times more talk attempts.
+        /// </summary>
+        [HarmonyPrefix, HarmonyPatch(typeof(Communication), nameof(Communication.DecreaseTalkTime))]
 #endif
         public static void DecreaseTalkTimePrefix(ref int _value)
         {
-            //SensibleH.Logger.LogDebug($"DecreaseTalkTime");
-            if (UnityEngine.Random.value > 0.1f)
+            if (UnityEngine.Random.value < 0.9f)
             {
                 _value = 0;
             }
 
+        }
+        /// <summary>
+        /// Auto ADV default if there is no heroine present.
+        /// </summary>
+        [HarmonyPostfix, HarmonyPatch(typeof(TextScenario), nameof(TextScenario.Initialize))]
+        public static void TextScenarioInitializePostfix(TextScenario __instance)
+        {
+            if (__instance.advScene != null)
+            {
+                __instance._isAuto = __instance.advScene.scenario.currentChara == null;
+            }
+        }
+
+        /// <summary>
+        /// We get rid of those pesky sounds on button clicks that poison VR experience.
+        /// </summary>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Utils.Sound), nameof(Utils.Sound.Play), typeof(SystemSE))]
+        public static bool UtilsSoundPlayPrefix(SystemSE se)
+        {
+            if (se == SystemSE.sel && SensibleH.DisablePeskySounds.Value)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

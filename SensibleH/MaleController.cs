@@ -40,7 +40,7 @@ namespace KK_SensibleH
             // Still better then default 100m stare at "something ahead"
             Transform transform;
             var main = 0;
-            if (_hFlag.mode == HFlag.EMode.houshi3P)
+            if (hFlag.mode == HFlag.EMode.houshi3P)
                 main = Random.Range(0, 2);
             SensibleH.Logger.LogDebug($"chaControl[CurrentMain] = {_chaControl[main]}");
             //switch (Random.Range(0, 8))
