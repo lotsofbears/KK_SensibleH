@@ -246,25 +246,40 @@ namespace KK_SensibleH.Patches.StaticPatches
         //{
         //    SensibleH.Logger.LogDebug($"PlayInFixedTime:6:{stateNameHash}");
         //}
+#if KKS
+        //        [HarmonyPrefix]
+         //      [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.playDynamicBoneBust), new Type[]            
+        //        public static bool DisableShapeBodyIDPrefix(int LR, int id, bool disable)
+        //        {
+        //            SensibleH.Logger.LogInfo($"DisableShapeBodyID:{id}:{LR}:{disable}");
+
+        //            return !disable;
+        //        }
+        //        [HarmonyPrefix]
+        //        [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.DisableShapeBust))]              
+        //        public static bool DisableShapeBodyIDPrefix(int LR, bool disable)
+        //        {
+        //            SensibleH.Logger.LogInfo($"DisableShapeBodyID:{LR}:{disable}");
+        //            return !disable;
+        //        }
+
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
-        //    typeof(int),
-        //    typeof(int)
-        //})]
-        //public static void AnimatorPlay2(int stateNameHash, int layer)
+        //[HarmonyPatch(typeof(ChaControl), nameof(ChaControl.playDynamicBoneBust), [ typeof(int), typeof(bool) ])]
+        //public static void playDynamicBoneBustPrefix(int _nArea, ref bool _bPlay)
         //{
-        //    SensibleH.Logger.LogDebug($"PlayInFixedTime:5:{stateNameHash}:{layer}");
+        //    SensibleH.Logger.LogInfo($"playDynamicBoneBustPrefix:{_nArea}:{_bPlay}");
+        //    _bPlay = true;
+
         //}
         //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
-        //    typeof(int),
-        //    typeof(int),
-        //    typeof(float)
-        //})]
-        //public static void AnimatorPlay3(int stateNameHash, int layer, float fixedTime)
+        //[HarmonyPatch(typeof(ChaControl), nameof(ChaControl.playDynamicBoneBust), [ typeof(ChaInfo.DynamicBoneKind), typeof(bool) ])]
+        //public static void playDynamicBoneBustPrefix(ChaInfo.DynamicBoneKind _eArea, ref bool _bPlay)
         //{
-        //    SensibleH.Logger.LogDebug($"PlayInFixedTime:4:{stateNameHash}:{layer}:{fixedTime}");
+        //    SensibleH.Logger.LogInfo($"playDynamicBoneBustPrefix:{_eArea}:{_bPlay}");
+        //    _bPlay = true;
         //}
+#endif
+
         //[HarmonyPrefix]
         //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
         //    typeof(string),

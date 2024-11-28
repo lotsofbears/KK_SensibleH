@@ -205,7 +205,7 @@ namespace KK_SensibleH.EyeNeckControl
         }
         private void SetProximityDic(bool state)
         {
-            SensibleH.Logger.LogDebug($"SetProximityDic");
+            //SensibleH.Logger.LogDebug($"SetProximityDic");
             if (KissDic.Count == 0)
             {
                 SetDictionaries();
@@ -307,13 +307,13 @@ namespace KK_SensibleH.EyeNeckControl
                                 {
                                     if (FamiliarityCheck())
                                     {
-                                        SensibleH.Logger.LogDebug($"Neck:Main:Proc:PreSetNeck:EyeCam");
+                                        //SensibleH.Logger.LogDebug($"Neck:Main:Proc:PreSetNeck:EyeCam");
                                         SetNeck(GetProperEyeCam);
                                         SetNeckNextMove(GetNextVoiceTime * 0.1f);
                                     }
                                     else
                                     {
-                                        SensibleH.Logger.LogDebug($"Neck:Main:Proc:PreSetNeck:SomewhereElse");
+                                        //SensibleH.Logger.LogDebug($"Neck:Main:Proc:PreSetNeck:SomewhereElse");
                                         LookSomewhere();
                                         //var neck = GetAibuIdleNeckDir(DirectionNeck.Mid);
                                         //SetNeck(neck);
@@ -323,7 +323,7 @@ namespace KK_SensibleH.EyeNeckControl
                                 else
                                 {
                                     _neckBusy = true;
-                                    SensibleH.Logger.LogDebug($"Neck:Main:Proc:PreSetNeck:Abort");
+                                    //SensibleH.Logger.LogDebug($"Neck:Main:Proc:PreSetNeck:Abort");
                                 }
                                 _neckAfterEvent = true;
                                 lookBeforeVoiceTimer = Random.Range(3f, 5f);
@@ -354,7 +354,7 @@ namespace KK_SensibleH.EyeNeckControl
             }
             else if (!neckMovable && _neckActive && !neckMoving && (!_vr || !IsCamClose))
             {
-                SensibleH.Logger.LogDebug($"Neck:Main:Proc:Halt:BadState");
+                //SensibleH.Logger.LogDebug($"Neck:Main:Proc:Halt:BadState");
                 Halt();
             }
         }
@@ -375,7 +375,7 @@ namespace KK_SensibleH.EyeNeckControl
         }
         private void SetProperEyeCam()
         {
-            SensibleH.Logger.LogDebug($"Neck:Main:ProperEyeCam:Set");
+            //SensibleH.Logger.LogDebug($"Neck:Main:ProperEyeCam:Set");
             _specialNeckMove.SetAuxCamProperParent(GetProperEyeCam);
             FemalePoI[_main] = _specialNeckMove.AuxCam;
         }
@@ -392,23 +392,23 @@ namespace KK_SensibleH.EyeNeckControl
                     // 0.2 chance for absolute virgin to look at cam
                     // 0.75 for lewd state with maxed out intimacy.
                     SetNeck(GetProperEyeCam);
-                    SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:LookAtCam");
+                    //SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:LookAtCam");
                 }
                 else if (IsAction())
                 {
                     newNeck = GetAibuActionDir(curNeck);
-                    SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:Asoko/Mune");
+                    //SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:Asoko/Mune");
                 }
                 else
                 {
                     newNeck = GetAibuIdleNeckDir(curNeck);
-                    SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:IdlePose");
+                    //SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:IdlePose");
                 }
             }
             else //if (_poseType == PoseType.Behind)
             {
                 newNeck = GetAibuBackDir(curNeck);
-                SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:BackPose");
+               // SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:BackPose");
             }
             if (newNeck.Count > 0)
             {
@@ -439,7 +439,7 @@ namespace KK_SensibleH.EyeNeckControl
             FemalePoI[0] = _specialNeckMove.AuxCam;
             SetNeck(17, quick: true);
             _specialNeckMove.OnKissVrSetAuxCam();
-            SensibleH.Logger.LogDebug($"Neck:Main:VR:KissStart:{FemalePoI[0]}");
+            //SensibleH.Logger.LogDebug($"Neck:Main:VR:KissStart:{FemalePoI[0]}");
         }
         internal void OnKissVrEnd()
         {
@@ -456,7 +456,7 @@ namespace KK_SensibleH.EyeNeckControl
             SetEyesNextMove();
             //moveNeckUntil = Time.time + Random.Range(20f, 40f);
             //lookAtCam = true;
-            SensibleH.Logger.LogDebug($"Neck:Main:VR:KissEnd:{FemalePoI[0]}");
+            //SensibleH.Logger.LogDebug($"Neck:Main:VR:KissEnd:{FemalePoI[0]}");
         }
 
         /// <summary>
@@ -466,7 +466,7 @@ namespace KK_SensibleH.EyeNeckControl
         {
             if (IsNeckMovable && !_handCtrl.IsKissAction() && _poiHandler.SetFemalePoI(item))
             {
-                SensibleH.Logger.LogDebug($"Neck:Main:LookAtPoi");
+                //SensibleH.Logger.LogDebug($"Neck:Main:LookAtPoi");
                 _neckAfterEvent = true;
                 if (!_neckActive)
                 {
@@ -479,7 +479,7 @@ namespace KK_SensibleH.EyeNeckControl
             }
             else
             {
-                SensibleH.Logger.LogDebug($"Neck:Main:LookAtPoi:NoPoi");
+                //SensibleH.Logger.LogDebug($"Neck:Main:LookAtPoi:NoPoi");
                 return false;
             }
         }
@@ -487,7 +487,7 @@ namespace KK_SensibleH.EyeNeckControl
         {
             if (IsNeckMovable && !_handCtrl.IsKissAction())
             {
-                SensibleH.Logger.LogDebug($"Neck:Main:LookAway");
+                //SensibleH.Logger.LogDebug($"Neck:Main:LookAway");
                 _neckAfterEvent = true;
 
                 // TODO Remake dic into method
@@ -502,7 +502,7 @@ namespace KK_SensibleH.EyeNeckControl
             }
             else
             {
-                SensibleH.Logger.LogDebug($"Neck:Main:LookAway:Abort");
+                //SensibleH.Logger.LogDebug($"Neck:Main:LookAway:Abort");
             }
         }
         /// <summary>
@@ -519,12 +519,12 @@ namespace KK_SensibleH.EyeNeckControl
                     MoveNeckInit();
                     if (!_neckAfterEvent && !IsNeckRecent && !IsNeckMoving)
                     {
-                        SensibleH.Logger.LogDebug($"Neck:Main:LookAtCam:EyeCam");
+                        //SensibleH.Logger.LogDebug($"Neck:Main:LookAtCam:EyeCam");
                         SetNeck(GetProperEyeCam);
                     }
                     else
                     {
-                        SensibleH.Logger.LogDebug($"Neck:Main:LookAtCam:Extend");
+                        //SensibleH.Logger.LogDebug($"Neck:Main:LookAtCam:Extend");
                     }
                 }
                 else
@@ -545,17 +545,17 @@ namespace KK_SensibleH.EyeNeckControl
             {
                 if (Random.value < 0.2f / (1f - _familiarity * 0.75f))
                 {
-                    SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Suppress:{curNeck}");
+                    //SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Suppress:{curNeck}");
                     MoveNeckInit(Time.time + 3f);
                 }
                 else
                 {
-                    SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:NoAction:{curNeck}");
+                    //SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:NoAction:{curNeck}");
                 }
             }
             else
             {
-                SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Extend:{curNeck}");
+                //SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Extend:{curNeck}");
                 MoveNeckInit();
             }
 
@@ -588,7 +588,7 @@ namespace KK_SensibleH.EyeNeckControl
                 // Not really tested, but my guess it won't be pretty.
                 return;
             }
-            SensibleH.Logger.LogDebug($"Neck:Main:Initiate:{Time.time}");
+            //SensibleH.Logger.LogDebug($"Neck:Main:Initiate:{Time.time}");
             _neckActive = true;
             MoveNeckGlobal = true;
             if (customUntil == 0f)
@@ -605,7 +605,7 @@ namespace KK_SensibleH.EyeNeckControl
         /// </summary>
         public void Halt()
         {
-            SensibleH.Logger.LogDebug($"Neck:Main:Halt:{Time.time}");
+            //SensibleH.Logger.LogDebug($"Neck:Main:Halt:{Time.time}");
             FemalePoI[_main] = null;
             EyeNeckPtn[_main] = -1;
             _neckActive = false;
@@ -653,7 +653,7 @@ namespace KK_SensibleH.EyeNeckControl
             }
             
             _specialNeckMove.SetCooldown();
-            SensibleH.Logger.LogDebug($"Neck:Main:SetNeck:{_currentNeck}:{_eyeCamSaturation}");
+            //SensibleH.Logger.LogDebug($"Neck:Main:SetNeck:{_currentNeck}:{_eyeCamSaturation}");
         }
         private void PickEyes()
         {
@@ -735,13 +735,13 @@ namespace KK_SensibleH.EyeNeckControl
             else
             {
                 _poseType = PoseType.Still;
-                SensibleH.Logger.LogDebug($"Neck:Main:PoseType:Unknown:{animName}");
+                //SensibleH.Logger.LogDebug($"Neck:Main:PoseType:Unknown:{animName}");
             }
-            SensibleH.Logger.LogDebug($"Neck:Main:PoseType:{_poseType}:{animName}");
+            //SensibleH.Logger.LogDebug($"Neck:Main:PoseType:{_poseType}:{animName}");
         }
         internal void OnPositionChange()
         {
-            SensibleH.Logger.LogDebug($"Neck:Main:PositionChange");
+            //SensibleH.Logger.LogDebug($"Neck:Main:PositionChange");
             Halt();
             SetPoseType();
             _specialNeckMove.ResetAuxCam();

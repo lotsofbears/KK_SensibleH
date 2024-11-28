@@ -9,18 +9,71 @@ namespace KK_SensibleH
 {
     internal class NeckHandler : MonoBehaviour
     {
+        // BackBackBack again.
+        // We duplicate native neck object pair, move them in cohesive fashion and aim at it.
+        // Because my previous attempt to do it by native means is a mess and not up to my standards,
+        // and now we have lookAtIK to handle too, which really shines when whatever moves the head knows what it does.
         internal static Dictionary<ChaControl, Transform> Targets => _targets;
 
+        // Those will probably be aim objects, we pass them in harmony-prefix for each chara.
+        // If there is no object - we don't change neck -> neck script uses default target.
         private static readonly Dictionary<ChaControl, Transform> _targets = [];
 
         private Transform _target;
+
+        // Root object at ~neck, the only movable part.
         private Transform _root;
+
+        // Aim object at vector.forward of root object, complete slave.
         private Transform _aim;
+
+        // Parent of root object, used as it's default orientation.
+        private Transform _shoulders;
+
+        // Desirable rotation, will slowly(depends on method used) assume it.
         private Quaternion _rootTargetRot;
-        private float _moveStep;
+
+        // Coefficient to move between rotations.
         private float _lerp;
+
+        private ChaControl _chara;
+
+        // Easy switch between many states on update.
+        private State _state;
+        enum State
+        {
+            Stay,
+            Move,
+            Drift,
+            Aim
+        }
+
+        // Everything is governed by one single timing (minus hooks), that dictates frequency happenings.
         private float _waitTimestamp;
 
+        // Coefficient to scale timings.
+        private float _waitCoef;
+
+        private bool IsWait() => _waitTimestamp > Time.time;
+        private void SetWait(int seconds) => _waitTimestamp = Time.time + (seconds * _waitCoef);
+
+        private SmoothDamp _smoothDamp;
+        private class SmoothDamp
+        {
+            internal SmoothDamp(float smoothTime)
+            {
+                _smoothTime = smoothTime;
+            }
+            private float _current;
+            private float _currentVelocity;
+            private readonly float _smoothTime;
+
+            internal float Damp(bool increase)
+            {
+                _current = Mathf.SmoothDamp(_current, increase ? 1f : 0f, ref _currentVelocity, _smoothTime);
+                return _current;
+            }
+        }
         /// <summary>
         /// 1 for one second, 0.5 for two, etc.
         /// </summary>
@@ -33,19 +86,6 @@ namespace KK_SensibleH
         public float _hLimit;
         public float _vLimit;
 
-        private State _state;
-        private ChaControl _chara;
-
-        private float _waitCoef;
-        private bool IsWait() => Time.time > _waitTimestamp;
-        private float GetWait(int seconds) => Time.time + seconds * _waitCoef;
-        enum State
-        {
-            Stay,
-            Move,
-            Drift,
-            Aim
-        }
 
         private void Awake()
         {
@@ -55,9 +95,9 @@ namespace KK_SensibleH
             _aim = new GameObject("Point").transform;
             _aim.SetParent(_root, false);
             _aim.localPosition = Vector3.forward;
+            _shoulders = _root.parent;
             _moveSpeed = 0.5f;
         }
-
 
         private void Update()
         {
@@ -92,7 +132,6 @@ namespace KK_SensibleH
 
         internal void UpdateLimits()
         {
-
             _defRange = 60f;
             _floor = 0f - _defRange * 0.5f;
             _ceiling = _defRange * 0.5f;
@@ -108,24 +147,7 @@ namespace KK_SensibleH
 
         // At aim start measure angle to the head, and place ceiling here. Remove afterwards.
 
-        private class SmoothDamp
-        {
-            internal SmoothDamp(float smoothTime)
-            {
-                _smoothTime = smoothTime;
-            }
-            private float _current;
-            private float _currentVelocity;
-            private readonly float _smoothTime;
-            
-            internal float Damp(bool increase)
-            {
-                _current = Mathf.SmoothDamp(_current, increase ? 1f : 0f, ref _currentVelocity, _smoothTime);
-                return _current;
-            }
-        }
 
-        private SmoothDamp _smoothDamp;
 
         private void StartAim()
         {
@@ -137,31 +159,30 @@ namespace KK_SensibleH
         {
             var lookRot = Quaternion.LookRotation(_target.position - _root.position);
             //if (Vector3.Angle(_target.position - _root.position, _root.parent.forward) < _ceiling)
-            if (Quaternion.Angle(lookRot, _root.parent.rotation) < _ceiling)
+
+            // Only if current deviation is less then ceiling.
+            // We rotateTowards lookRotation with step from SmoothDamp.
+            if (Quaternion.Angle(_root.rotation, _shoulders.rotation) < _ceiling)
+            //if (Quaternion.Angle(lookRot, _shoulders.rotation) < _ceiling)
             {
                 _root.rotation = Quaternion.RotateTowards(
-                    _root.rotation, 
-                    lookRot, 
+                    _root.rotation,
+                    lookRot,
                     Time.deltaTime * _smoothDamp.Damp(Vector3.Angle(_target.position - _root.position, _aim.position - _root.position) > 10f));
             }
             else
             {
-                var rotLimit = 30f - Quaternion.Angle(_root.rotation, _root.parent.rotation);
-                if (rotLimit > 0.1f)
-                {
-                    _rootTargetRot = Quaternion.RotateTowards(_root.rotation, lookRot, rotLimit);
-                }
-                else
-                {
-                    // Timestamp and remove aim after.
-                }
+                _root.rotation = Quaternion.RotateTowards(
+                    _root.rotation,
+                    lookRot,
+                    _ceiling);
             }
         }
 
         /// <summary>
         /// Picks ~different rotation offset.
         /// </summary>
-        private void SetRootRotationOffset()
+        private void SetRootTarget()
         {
             _rootTargetRot =  Quaternion.Euler(
                 RepeatEx(Mathf.DeltaAngle(0f, _root.localEulerAngles.x) + Random.Range(_defRange * 0.3f, _defRange * 0.6f)) * _vLimit,
@@ -169,6 +190,7 @@ namespace KK_SensibleH
                 0f);
         }
 
+        // Like repeat but floor isn't 0.
         private float RepeatEx(float number)
         {
             // If we pass the limit, we roll random to negate further progress.
@@ -186,8 +208,9 @@ namespace KK_SensibleH
         }
         private void StartMove()
         {
-            SensibleH.Logger.LogDebug($"StartMove:{_moveSpeed}");
+            _state = State.Move;
             _lerp = 0f;
+            SensibleH.Logger.LogDebug($"StartMove:{_moveSpeed}");
         }
         /// <summary>
         /// Move from rotation a to rotation b.
@@ -196,27 +219,26 @@ namespace KK_SensibleH
         {
             _lerp += Time.deltaTime * _moveSpeed;
             _root.localRotation = Quaternion.Lerp(_root.localRotation, _rootTargetRot, Mathf.SmoothStep(0f, 1f, _lerp));
-            if (_lerp > 1f)
+            if (_lerp >= 1f)
             {
                 Stay();
             }
         }
         private void Stay()
         {
-
             _state = State.Stay;
-            _waitTimestamp = GetWait(Random.Range(2, 5));
+            SetWait(Random.Range(2, 5));
         }
         private void StartDrift()
         {
             _state = State.Drift;
             _lerp = 0f;
             _driftSpeed = Mathf.Max(0.2f, _moveSpeed * Random.Range(0.25f, 0.5f));
-            SensibleH.Logger.LogDebug($"StartDrift:{_driftSpeed}");
             _rootTargetRot = _root.localRotation * Quaternion.Euler(Random.Range(-4f, 4f), Random.Range(-4f, 4f), 0f);
+            SensibleH.Logger.LogDebug($"StartDrift:{_driftSpeed}");
         }
         /// <summary>
-        /// Move considerably slower between a and b rotations. Multiple iterations.
+        /// Move considerably slower between rotations. Possibly in consecutive fashion.
         /// </summary>
         private void Drift()
         {
@@ -234,11 +256,5 @@ namespace KK_SensibleH
                 }
             }
         }
-
-
-        /*
-         * Apply all the new knowledge about orientations, and make simple and pretty eye/neck controllers(different)
-         * And synergize them with LookAtIK.
-         */
     }
 }

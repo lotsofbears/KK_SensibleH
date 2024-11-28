@@ -18,12 +18,8 @@ namespace KK_SensibleH
     [BepInPlugin(GUID, "KK_SensibleH", Version)]
     [BepInProcess(KoikatuAPI.GameProcessName)]
     [BepInDependency(KoikatuAPI.GUID)]
-#if KK
     [BepInDependency(KK_VR.VRPlugin.GUID)]
-#else
-    [BepInDependency(KKS_VR.VRPlugin.GUID)]
-#endif
-    [BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in dependencies, no clue how to pass unknown enum type to the delegate.
+    [BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in dependencies, no clue how to pass reflected enum type to the delegate.
 
     public class SensibleH : BaseUnityPlugin
     {

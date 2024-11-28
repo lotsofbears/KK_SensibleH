@@ -21,11 +21,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             else if (SensibleHController._vr)
             {
                 //SensibleH.Logger.LogDebug($"FakeMouse:Up:Reroute:Vr");
-#if KK
                 return KK_VR.Caress.HandCtrlHooks.GetMouseButtonUp(button);
-#else
-                return KKS_VR.Caress.HandCtrlHooks.GetMouseButtonUp(button);
-#endif
             }
             else
             {
@@ -84,7 +80,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ClickAction))]
         public static IEnumerable<CodeInstruction> ClickActionConstantTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            // TODO Consolidate static patches that crossover with dynamic ones.
             var targets = new Dictionary<int, PatchHandCtrl.CodeInfo>()
             {
                 {

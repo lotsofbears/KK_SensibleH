@@ -21,11 +21,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             else if (SensibleHController._vr)
             {
                 //SensibleH.Logger.LogDebug($"FakeMouse:Press:Reroute:Vr");
-#if KK
                 return KK_VR.Caress.HandCtrlHooks.GetMouseButton(button);
-#else
-                return KKS_VR.Caress.HandCtrlHooks.GetMouseButton(button);
-#endif
             }
             else
             {

@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\NewNeckController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\PoiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\SpecialNeckMovement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)eyeneck\DirectionPicker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)eyeneck\NeckHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GirlController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MaleController.cs" />

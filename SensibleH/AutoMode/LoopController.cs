@@ -58,7 +58,7 @@ namespace KK_SensibleH.AutoMode
             OnPositionChange();
             SetCeiling();
             var type = AccessTools.TypeByName("KK_MaleBreathVR.MaleBreathController");
-            if (type != null )
+            if (type != null)
             {
                 PatchLoop.maleBreathDelegate = AccessTools.MethodDelegate<Func<int, bool>>(AccessTools.FirstMethod(type, m => m.Name.Equals("ButtonClick")));
             }

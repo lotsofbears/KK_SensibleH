@@ -23,10 +23,6 @@ internal static class VRHelper
 
     public static bool IsGirlPoV()
     {
-#if KK
         return KK_VR.Features.PoV.Active && KK_VR.Features.PoV.GirlPoV;
-#else
-        return KKS_VR.Features.PoV.Active && KKS_VR.Features.PoV.GirlPoV;
-#endif
     }
 }
