@@ -31,7 +31,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;KK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -64,10 +64,6 @@
     </Reference>
     <Reference Include="KK_BetterSquirt">
       <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\KK_BetterSquirt.dll</HintPath>
-    </Reference>
-    <Reference Include="KK_FinalIK, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libs\KK_FinalIK.dll</HintPath>
     </Reference>
     <Reference Include="KK_Fix_ResourceUnloadOptimizations, Version=21.5.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

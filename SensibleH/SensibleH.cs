@@ -19,13 +19,13 @@ namespace KK_SensibleH
     [BepInProcess(KoikatuAPI.GameProcessName)]
     [BepInDependency(KoikatuAPI.GUID)]
     [BepInDependency(KK_VR.VRPlugin.GUID)]
-    [BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in dependencies, no clue how to pass reflected enum type to the delegate.
+    [BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in hard dependencies, no clue how to pass reflected enum type to the delegate.
 
     public class SensibleH : BaseUnityPlugin
     {
         public const string GUID = "kk.sensible.h";
         public const string Name = "KK_SensibleH";
-        public const string Version = "0.1.1";
+        public const string Version = "1.0";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<AutoModeKind> AutoMode { get; set; }
@@ -45,7 +45,9 @@ namespace KK_SensibleH
         public static ConfigEntry<int> GaugeSpeed { get; set; }
         public static ConfigEntry<FrenchType> FrenchKiss { get; set; }
         public static ConfigEntry<int> KissEyesLimit { get; set; }
+#if DEBUG
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey { get; set; }
+#endif
         public static bool MoveNeckGlobal;
         public static int[] EyeNeckPtn = { -1, -1, -1 };
 
@@ -234,14 +236,14 @@ namespace KK_SensibleH
                 "Attach items (hands/tongue/etc) to girl's points of interest then press and hold the mouse button for a second (or trigger if in MainGameVR) " +
                 "and enjoy items moving by themselves (button may be released). A click anywhere to stop it. This setting is just a description."
                 );
-
+#if DEBUG
             Cfg_TestKey = Config.Bind(
                 section: "SensibleH",
                 key: "TestKey1",
                 defaultValue: KeyboardShortcut.Empty,
                 "Key to manually trigger test"
                 );
-
+#endif
 
 
             sLoopInfo = new AnimatorStateInfo();

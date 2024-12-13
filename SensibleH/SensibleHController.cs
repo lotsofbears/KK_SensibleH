@@ -15,7 +15,6 @@ using KK_SensibleH.Patches.StaticPatches;
 using KK_SensibleH.AutoMode;
 using VRGIN.Helpers;
 using KK_SensibleH.Caress;
-using KK.RootMotion.FinalIK;
 using VRGIN.Core;
 using RootMotion.FinalIK;
 using static Illusion.Utils;
@@ -37,38 +36,38 @@ namespace KK_SensibleH
         private readonly int[] _clothes = { 1, 3, 5};
         private bool _hEnd;
         internal static bool _vr;
-#if KK
-        private Transform[] _ref = new Transform[22];
-        enum Refs
-        {
-            // 22 entry.
-            root,
-            pelvis,
-            spine,
-            chest,
-            neck,
-            head,
+        //#if KK
+        //        private Transform[] _ref = new Transform[22];
+        //        enum Refs
+        //        {
+        //            // 22 entry.
+        //            root,
+        //            pelvis,
+        //            spine,
+        //            chest,
+        //            neck,
+        //            head,
 
-            leftShoulder,
-            leftUpperArm,
-            leftForearm,
-            leftHand,
-            
-            rightShoulder,
-            rightUpperArm,
-            rightForearm,
-            rightHand,
+        //            leftShoulder,
+        //            leftUpperArm,
+        //            leftForearm,
+        //            leftHand,
 
-            leftThigh,
-            leftCalf,
-            leftFoot,
-            leftToes,
+        //            rightShoulder,
+        //            rightUpperArm,
+        //            rightForearm,
+        //            rightHand,
 
-            rightThigh,
-            rightCalf,
-            rightFoot,
-            rightToes
-        }
+        //            leftThigh,
+        //            leftCalf,
+        //            leftFoot,
+        //            leftToes,
+
+        //            rightThigh,
+        //            rightCalf,
+        //            rightFoot,
+        //            rightToes
+        //        }
         // cf_j_spine03 brings rather weird behaviour.
         //private Transform[] GetFullSpine(RootMotion.FinalIK.FullBodyBipedIK fbbik)
         //{
@@ -79,54 +78,54 @@ namespace KK_SensibleH
         //    result[3] = fbbik.references.spine[2];
         //    return result;
         //}
-        private Transform _spine03;
-        private Transform _camera;
-        private LookAtController _lookAtController;
-        internal void SetupLookAtIK(ChaControl chara)
-        {
-            var fbbik = chara.objAnim.GetComponent<RootMotion.FinalIK.FullBodyBipedIK>();
-            if (fbbik == null) return;
-            var lookAt = chara.objAnim.AddComponent<KK.RootMotion.FinalIK.LookAtIK>();
-            Transform[] spine =
-                [
-                fbbik.references.spine[0],
-                fbbik.references.spine[1],
-                fbbik.references.spine[1].Find("cf_j_spine03"),
-                fbbik.references.spine[2]   
-                ];
-            lookAt.solver.SetChain(spine, fbbik.references.head, null, fbbik.references.root);
-            lookAt.solver.bodyWeight = 0.6f;
-            lookAt.solver.headWeight = 0.8f;
-            _lookAtController = chara.objAnim.AddComponent<LookAtController>();
-            _lookAtController.ik = lookAt;
-            _lookAtController.weightSmoothTime = 1f;
-            _lookAtController.targetSwitchSmoothTime = 1f;
-            _lookAtController.maxRadiansDelta = 0.25f;
-            _lookAtController.maxMagnitudeDelta = 0.25f;
-            _lookAtController.slerpSpeed = 1f;
-            _lookAtController.maxRootAngle = 180f;
+        //private Transform _spine03;
+        //private Transform _camera;
+        //private LookAtController _lookAtController;
+        //internal void SetupLookAtIK(ChaControl chara)
+        //{
+        //    var fbbik = chara.objAnim.GetComponent<RootMotion.FinalIK.FullBodyBipedIK>();
+        //    if (fbbik == null) return;
+        //    var lookAt = chara.objAnim.AddComponent<KK.RootMotion.FinalIK.LookAtIK>();
+        //    Transform[] spine =
+        //        [
+        //        fbbik.references.spine[0],
+        //        fbbik.references.spine[1],
+        //        fbbik.references.spine[1].Find("cf_j_spine03"),
+        //        fbbik.references.spine[2]   
+        //        ];
+        //    lookAt.solver.SetChain(spine, fbbik.references.head, null, fbbik.references.root);
+        //    lookAt.solver.bodyWeight = 0.6f;
+        //    lookAt.solver.headWeight = 0.8f;
+        //    _lookAtController = chara.objAnim.AddComponent<LookAtController>();
+        //    _lookAtController.ik = lookAt;
+        //    _lookAtController.weightSmoothTime = 1f;
+        //    _lookAtController.targetSwitchSmoothTime = 1f;
+        //    _lookAtController.maxRadiansDelta = 0.25f;
+        //    _lookAtController.maxMagnitudeDelta = 0.25f;
+        //    _lookAtController.slerpSpeed = 1f;
+        //    _lookAtController.maxRootAngle = 180f;
 
-            //lookController.target = VR.Camera.Head;
-            //_spine03 = fbbik.references.spine[1].Find("cf_j_spine03");
-            _lookAtController.target = VR.Camera.Head;  //hFlag.ctrlCamera.transform;
-        }
-        private void FollowTarget()
-        {
-            if (_lookAtController.target == null)
-            {
-                if (Vector3.Angle(_camera.position - _spine03.position, _spine03.forward) < 45f)
-                {
-                    _lookAtController.target = _camera;
-                }
-            }
-            else
-            {
-                if (Vector3.Angle(_camera.position - _spine03.position, _spine03.forward) > 90f)
-                {
-                    _lookAtController.target = null;
-                }
-            }
-        }
+        //    //lookController.target = VR.Camera.Head;
+        //    //_spine03 = fbbik.references.spine[1].Find("cf_j_spine03");
+        //    _lookAtController.target = VR.Camera.Head;  //hFlag.ctrlCamera.transform;
+        //}
+        //private void FollowTarget()
+        //{
+        //    if (_lookAtController.target == null)
+        //    {
+        //        if (Vector3.Angle(_camera.position - _spine03.position, _spine03.forward) < 45f)
+        //        {
+        //            _lookAtController.target = _camera;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (Vector3.Angle(_camera.position - _spine03.position, _spine03.forward) > 90f)
+        //        {
+        //            _lookAtController.target = null;
+        //        }
+        //    }
+        //}
         //private void SetHeadEffector(ChaControl chara)
         //{
         //    // We don't use actual root-head bone, as neck-aim script gets in a way there,
@@ -178,7 +177,7 @@ namespace KK_SensibleH
 
         //        // cf_j_spine01
         //        //new() { transform = oldFbik.references.spine[0], weight = 1f },   // 0.8f 
-                
+
         //        // cf_j_spine02
         //        new() { transform = oldFbik.references.spine[1], weight = 0.8f  },
 
@@ -204,7 +203,7 @@ namespace KK_SensibleH
         //        [
         //        // cf_j_waist01 - solid pick
         //        chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01"), 
-                
+
         //        //// cf_j_waist02 - good pick when together with cf_j_waist01.
         //        //chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02"),
 
@@ -225,126 +224,127 @@ namespace KK_SensibleH
         // We use 3 - object spine, spine02 -> spine03 -> neck, instead of spine01 -> spine02 -> neck
         // This ik does much better job this way.
         //
-        private void UpdateFBBIK(ChaControl chara)
-        {
-            var oldFbik = chara.objAnim.GetComponent<RootMotion.FinalIK.FullBodyBipedIK>();
-            var newFbik = chara.objAnim.GetComponent<KK.RootMotion.FinalIK.FullBodyBipedIK>();
-            if (newFbik == null)
-            {
-                newFbik = chara.objAnim.AddComponent<KK.RootMotion.FinalIK.FullBodyBipedIK>();
-            }
+        //        private void UpdateFBBIK(ChaControl chara)
+        //        {
+        //            var oldFbik = chara.objAnim.GetComponent<RootMotion.FinalIK.FullBodyBipedIK>();
+        //            var newFbik = chara.objAnim.GetComponent<KK.RootMotion.FinalIK.FullBodyBipedIK>();
+        //            if (newFbik == null)
+        //            {
+        //                newFbik = chara.objAnim.AddComponent<KK.RootMotion.FinalIK.FullBodyBipedIK>();
+        //            }
 
-            newFbik.references.root = oldFbik.references.root;
-            newFbik.references.pelvis = oldFbik.references.pelvis;
-            newFbik.references.leftThigh = oldFbik.references.leftThigh;
-            newFbik.references.leftCalf = oldFbik.references.leftCalf;
-            newFbik.references.leftFoot = oldFbik.references.leftFoot;
-            newFbik.references.rightThigh = oldFbik.references.rightThigh;
-            newFbik.references.rightCalf = oldFbik.references.rightCalf;
-            newFbik.references.rightFoot = oldFbik.references.rightFoot;
-            newFbik.references.leftUpperArm = oldFbik.references.leftUpperArm;
-            newFbik.references.leftForearm = oldFbik.references.leftForearm;
-            newFbik.references.leftHand = oldFbik.references.leftHand;
-            newFbik.references.rightUpperArm = oldFbik.references.rightUpperArm;
-            newFbik.references.rightForearm = oldFbik.references.rightForearm;
-            newFbik.references.rightHand = oldFbik.references.rightHand;
-            newFbik.references.head = chara.objHeadBone.transform.parent;
-            //newFbik.references.spine = oldFbik.references.spine;
-            newFbik.references.spine =
-                [
-                oldFbik.references.spine[1],
-                oldFbik.references.spine[1].Find("cf_j_spine03"),
-                oldFbik.references.spine[2]
-                ];
-            newFbik.SetReferences(newFbik.references, newFbik.references.spine[0]); // oldFbik.solver.rootNode);
+        //            newFbik.references.root = oldFbik.references.root;
+        //            newFbik.references.pelvis = oldFbik.references.pelvis;
+        //            newFbik.references.leftThigh = oldFbik.references.leftThigh;
+        //            newFbik.references.leftCalf = oldFbik.references.leftCalf;
+        //            newFbik.references.leftFoot = oldFbik.references.leftFoot;
+        //            newFbik.references.rightThigh = oldFbik.references.rightThigh;
+        //            newFbik.references.rightCalf = oldFbik.references.rightCalf;
+        //            newFbik.references.rightFoot = oldFbik.references.rightFoot;
+        //            newFbik.references.leftUpperArm = oldFbik.references.leftUpperArm;
+        //            newFbik.references.leftForearm = oldFbik.references.leftForearm;
+        //            newFbik.references.leftHand = oldFbik.references.leftHand;
+        //            newFbik.references.rightUpperArm = oldFbik.references.rightUpperArm;
+        //            newFbik.references.rightForearm = oldFbik.references.rightForearm;
+        //            newFbik.references.rightHand = oldFbik.references.rightHand;
+        //            newFbik.references.head = chara.objHeadBone.transform.parent;
+        //            //newFbik.references.spine = oldFbik.references.spine;
+        //            newFbik.references.spine =
+        //                [
+        //                oldFbik.references.spine[1],
+        //                oldFbik.references.spine[1].Find("cf_j_spine03"),
+        //                oldFbik.references.spine[2]
+        //                ];
+        //            newFbik.SetReferences(newFbik.references, newFbik.references.spine[0]); // oldFbik.solver.rootNode);
 
-            for (var i = 0; i < newFbik.solver.effectors.Length; i++)
-            {
-                newFbik.solver.effectors[i].target = oldFbik.solver.effectors[i].target;
-                newFbik.solver.effectors[i].positionWeight = oldFbik.solver.effectors[i].positionWeight;
-                newFbik.solver.effectors[i].rotationWeight = oldFbik.solver.effectors[i].rotationWeight;
-            }
-            for (var i = 0; i < newFbik.solver.chain.Length; i++)
-            {
-                newFbik.solver.chain[i].bendConstraint.bendGoal = oldFbik.solver.chain[i].bendConstraint.bendGoal;
-                newFbik.solver.chain[i].bendConstraint.weight = oldFbik.solver.chain[i].bendConstraint.weight;
-                newFbik.solver.chain[i].reach = oldFbik.solver.chain[i].reach;
-                newFbik.solver.chain[i].pull = oldFbik.solver.chain[i].pull;
-                newFbik.solver.chain[i].pin = oldFbik.solver.chain[i].pin;
-                newFbik.solver.chain[i].push = oldFbik.solver.chain[i].push;
+        //            for (var i = 0; i < newFbik.solver.effectors.Length; i++)
+        //            {
+        //                newFbik.solver.effectors[i].target = oldFbik.solver.effectors[i].target;
+        //                newFbik.solver.effectors[i].positionWeight = oldFbik.solver.effectors[i].positionWeight;
+        //                newFbik.solver.effectors[i].rotationWeight = oldFbik.solver.effectors[i].rotationWeight;
+        //            }
+        //            for (var i = 0; i < newFbik.solver.chain.Length; i++)
+        //            {
+        //                newFbik.solver.chain[i].bendConstraint.bendGoal = oldFbik.solver.chain[i].bendConstraint.bendGoal;
+        //                newFbik.solver.chain[i].bendConstraint.weight = oldFbik.solver.chain[i].bendConstraint.weight;
+        //                newFbik.solver.chain[i].reach = oldFbik.solver.chain[i].reach;
+        //                newFbik.solver.chain[i].pull = oldFbik.solver.chain[i].pull;
+        //                newFbik.solver.chain[i].pin = oldFbik.solver.chain[i].pin;
+        //                newFbik.solver.chain[i].push = oldFbik.solver.chain[i].push;
 
-            }
-            oldFbik.enabled = false;
-        }
+        //            }
+        //            oldFbik.enabled = false;
+        //        }
 
-        private void TestSetRot(float x, float y, float z)
-        {
-            _testRotOffset = Quaternion.Euler(x, y, z);
-        }
-#endif
-
-
-        private VRIK PrepareVRIK(ChaControl chara)
-        {
-            var ik = chara.animBody.GetComponent<RootMotion.FinalIK.FullBodyBipedIK>();
-            if (ik == null) return null;
-            ik.enabled = false;
-            var refs = ik.references;
-            var vrik = chara.animBody.gameObject.AddComponent<VRIK>();
-            var vRef = vrik.references;
-
-            vRef.root = refs.root;
-            vRef.pelvis = refs.pelvis;
-            vRef.spine = refs.spine[0]; //refs.spine[1]; // cf_j_spine02
-            vRef.chest = refs.spine[1]; // chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03");
-            vRef.neck = refs.spine[2];
-            vRef.head = refs.head;
-
-            vRef.leftShoulder = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_shoulder_L/cf_j_shoulder_L");
-            vRef.leftUpperArm = refs.leftUpperArm;
-            vRef.leftForearm = refs.leftForearm;
-            vRef.leftHand = refs.leftHand;
-
-            vRef.rightShoulder = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_shoulder_R/cf_j_shoulder_R");
-            vRef.rightUpperArm = refs.rightUpperArm;
-            vRef.rightForearm = refs.rightForearm;
-            vRef.rightHand = refs.rightHand;
-
-            vRef.leftThigh = refs.leftThigh;
-            vRef.leftCalf = refs.leftCalf;
-            vRef.leftFoot = refs.leftFoot;
-            vRef.leftToes = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_j_thigh00_L/cf_j_leg01_L/cf_j_leg03_L/cf_j_foot_L/cf_j_toes_L");
-
-            vRef.rightThigh = refs.rightThigh;
-            vRef.rightCalf = refs.rightCalf;
-            vRef.rightFoot = refs.rightFoot;
-            vRef.rightToes = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_j_thigh00_R/cf_j_leg01_R/cf_j_leg03_R/cf_j_foot_R/cf_j_toes_R");
-
-            //vrik.solver.leftArm.target = ik.solver.leftHandEffector.target;
-            //vrik.solver.leftArm.bendGoal = ik.solver.leftArmChain.bendConstraint.bendGoal;
-
-            //vrik.solver.rightArm.target = ik.solver.rightHandEffector.target;
-            //vrik.solver.rightArm.bendGoal = ik.solver.rightArmChain.bendConstraint.bendGoal;
-
-            //vrik.solver.leftLeg.target = ik.solver.leftFootEffector.target;
-            //vrik.solver.leftLeg.bendGoal = ik.solver.leftLegChain.bendConstraint.bendGoal;
-
-            //vrik.solver.rightLeg.target = ik.solver.rightFootEffector.target;
-            //vrik.solver.rightLeg.bendGoal = ik.solver.rightLegChain.bendConstraint.bendGoal;
+        //        private void TestSetRot(float x, float y, float z)
+        //        {
+        //            _testRotOffset = Quaternion.Euler(x, y, z);
+        //        }
+        //#endif
 
 
-            var headAnchor = new GameObject("HeadAnk").transform;
-            headAnchor.SetParent(VR.Camera.Head, false);
-            vrik.solver.leftArm.target = VR.Mode.Left.transform;
-            vrik.solver.rightArm.target = VR.Mode.Right.transform;
-            vrik.solver.spine.headTarget = headAnchor;
-            return vrik;
+        //        private VRIK PrepareVRIK(ChaControl chara)
+        //        {
+        //            var ik = chara.animBody.GetComponent<RootMotion.FinalIK.FullBodyBipedIK>();
+        //            if (ik == null) return null;
+        //            ik.enabled = false;
+        //            var refs = ik.references;
+        //            var vrik = chara.animBody.gameObject.AddComponent<VRIK>();
+        //            var vRef = vrik.references;
 
-        }
-        private RootMotion.FinalIK.IKEffector _testEffector;
-        private Vector3 _testVecOffset;
+        //            vRef.root = refs.root;
+        //            vRef.pelvis = refs.pelvis;
+        //            vRef.spine = refs.spine[0]; //refs.spine[1]; // cf_j_spine02
+        //            vRef.chest = refs.spine[1]; // chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03");
+        //            vRef.neck = refs.spine[2];
+        //            vRef.head = refs.head;
 
-        private Quaternion _testRotOffset = Quaternion.identity;
+        //            vRef.leftShoulder = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_shoulder_L/cf_j_shoulder_L");
+        //            vRef.leftUpperArm = refs.leftUpperArm;
+        //            vRef.leftForearm = refs.leftForearm;
+        //            vRef.leftHand = refs.leftHand;
+
+        //            vRef.rightShoulder = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_shoulder_R/cf_j_shoulder_R");
+        //            vRef.rightUpperArm = refs.rightUpperArm;
+        //            vRef.rightForearm = refs.rightForearm;
+        //            vRef.rightHand = refs.rightHand;
+
+        //            vRef.leftThigh = refs.leftThigh;
+        //            vRef.leftCalf = refs.leftCalf;
+        //            vRef.leftFoot = refs.leftFoot;
+        //            vRef.leftToes = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_j_thigh00_L/cf_j_leg01_L/cf_j_leg03_L/cf_j_foot_L/cf_j_toes_L");
+
+        //            vRef.rightThigh = refs.rightThigh;
+        //            vRef.rightCalf = refs.rightCalf;
+        //            vRef.rightFoot = refs.rightFoot;
+        //            vRef.rightToes = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_j_thigh00_R/cf_j_leg01_R/cf_j_leg03_R/cf_j_foot_R/cf_j_toes_R");
+
+        //            //vrik.solver.leftArm.target = ik.solver.leftHandEffector.target;
+        //            //vrik.solver.leftArm.bendGoal = ik.solver.leftArmChain.bendConstraint.bendGoal;
+
+        //            //vrik.solver.rightArm.target = ik.solver.rightHandEffector.target;
+        //            //vrik.solver.rightArm.bendGoal = ik.solver.rightArmChain.bendConstraint.bendGoal;
+
+        //            //vrik.solver.leftLeg.target = ik.solver.leftFootEffector.target;
+        //            //vrik.solver.leftLeg.bendGoal = ik.solver.leftLegChain.bendConstraint.bendGoal;
+
+        //            //vrik.solver.rightLeg.target = ik.solver.rightFootEffector.target;
+        //            //vrik.solver.rightLeg.bendGoal = ik.solver.rightLegChain.bendConstraint.bendGoal;
+
+
+        //            var headAnchor = new GameObject("HeadAnk").transform;
+        //            headAnchor.SetParent(VR.Camera.Head, false);
+        //            vrik.solver.leftArm.target = VR.Mode.Left.transform;
+        //            vrik.solver.rightArm.target = VR.Mode.Right.transform;
+        //            vrik.solver.spine.headTarget = headAnchor;
+        //            return vrik;
+
+        //        }
+        //        private RootMotion.FinalIK.IKEffector _testEffector;
+        //        private Vector3 _testVecOffset;
+
+        //        private Quaternion _testRotOffset = Quaternion.identity;
+#if DEBUG
         private void Update()   
         {
             if (Input.GetKeyDown(Cfg_TestKey.Value.MainKey) && Cfg_TestKey.Value.Modifiers.All(x => Input.GetKey(x)))
@@ -444,138 +444,7 @@ namespace KK_SensibleH
                 //}
             }
         }
-
-
-        /*
-         * while (queue.Count > 0)
-            {
-                var bone = queue.Dequeue();
-
-                if (bone != null)
-                {
-                    ObiParticleGroup group = null;
-                    if (_goodBones.Contains(bone.name))
-                    {
-                        // create a new particle group for each bone:
-                        group = AppendNewParticleGroup(bone.name, false);
-                        group.particleIndices.Add(particles.Count);
-                        particles.Add(boneRotation * bone.position);
-                        particleType.Add(ParticleType.Bone);
-                        Debug.Log($"ProcessBone:{bone.name}");
-                    }
-
-                    foreach (Transform child in bone)
-                    {
-                        if (_goodBones.Contains(child.name))
-                        {
-                            Debug.Log($"ProcessChild:{child.name}");
-                            Vector3 boneDir = child.position - bone.position;
-                            float boneLength = boneDir.magnitude;
-                            boneDir.Normalize();
-
-                            int particlesInBone = 1 + Mathf.FloorToInt(boneLength / size);
-                            float distance = boneLength / particlesInBone;
-
-                            for (int i = 1; i < particlesInBone; ++i)
-                            {
-                                group.particleIndices.Add(particles.Count);
-                                particles.Add(boneRotation * (bone.position + boneDir * distance * i));
-                                particleType.Add(ParticleType.Bone);
-                            }
-                            queue.Enqueue(child);
-                        }
-
-                    }
-                    yield return new CoroutineJob.ProgressInfo("ObiSoftbody: sampling skeleton...", 1);
-                }
-         * 
-         * 
-         * 
-        private readonly List<string> _goodBones = new List<string>
-            {
-
-            "cf_j_hips",
-            "cf_j_spine01",
-            "cf_j_spine02",
-            "cf_j_spine03",
-            "cf_j_neck",
-            "cf_s_spine02",
-
-
-            "cf_d_shoulder_L",
-            "cf_j_shoulder_L",
-            "cf_j_arm00_L",
-            "cf_j_forearm01_L",
-            "cf_j_hand_L",
-            "cf_s_hand_L",
-            "cf_j_index01_L",
-            "cf_j_index02_L",
-            "cf_j_index03_L",
-            "cf_j_index04_L",
-            "cf_j_little01_L",
-            "cf_j_little02_L",
-            "cf_j_little03_L",
-            "cf_j_little04_L",
-            "cf_j_middle01_L",
-            "cf_j_middle02_L",
-            "cf_j_middle03_L",
-            "cf_j_middle04_L",
-            "cf_j_ring01_L",
-            "cf_j_ring02_L",
-            "cf_j_ring03_L",
-            "cf_j_ring04_L",
-            "cf_j_thumb01_L",
-            "cf_j_thumb02_L",
-            "cf_j_thumb03_L",
-            "cf_j_thumb04_L",
-
-            "cf_d_shoulder_R",
-            "cf_j_shoulder_R",
-            "cf_j_arm00_R",
-            "cf_j_forearm01_R",
-            "cf_j_hand_R",
-            "cf_s_hand_R",
-            "cf_j_index01_R",
-            "cf_j_index02_R",
-            "cf_j_index03_R",
-            "cf_j_index04_R",
-            "cf_j_little01_R",
-            "cf_j_little02_R",
-            "cf_j_little03_R",
-            "cf_j_little04_R",
-            "cf_j_middle01_R",
-            "cf_j_middle02_R",
-            "cf_j_middle03_R",
-            "cf_j_middle04_R",
-            "cf_j_ring01_R",
-            "cf_j_ring02_R",
-            "cf_j_ring03_R",
-            "cf_j_ring04_R",
-            "cf_j_thumb01_R",
-            "cf_j_thumb02_R",
-            "cf_j_thumb03_R",
-            "cf_j_thumb04_R",
-
-            "cf_j_waist01",
-            "cf_j_waist02",
-
-            "cf_j_thigh00_L",
-            "cf_j_leg01_L",
-            "cf_j_leg03_L",
-            "cf_j_foot_L",
-            "cf_j_toes_L",
-
-            "cf_j_thigh00_R",
-            "cf_j_leg01_R",
-            "cf_j_leg03_R",
-            "cf_j_foot_R",
-            "cf_j_toes_R"
-        };
-         * 
-         * 
-         * 
-         * 
-         */
+#endif
         private void Start()
         {
             Instance = this;
@@ -681,7 +550,6 @@ namespace KK_SensibleH
             TestH.size = (pipi.localScale.x + pipi.localScale.y) * 0.5f;
 
             UpdateSettings();
-            //_repositionLight = true;
             StartCoroutine(OnceInAwhile());
         }
 
@@ -691,7 +559,6 @@ namespace KK_SensibleH
         }
         private void DressDudeForAction()
         {
-            // Not-only-socks edition.
             var states = _chaControlM.fileStatus.clothesState;
             for (int i = 0; i < states.Length; i++)
             {
@@ -735,29 +602,18 @@ namespace KK_SensibleH
 #endif
 
                 _loopController.Proc();
-                //_moMiController.Proc();
                 foreach (var girl in _girlControllers)
                 {
                     girl.Proc();
                 }
                 if (MoveNeckGlobal && (!SensibleH.EyeNeckControl.Value || (EyeNeckPtn[0] == -1 && EyeNeckPtn[1] == -1)))
                 {
-                    //SensibleH.Logger.LogDebug($"MoveNeckGlobal[Stop]");
                     MoveNeckGlobal = false;
                 }
-                //if (_chaControlM != null && _chaControlM.visibleAll)
-                //    maleController.LookLessDead();
-                //SensibleH.Logger.LogDebug($"OnceInAWhile[{_scene.AddSceneName}");
-                //    $"poi[{FemalePoI[0]}] [{moveNeckGlobal}]");
                 if (!FirstTouch)
                 {
                     FirstTouch = !_handCtrl.IsItemTouch();
                 }
-
-                //if (_repositionLight)
-                //{
-                //    RepositionDirLight();
-                //}
                 yield return new WaitForSeconds(1f);
             }
         }
@@ -788,7 +644,6 @@ namespace KK_SensibleH
             {
                 hExp *= 0.75f;
             }
-            //SensibleH.Logger.LogDebug($"Familiarity:{hExp}");
             return hExp;
         }
         public void OnVoiceProc(int main)
@@ -808,7 +663,6 @@ namespace KK_SensibleH
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
         {
-            //SensibleH.Logger.LogDebug($"NewPosition[{nextAnimInfo.mode}]");
             if (hFlag != null)
             {
                 CurrentMain = hFlag.nowAnimationInfo.nameAnimation.Contains("Alt") ? 1 : 0;
@@ -827,7 +681,6 @@ namespace KK_SensibleH
                 }
                 UpdateSettings();
                 SetTouchAvailability();
-                //_repositionLight = true;
             }
 
         }
@@ -837,7 +690,6 @@ namespace KK_SensibleH
         }
         public void DoFirstTouchProc()
         {
-            //SensibleH.Logger.LogDebug($"ExtraVoices:FirstTouch");
             List<int> voiceId = new List<int>();
             foreach (var item in _handCtrl.useItems)
             {
@@ -857,7 +709,6 @@ namespace KK_SensibleH
         {
             if (hFlag != null)
             {
-                //SensibleH.Logger.LogDebug($"ExtraTriggers:Touch");
                 _girlControllers[0]._neckController.LookAtPoI(item);
             }
         }
@@ -947,45 +798,13 @@ namespace KK_SensibleH
             EndItAll();
         }
         private readonly int[] _auxClothesSlots = { 2, 3, 5, 6 };
-        //private List<SaveData.Heroine> _heroineList = new List<SaveData.Heroine>();
 
-        //internal void RepositionDirLight()
-        //{
-        //    if (hFlag == null)
-        //        return;
-        //    _repositionLight = false;
-        //    var chara = _chaControl[0];
-        //    var hScene = chara.transform.parent;
-        //    var dirLight = hScene.Find("CameraBase/Camera/Directional Light");
-        //    if (dirLight == null)
-        //    {
-        //        dirLight = hScene.Find("Directional Light");
-        //        if (dirLight == null)
-        //        {
-        //            return;
-        //        }
-        //    }
-        //    // We find rotation between vector from the center of the scene (0,0,0), and base of the chara.
-        //    // Then we create rotation towards it from the chara for random degrees, and elevate it a bit.
-        //    // And place our camera there. Consistent, doesn't defy logic too often, and much better then in vr then directional light.
-        //    // TODO port to KK_VR.
-
-        //    var lowHeight = (chara.objHeadBone.transform.position.y - chara.transform.position.y) < 0.5f;
-        //    var yDeviation = Random.Range(30f, 60f);
-        //    var xDeviation = Random.Range(15f, lowHeight ? 60f : 30f);
-        //    var lookRot = Quaternion.LookRotation(new Vector3(0f, chara.transform.position.y, 0f) - chara.transform.position);
-        //    dirLight.transform.SetParent(hScene, worldPositionStays: false); // 
-        //    dirLight.position = chara.objHeadBone.transform.position + (Quaternion.RotateTowards(chara.transform.rotation, lookRot, yDeviation) * Quaternion.Euler(-xDeviation, 0f, 0f) * Vector3.forward);
-        //    dirLight.rotation = Quaternion.LookRotation((lowHeight ? chara.objBody : chara.objHeadBone).transform.position - dirLight.position);
-        //    //SensibleH.Logger.LogDebug($"{chara.objHeadBone.transform.position}");
-        //}
 
         private Dictionary<string, List<byte>> _redressTargets = new Dictionary<string, List<byte>>();
         private void ReDress()
         {
 
 #if KK
-            //SensibleH.Logger.LogDebug($"ReDress:{_chaControl.Count}");
             foreach (var chara in _chaControl)
             {
                 //var clone = Game.Instance.actScene.GetComponentsInChildren<ChaControl>()
