@@ -42,7 +42,7 @@ namespace KK_SensibleH
             var main = 0;
             if (hFlag.mode == HFlag.EMode.houshi3P)
                 main = Random.Range(0, 2);
-            SensibleH.Logger.LogDebug($"chaControl[CurrentMain] = {_chaControl[main]}");
+            //SensibleH.Logger.LogDebug($"chaControl[CurrentMain] = {_chaControl[main]}");
             //switch (Random.Range(0, 8))
             //{
             //    case 0:
@@ -103,7 +103,7 @@ namespace KK_SensibleH
             transform = _chaControl[main].objBodyBone.GetComponentsInChildren<Transform>().ToList<Transform>()
                         .Where(t => t.name.Contains("cf_J_Eye_tz"))
                         .Select(t => t.transform).FirstOrDefault<Transform>();
-            SensibleH.Logger.LogDebug($"SetMalePoI: = {transform.gameObject}");
+            //SensibleH.Logger.LogDebug($"SetMalePoI: = {transform.gameObject}");
             MalePoI = transform.gameObject;
         }
     }

@@ -61,7 +61,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         //{
         //    var done = false;
         //    var counter = 0;
-        //    SensibleH.Logger.LogDebug($"Trans:TalkScene:Start");
+        //    //SensibleH.Logger.LogDebug($"Trans:TalkScene:Start");
         //    foreach (var code in instructions)
         //    {
         //        if (!done)
@@ -69,7 +69,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         //            if (counter > 1)
         //            {
         //                counter++;
-        //                SensibleH.Logger.LogDebug($"Trans:TalkScene:{code}:{code.operand}:{counter}");
+        //                //SensibleH.Logger.LogDebug($"Trans:TalkScene:{code}:{code.operand}:{counter}");
         //                yield return new CodeInstruction(OpCodes.Nop);
         //                if (counter == 5)
         //                {
@@ -81,7 +81,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         //                && info.Name.Equals($"get_Instance"))
         //            {
         //                counter++;
-        //                SensibleH.Logger.LogDebug($"Trans:TalkScene:{code}:{code.operand}:{counter}");
+        //                //SensibleH.Logger.LogDebug($"Trans:TalkScene:{code}:{code.operand}:{counter}");
         //                if (counter == 2)
         //                {
         //                    yield return new CodeInstruction(OpCodes.Call, AccessTools.FirstMethod(typeof(VRHelper), m => m.Name.Equals(nameof(VRHelper.GetOriginPosition))));

@@ -18,6 +18,7 @@ using KK_SensibleH.Caress;
 using KK.RootMotion.FinalIK;
 using VRGIN.Core;
 using RootMotion.FinalIK;
+using static Illusion.Utils;
 namespace KK_SensibleH
 {
     /// <summary>
@@ -350,41 +351,49 @@ namespace KK_SensibleH
             {
                 //SetHeadEffector(_chaControl[0]);
                 //PrepareVRIK(_chaControlM);
-#if KK
-                var idList = new List<int>();
-                var skinnedMeshRend = (SkinnedMeshRenderer)_chaControl[0].rendBody;
-                var boneWeights = skinnedMeshRend.sharedMesh.boneWeights;
-                foreach (var weight in boneWeights)
-                {
-                    if (!idList.Contains(weight.boneIndex0))
-                    {
-                        idList.Add(weight.boneIndex0);
-                    }
-                    if (!idList.Contains(weight.boneIndex1))
-                    {
-                        idList.Add(weight.boneIndex1);
-                    }
-                    if (!idList.Contains(weight.boneIndex2))
-                    {
-                        idList.Add(weight.boneIndex2);
-                    }
-                    if (!idList.Contains(weight.boneIndex3))
-                    {
-                        idList.Add(weight.boneIndex3);
-                    }
-                }
-                for (int i = 0; i < skinnedMeshRend.bones.Length; i++)
-                {
-                    if (!idList.Contains(i))
-                    {
-                        SensibleH.Logger.LogDebug($"'{skinnedMeshRend.bones[i].name}' has no weight");
-                    }
-                }
+                //var idList = new List<int>();
+                //var skinnedMeshRend = (SkinnedMeshRenderer)_chaControl[0].rendBody;
+                //var boneWeights = skinnedMeshRend.sharedMesh.boneWeights;
+                //foreach (var weight in boneWeights)
+                //{
+                //    if (!idList.Contains(weight.boneIndex0))
+                //    {
+                //        idList.Add(weight.boneIndex0);
+                //    }
+                //    if (!idList.Contains(weight.boneIndex1))
+                //    {
+                //        idList.Add(weight.boneIndex1);
+                //    }
+                //    if (!idList.Contains(weight.boneIndex2))
+                //    {
+                //        idList.Add(weight.boneIndex2);
+                //    }
+                //    if (!idList.Contains(weight.boneIndex3))
+                //    {
+                //        idList.Add(weight.boneIndex3);
+                //    }
+                //}
+                //for (int i = 0; i < skinnedMeshRend.bones.Length; i++)
+                //{
+                //    if (!idList.Contains(i))
+                //    {
+                //        //SensibleH.Logger.LogDebug($"'{skinnedMeshRend.bones[i].name}' has no weight");
+                //    }
+                //}
 
-                //var meshes = _chaControl[0].GetComponentsInChildren<Renderer>();
+
+
+                var meshes = _chaControl[0].GetComponentsInChildren<Collider>();
+                for (var i = 0; i < meshes.Length; i++)
+                {
+                    if (meshes[i] != null)
+                    {
+                        GameObject.Destroy(meshes[i].gameObject);
+                    }
+                }
                 //foreach (var mesh in meshes)
                 //{
-                //    SensibleH.Logger.LogDebug($"{mesh.name}");
+                //    //SensibleH.Logger.LogDebug($"{mesh.name},{mesh.gameObject.layer}");
                 //}
 
 
@@ -400,12 +409,12 @@ namespace KK_SensibleH
                 //}
                 //foreach (var kv in colDic)
                 //{
-                //    SensibleH.Logger.LogDebug($"Layer[{kv.Key}] - {LayerMask.LayerToName(kv.Key)} has chara colliders:");
+                //    //SensibleH.Logger.LogDebug($"Layer[{kv.Key}] - {LayerMask.LayerToName(kv.Key)} has chara colliders:");
                 //    foreach (var col in kv.Value)
                 //    {
-                //        SensibleH.Logger.LogDebug($"[{col.name}] - {col.GetType()}");
+                //        //SensibleH.Logger.LogDebug($"[{col.name}] - {col.GetType()}");
                 //    }
-                //    SensibleH.Logger.LogDebug("------------------------------");
+                //    //SensibleH.Logger.LogDebug("------------------------------");
                 //}
 
                 //var noColDic = new Dictionary<int, List<int>>();
@@ -422,31 +431,17 @@ namespace KK_SensibleH
                 //            }
                 //        }
                 //    }
-                    
+
                 //}
                 //foreach (var i in noColDic)
                 //{
-                //    SensibleH.Logger.LogDebug($"Layer[{i.Key}] - {LayerMask.LayerToName(i.Key)} doesn't collide with:");
+                //    //SensibleH.Logger.LogDebug($"Layer[{i.Key}] - {LayerMask.LayerToName(i.Key)} doesn't collide with:");
                 //    foreach (var j in i.Value)
                 //    {
 
-                //        SensibleH.Logger.LogDebug($"[{j}] - {LayerMask.LayerToName(j)}");
+                //        //SensibleH.Logger.LogDebug($"[{j}] - {LayerMask.LayerToName(j)}");
                 //    }
                 //}
-#endif
-            }
-            else if (Input.GetKeyDown(Cfg_TestKey2.Value.MainKey) && Cfg_TestKey2.Value.Modifiers.All(x => Input.GetKey(x)))
-            {
-#if KK
-#endif
-            }
-            else if (Input.GetKeyDown(Cfg_TestKey3.Value.MainKey) && Cfg_TestKey3.Value.Modifiers.All(x => Input.GetKey(x)))
-            {
-
-            }
-            if (_testEffector != null)
-            {
-
             }
         }
 
@@ -608,9 +603,9 @@ namespace KK_SensibleH
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += OnActiveSceneChanged;
 
         }
-        // Did i port it in KK_VR?
+        // Was it ported in KK_VR?
         // private static int[] _reverbMaps = new int[] { 14, 15, 16, 18, 37, 45, 51, 52, 7501, 7550 };
-        private string[] _reverbMaps =
+        private readonly string[] _reverbMaps =
         [
             "Pool",
             "ShawerRoom",
@@ -634,7 +629,7 @@ namespace KK_SensibleH
         }
         protected override void OnStartH(MonoBehaviour proc, HFlag flag, bool vr)
         {
-            SensibleH.Logger.LogDebug($"OnStartH");
+            //SensibleH.Logger.LogDebug($"OnStartH");
             StopAllCoroutines();
             _hEnd = false;
             var traverse = Traverse.Create(proc);
@@ -656,9 +651,9 @@ namespace KK_SensibleH
             _girlControllers = new List<GirlController>(charaCount);
             FemalePoI = new GameObject[charaCount];
 
-            _moMiController = this.gameObject.AddComponent<MoMiController>();
-            _maleController = this.gameObject.AddComponent<MaleController>();
-            _loopController = this.gameObject.AddComponent<LoopController>();
+            _moMiController = proc.gameObject.AddComponent<MoMiController>();
+            //_maleController = proc.gameObject.AddComponent<MaleController>();
+            _loopController = proc.gameObject.AddComponent<LoopController>();
             _loopController.Initialize(proc, this);
             for (int i = 0; i < charaCount; i++)
             {
@@ -715,7 +710,7 @@ namespace KK_SensibleH
                 yield return new WaitForEndOfFrame();
                 if (_hEnd || hFlag == null)
                 {
-                    SensibleH.Logger.LogDebug($"HEnd");
+                    //SensibleH.Logger.LogDebug($"HEnd");
                     if (!_hEnd)
                     {
                         EndItAll();
@@ -747,7 +742,7 @@ namespace KK_SensibleH
                 }
                 if (MoveNeckGlobal && (!SensibleH.EyeNeckControl.Value || (EyeNeckPtn[0] == -1 && EyeNeckPtn[1] == -1)))
                 {
-                    SensibleH.Logger.LogDebug($"MoveNeckGlobal[Stop]");
+                    //SensibleH.Logger.LogDebug($"MoveNeckGlobal[Stop]");
                     MoveNeckGlobal = false;
                 }
                 //if (_chaControlM != null && _chaControlM.visibleAll)
@@ -793,7 +788,7 @@ namespace KK_SensibleH
             {
                 hExp *= 0.75f;
             }
-            SensibleH.Logger.LogDebug($"Familiarity:{hExp}");
+            //SensibleH.Logger.LogDebug($"Familiarity:{hExp}");
             return hExp;
         }
         public void OnVoiceProc(int main)
@@ -813,7 +808,7 @@ namespace KK_SensibleH
         }
         public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
         {
-            SensibleH.Logger.LogDebug($"NewPosition[{nextAnimInfo.mode}]");
+            //SensibleH.Logger.LogDebug($"NewPosition[{nextAnimInfo.mode}]");
             if (hFlag != null)
             {
                 CurrentMain = hFlag.nowAnimationInfo.nameAnimation.Contains("Alt") ? 1 : 0;
@@ -842,7 +837,7 @@ namespace KK_SensibleH
         }
         public void DoFirstTouchProc()
         {
-            SensibleH.Logger.LogDebug($"ExtraVoices:FirstTouch");
+            //SensibleH.Logger.LogDebug($"ExtraVoices:FirstTouch");
             List<int> voiceId = new List<int>();
             foreach (var item in _handCtrl.useItems)
             {
@@ -862,7 +857,7 @@ namespace KK_SensibleH
         {
             if (hFlag != null)
             {
-                SensibleH.Logger.LogDebug($"ExtraTriggers:Touch");
+                //SensibleH.Logger.LogDebug($"ExtraTriggers:Touch");
                 _girlControllers[0]._neckController.LookAtPoI(item);
             }
         }
@@ -948,7 +943,7 @@ namespace KK_SensibleH
         }
         protected override void OnEndH(MonoBehaviour _proc, HFlag _hFlag, bool _vr)
         {
-            SensibleH.Logger.LogDebug($"OnEndH");
+            //SensibleH.Logger.LogDebug($"OnEndH");
             EndItAll();
         }
         private readonly int[] _auxClothesSlots = { 2, 3, 5, 6 };
@@ -982,7 +977,7 @@ namespace KK_SensibleH
         //    dirLight.transform.SetParent(hScene, worldPositionStays: false); // 
         //    dirLight.position = chara.objHeadBone.transform.position + (Quaternion.RotateTowards(chara.transform.rotation, lookRot, yDeviation) * Quaternion.Euler(-xDeviation, 0f, 0f) * Vector3.forward);
         //    dirLight.rotation = Quaternion.LookRotation((lowHeight ? chara.objBody : chara.objHeadBone).transform.position - dirLight.position);
-        //    SensibleH.Logger.LogDebug($"{chara.objHeadBone.transform.position}");
+        //    //SensibleH.Logger.LogDebug($"{chara.objHeadBone.transform.position}");
         //}
 
         private Dictionary<string, List<byte>> _redressTargets = new Dictionary<string, List<byte>>();
@@ -990,7 +985,7 @@ namespace KK_SensibleH
         {
 
 #if KK
-            SensibleH.Logger.LogDebug($"ReDress:{_chaControl.Count}");
+            //SensibleH.Logger.LogDebug($"ReDress:{_chaControl.Count}");
             foreach (var chara in _chaControl)
             {
                 //var clone = Game.Instance.actScene.GetComponentsInChildren<ChaControl>()
@@ -1047,7 +1042,7 @@ namespace KK_SensibleH
             //
             // There are a lot of null checks in console and sometimes failed to load outfits around the school, but pretty sure, I contribute none to that,
             // As it keeps on happening even without any of my edits/plugins, and the plugin in question is quite important.. 
-            SensibleH.Logger.LogDebug($"ReDressAfter");
+            //SensibleH.Logger.LogDebug($"ReDressAfter");
 #if KK
             var _gameMgr = Game.Instance;
             foreach (var target in _redressTargets)
@@ -1080,7 +1075,7 @@ namespace KK_SensibleH
         }
         public void EndItAll()
         {
-            SensibleH.Logger.LogDebug($"EndItAll");
+            //SensibleH.Logger.LogDebug($"EndItAll");
             if (SceneApi.GetLoadSceneName().Equals("Action"))
             {
                 // We are in the main game.

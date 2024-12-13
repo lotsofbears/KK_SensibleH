@@ -53,8 +53,8 @@ namespace KK_SensibleH.EyeNeckControl
             Behind,
             Still
         }
-        private Dictionary<string, HMotionEyeNeckFemale.EyeNeck> KissDic = new Dictionary<string, HMotionEyeNeckFemale.EyeNeck>();
-        private Dictionary<string, HMotionEyeNeckFemale.EyeNeck> OrigDic = new Dictionary<string, HMotionEyeNeckFemale.EyeNeck>();
+        private Dictionary<string, HMotionEyeNeckFemale.EyeNeck> KissDic = [];
+        private Dictionary<string, HMotionEyeNeckFemale.EyeNeck> OrigDic = [];
         internal bool IsNeckRecent => _neckNextMove - Time.time > 6f;
         private bool IsNeckTimeToMove => _neckNextMove < Time.time;
         private bool IsNeckTimeToStop => _neckMoveUntil < Time.time; 
@@ -148,10 +148,7 @@ namespace KK_SensibleH.EyeNeckControl
                             }
                             return true;
                         case HFlag.EMode.houshi:
-                            if (hFlag.nowAnimationInfo.kindHoushi == 1)
-                                return false;
-                            else
-                                return true;
+                            return hFlag.nowAnimationInfo.kindHoushi != 1;
                         case HFlag.EMode.sonyu:
                         case HFlag.EMode.lesbian:
                         case HFlag.EMode.sonyu3P:
@@ -227,7 +224,7 @@ namespace KK_SensibleH.EyeNeckControl
             if (_eyesNextMove < Time.time)
             {
                 if (voiceActive && Random.value < 0.4f)
-                    _eyesNextMove = Time.time + Random.Range(2f, 5f);
+                    SetEyesNextMove();
                 else
                     PickEyes();
             }
@@ -246,9 +243,8 @@ namespace KK_SensibleH.EyeNeckControl
                             }
                             else
                             {
-                                if (FamiliarityCheck())
+                                if ( _poseType == PoseType.Front && FamiliarityCheck())
                                 {
-                                    //SensibleH.Logger.LogDebug($"Neck:Main:Proc:VR:Close:LookAtCam");
                                     MoveNeckInit();
                                     SetNeckNextMove();
                                     FemalePoI[_main] = null;
@@ -381,6 +377,8 @@ namespace KK_SensibleH.EyeNeckControl
         }
         private void LookSomewhere()
         {
+
+            //SensibleH.Logger.LogDebug($"Neck:LookSomewhere:PoseType = {_poseType}");
             //var camChance = _familiarity * 0.75f;
             var curNeck = GetNeckDirection(GetCurrentNeck);
             var curEyes = GetCurrentEyes;
@@ -408,7 +406,7 @@ namespace KK_SensibleH.EyeNeckControl
             else //if (_poseType == PoseType.Behind)
             {
                 newNeck = GetAibuBackDir(curNeck);
-               // SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:BackPose");
+               // //SensibleH.Logger.LogDebug($"Neck:Main:LookSomewhere:BackPose");
             }
             if (newNeck.Count > 0)
             {
@@ -563,19 +561,19 @@ namespace KK_SensibleH.EyeNeckControl
             //{
             //    if (!_neckActive)
             //    {
-            //        SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Suppress:{curNeck}");
+            //        //SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Suppress:{curNeck}");
             //        MoveNeckInit(Time.time + 3f);
             //    }
             //    else
             //    {
-            //        SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:NoAction:{curNeck}");
+            //        //SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:NoAction:{curNeck}");
             //    }
             //}
             //else
             //{
             //    if (_neckActive)
             //    {
-            //        SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Extend:{curNeck}");
+            //        //SensibleH.Logger.LogDebug($"Neck:Main:DoNotLookAtCam:Extend:{curNeck}");
             //        MoveNeckInit();
             //    }
             //}

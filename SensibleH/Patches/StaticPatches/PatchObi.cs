@@ -15,7 +15,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPrefix, HarmonyPatch(typeof(HitCollisionEnableCtrl), nameof(HitCollisionEnableCtrl.SetPlayObi))]
         public static void StopResettingObi(string _animation, HitCollisionEnableCtrl __instance)
         {
-            //SensibleH.Logger.LogDebug($"ObiAdjustments:ObiGang[ANIM][{_animation}]");
             var dic = __instance.dicInfo;
             if (dic.Count != 0 && !dic.ContainsKey(_animation))
             {
@@ -25,7 +24,6 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPrefix, HarmonyPatch(typeof(ParentObjectCtrl), nameof(ParentObjectCtrl.ProcObi))]
         public static void StopResettingObiParentObjectCtrl(string _nameNextAnimation, ParentObjectCtrl __instance)
         {
-            //SensibleH.Logger.LogDebug($"ObiAdjustments:ObiGang[ANIM][{_nameNextAnimation}]");
             var dic = __instance.dicInfo;
             if (dic.Count != 0 && !dic.ContainsKey(_nameNextAnimation))
             {
@@ -44,10 +42,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                     dic.Add(anim, donor);
                 }
             }
-            //if (!dic.ContainsKey(curAnim))
-            //{
-            //    dic.Add(curAnim, donor);
-            //}
         }
 
         public static void AddToDic(HitCollisionEnableCtrl ctrl)
@@ -61,10 +55,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                     dic.Add(anim, donor);
                 }
             }
-            //if (!dic.ContainsKey(curAnim))
-            //{
-            //    dic.Add(curAnim, donor);
-            //}
         }
 
         public static readonly List<string> ListOfAnimations = new List<string>

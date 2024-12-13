@@ -91,7 +91,7 @@ namespace KK_SensibleH.EyeNeckControl
         //private void OnDodgeCam()
         //{
         //    var angle = Vector3.Angle(_camera.position - _eyes.position, _eyes.forward);
-        //    SensibleH.Logger.LogDebug($"OnDodgeCam[{angle}]");
+        //    //SensibleH.Logger.LogDebug($"OnDodgeCam[{angle}]");
         //    if (angle < 15f)
         //        SetAuxCamDodge();
         //}
@@ -100,7 +100,7 @@ namespace KK_SensibleH.EyeNeckControl
         //    ResetAuxCam();
         //    var distance = Vector3.Distance(_eyes.position, _camera.position);
         //    _auxCam.transform.localPosition = AuxCamDodgeList.ElementAt(Random.Range(0, AuxCamDodgeList.Count)) * (distance * 10);
-        //    SensibleH.Logger.LogDebug($"SetAuxCamDodge[{distance}]");
+        //    //SensibleH.Logger.LogDebug($"SetAuxCamDodge[{distance}]");
         //}
         /// <summary>
         /// Add to local position.
@@ -214,7 +214,7 @@ namespace KK_SensibleH.EyeNeckControl
                             AuxCam.transform.localPosition += Vector3.up * (Random.value * 0.2f);
                         }
                         _auxCamParentLastPos = _auxCamParent.position;
-                        SensibleH.Logger.LogDebug($"Neck:Extra:EyeCam:PoI:Move");
+                        //SensibleH.Logger.LogDebug($"Neck:Extra:EyeCam:PoI:Move");
                     }
 
                 }
@@ -225,19 +225,24 @@ namespace KK_SensibleH.EyeNeckControl
                     {
                         // Attempt to initiate eyeCam when eyes look at cam from other position.
                         _neck.LookAtCam();
-                        SensibleH.Logger.LogDebug($"Neck:Extra:Mundane:SwitchToEyeCam");
+                        //SensibleH.Logger.LogDebug($"Neck:Extra:Mundane:SwitchToEyeCam");
                     }
                     else// if (AuxPoiCamDic.ContainsKey(curEyes))
                     {
                         var vec = GetAuxPoiDic(eyes);
                         _neckLookTarget.localPosition += vec;
-                        SensibleH.Logger.LogDebug($"Neck:Extra:Mundane:PoI:Move");
+                        //SensibleH.Logger.LogDebug($"Neck:Extra:Mundane:PoI:Move");
                     }
                     //else
                     //{
+                    /*
+                     * Fixed VRGIN_XR, now new version works with current CharaStudio and new KKS_MainGame
+Tested both games in Action/ADV/Talk/MainGameH/FreeH scenes, and back and forth between them all. 
+                     */
+
                     //    var vec = new Vector3(-0.15f + Random.value * 0.3f, -0.15f + Random.value * 0.3f);
                     //    _neckLookTarget.localPosition += vec;
-                    //    SensibleH.Logger.LogDebug($"MovePoiRandom[neck[{_master.CurrentNeck}]] [eyes[{curEyes}]] [{vec.x}] [{vec.y}] distance [{dist}]);");
+                    //    //SensibleH.Logger.LogDebug($"MovePoiRandom[neck[{_master.CurrentNeck}]] [eyes[{curEyes}]] [{vec.x}] [{vec.y}] distance [{dist}]);");
                     //}
                 }
             }

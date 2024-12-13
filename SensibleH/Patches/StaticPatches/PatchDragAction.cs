@@ -52,7 +52,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         //    var first = false;
         //    var second = 0;
         //    var code = new List<CodeInstruction>(instructions);
-        //    SensibleH.Logger.LogDebug($"Trans:DragAction:Start");
+        //    //SensibleH.Logger.LogDebug($"Trans:DragAction:Start");
         //    for (var i = 0; i < code.Count; i++)
         //    {
         //        if (!first && code[i].opcode == OpCodes.Ldflda &&

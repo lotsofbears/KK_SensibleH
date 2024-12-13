@@ -140,6 +140,10 @@
       <HintPath>..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.2019.4.9\lib\net46\UnityEngine.ParticleSystemModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.2019.4.9\lib\net46\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.UI.2019.4.9\lib\net46\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
@@ -181,6 +185,7 @@
     <Error Condition="!Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.targets'))" />
     <Error Condition="!Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.targets'))" />
     <Error Condition="!Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.targets'))" />
+    <Error Condition="!Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.targets'))" />
   </Target>
   <Import Project="..\packages\IllusionLibs.KoikatsuSunshine.Assembly-CSharp-firstpass.2021.9.17\build\IllusionLibs.KoikatsuSunshine.Assembly-CSharp-firstpass.targets" Condition="Exists('..\packages\IllusionLibs.KoikatsuSunshine.Assembly-CSharp-firstpass.2021.9.17\build\IllusionLibs.KoikatsuSunshine.Assembly-CSharp-firstpass.targets')" />
   <Import Project="..\packages\IllusionLibs.KoikatsuSunshine.UniRx.2021.9.17\build\IllusionLibs.KoikatsuSunshine.UniRx.targets" Condition="Exists('..\packages\IllusionLibs.KoikatsuSunshine.UniRx.2021.9.17\build\IllusionLibs.KoikatsuSunshine.UniRx.targets')" />
@@ -194,4 +199,5 @@
   <Import Project="..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.targets" Condition="Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.ParticleSystemModule.targets')" />
   <Import Project="..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.targets" Condition="Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule.targets')" />
   <Import Project="..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.targets" Condition="Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule.targets')" />
+  <Import Project="..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.targets" Condition="Exists('..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.2019.4.9\build\IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule.targets')" />
 </Project>

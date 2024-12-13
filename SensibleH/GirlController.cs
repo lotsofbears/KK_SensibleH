@@ -29,7 +29,7 @@ namespace KK_SensibleH
             _main = main;
             _chara = _chaControl[_main];
             _familiarity = familiarity;
-            SensibleH.Logger.LogDebug($"familiarity[{main}] = [{familiarity}]");
+            //SensibleH.Logger.LogDebug($"familiarity[{main}] = [{familiarity}]");
             //_vr = UnityEngine.VR.VRSettings.enabled;
             _vr = VRGIN.Helpers.SteamVRDetector.IsRunning;
             _voiceController = this.gameObject.AddComponent<VoiceController>();
@@ -71,7 +71,7 @@ namespace KK_SensibleH
             // The higher the familiarity, the less abrupt (more relaxed, slow) are neck movements.
             var neckTypes = _chara.neckLookCtrl.neckLookScript.neckTypeStates;
             var speed = (int)(10 * (2 - _familiarity)) * 0.1f;
-            SensibleH.Logger.LogDebug($"OnPositionChange[{_main}] leapSpeed {speed}");
+            //SensibleH.Logger.LogDebug($"OnPositionChange[{_main}] leapSpeed {speed}");
             foreach (var type in neckTypes)
             {
                 type.leapSpeed = speed;
@@ -85,7 +85,7 @@ namespace KK_SensibleH
         }
         internal void PlayVoice(int voiceId)
         {
-            SensibleH.Logger.LogDebug($"GirlController[{_main}] PlayVoices[{voiceId}] was supposed to happen");
+            //SensibleH.Logger.LogDebug($"GirlController[{_main}] PlayVoices[{voiceId}] was supposed to happen");
             hFlag.voice.playVoices[_main] = voiceId;
         }
         internal void PlayShort(bool notOverwrite = false)
@@ -93,7 +93,7 @@ namespace KK_SensibleH
             hFlag.voice.playShorts[_main] = Random.Range(0, 9);
             if (notOverwrite)
                 _hVoiceCtrl.nowVoices[_main].notOverWrite = true;
-            SensibleH.Logger.LogDebug($"GirlController[{_main}] - A Short Gasp has escaped");
+            //SensibleH.Logger.LogDebug($"GirlController[{_main}] - A Short Gasp has escaped");
         }
 
         internal bool SquirtHandler()
@@ -111,7 +111,7 @@ namespace KK_SensibleH
         }
         private void StopVoice(int id)
         {
-            SensibleH.Logger.LogDebug($"StopVoice[{_main}] - {id}");
+            //SensibleH.Logger.LogDebug($"StopVoice[{_main}] - {id}");
             if (_voiceController.IsVoiceActive && _hVoiceCtrl.nowVoices[CurrentMain].voiceInfo.id == id)
             {
 #if KK
@@ -158,7 +158,7 @@ namespace KK_SensibleH
                 _handCtrl.HitReactionPlay(touchType, shortPlay);
             else
                 _handCtrl1.HitReactionPlay(touchType, shortPlay);
-            SensibleH.Logger.LogDebug($"GirlController[{_main}] - HitReactionPlay of type {touchType} was supposed to happen");
+            //SensibleH.Logger.LogDebug($"GirlController[{_main}] - HitReactionPlay of type {touchType} was supposed to happen");
             return SquirtHandler();
         }
         public void StartConvulsion(float time, bool playVoiceAfter, int specificVoice = -1)

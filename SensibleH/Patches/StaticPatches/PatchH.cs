@@ -195,7 +195,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (stateName.Equals("K_Touch"))
             {
-                SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:Kiss");
+                //SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:Kiss");
                 fixedTransitionDuration = 1f;
             }
             else if (stateName.Equals("Idle"))
@@ -207,7 +207,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                 else
                 {
                     fixedTransitionDuration = UnityEngine.Random.Range(1.5f, 2.5f);
-                    SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:AfterAction");
+                    //SensibleH.Logger.LogDebug($"CrossFadeInFixedTime:AfterAction");
                 }
             }
             if (MoMiController.Instance != null)

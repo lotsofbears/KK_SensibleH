@@ -229,7 +229,7 @@
 //            {
 //                if (!_vr && _neckActive)
 //                {
-//                    SensibleH.Logger.LogDebug($"Proc disabled neck");
+//                    //SensibleH.Logger.LogDebug($"Proc disabled neck");
 //                    MoveNeckHalt();
 //                }
 //            }
@@ -259,7 +259,7 @@
 //                            SetNeck(GetProperEyeCam);
 //                            lookAtCam = true;
 //                            _camWasClose = true;
-//                            SensibleH.Logger.LogDebug($"LookAlive[{_main}][VR] SetEyeCam");
+//                            //SensibleH.Logger.LogDebug($"LookAlive[{_main}][VR] SetEyeCam");
 //                        }
 //                        else if (IsNeckTimeToMove)
 //                        {
@@ -267,12 +267,12 @@
 //                            if (!lookAway && Random.value < 0.2f)
 //                            {
 //                                LookAway();
-//                                SensibleH.Logger.LogDebug($"LookAlive[{_main}][VR] LookAway");
+//                                //SensibleH.Logger.LogDebug($"LookAlive[{_main}][VR] LookAway");
 //                            }
 //                            else
 //                            {
 //                                LookSomewhere();
-//                                SensibleH.Logger.LogDebug($"LookAlive[{_main}][VR] LookSomewhere");
+//                                //SensibleH.Logger.LogDebug($"LookAlive[{_main}][VR] LookSomewhere");
 //                            }
 //                        }
 //                    }
@@ -295,13 +295,13 @@
 //                            lookAtCam = true;
 //                            if (Random.value < 0.33f)//0.25f)
 //                            {
-//                                SensibleH.Logger.LogDebug($"LookAlive[{_main}][CamBeforeVoice] Abort");
+//                                //SensibleH.Logger.LogDebug($"LookAlive[{_main}][CamBeforeVoice] Abort");
 //                                return;
 //                            }
 //                            //if (Random.value > familiarity)
 //                            //{
 //                            //    // If the familiarity check fails, instead look somewhere else but the cam before speaking 
-//                            //    SensibleH.Logger.LogDebug($"LookAlive[{main}][CamBeforeVoice] LookOtherWay");
+//                            //    //SensibleH.Logger.LogDebug($"LookAlive[{main}][CamBeforeVoice] LookOtherWay");
 //                            //    var neckList = AibuFrontIdleNeckDirections[NeckDirections[GetCurrentNeck]]
 //                            //        .Where(n => n != DirectionNeck.Cam)
 //                            //        .ToList();
@@ -313,7 +313,7 @@
 //                            {
 //                                _specialNeckMove.ResetAuxCam();
 //                                SetNeck(GetProperEyeCam);
-//                                SensibleH.Logger.LogDebug($"LookAlive[{_main}][CamBeforeVoice] LookAtCam");
+//                                //SensibleH.Logger.LogDebug($"LookAlive[{_main}][CamBeforeVoice] LookAtCam");
 //                            }
 //                            lookBeforeVoiceTimer = Random.Range(2f, 4f);
 //                            //SetNeckNextMove(0.5f);
@@ -355,7 +355,7 @@
 //                    // 0.2 chance for absolute virgin to look at cam
 //                    // 0.75 for lewd state with maxed out intimacy.
 //                    SetNeck(GetProperEyeCam);
-//                    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}][EyeCam] changing [{curNeck}] to [eyeCam]");
+//                    //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}][EyeCam] changing [{curNeck}] to [eyeCam]");
 //                }
 //                else if (hFlag.nowAnimStateName.StartsWith("A", StringComparison.Ordinal) || hFlag.nowAnimStateName.StartsWith("M", StringComparison.Ordinal))
 //                {
@@ -363,20 +363,20 @@
 //                    var list = GetAibuActionDir(CurrentNeck);
 //                    newNeck = list[Random.Range(0, list.Count)];
 //                    //newNeck = AibuFrontActionNeckDirections[curNeck].ElementAt(Random.Range(0, AibuFrontActionNeckDirections[curNeck].Count));
-//                    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}][Asoko/MunePositions] changing [{curNeck}] to [{newNeck}]");
+//                    //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}][Asoko/MunePositions] changing [{curNeck}] to [{newNeck}]");
 //                }
 //                else
 //                {
 //                    var list = GetAibuIdleNeckDir(CurrentNeck);
 //                    newNeck = list[Random.Range(0, list.Count)];
 //                    //newNeck = AibuFrontIdleNeckDirections[curNeck].ElementAt(Random.Range(0, AibuFrontIdleNeckDirections[curNeck].Count));
-//                    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:IdlePositions, changing [{curNeck}] to [{newNeck}]");
+//                    //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:IdlePositions, changing [{curNeck}] to [{newNeck}]");
 //                }
 //            }
 //            else //if (_poseType == PoseType.Behind)
 //            {
 //                newNeck = AibuBackNeckDirections[curNeck].ElementAt(Random.Range(0, AibuBackNeckDirections[curNeck].Count));
-//                SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:BackPositions, changing [{curNeck}] to [{newNeck}]");
+//                //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:BackPositions, changing [{curNeck}] to [{newNeck}]");
 //            }
 
 
@@ -390,13 +390,13 @@
 //            //    // It works reasonable, but would really like a buddy of some kind.
 //            //    // For example: A Very slow Away neck, Kiss-dodge neck.
 //            //    newNeck = NeckFollowEyeDir[EyeDirForNeckFollow[GetCurrentEyes]].FirstOrDefault();
-//            //    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:NeckFollowEyesPosition, changing [{curNeck}] to [{newNeck}]");
+//            //    //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:NeckFollowEyesPosition, changing [{curNeck}] to [{newNeck}]");
 //            //}
 //            //else if (hFlag.nowAnimStateName.StartsWith("A", StringComparison.Ordinal) || hFlag.nowAnimStateName.StartsWith("M", StringComparison.Ordinal))
 //            //{
 //            //    // AsokoMunePositions
 //            //    newNeck = AibuFrontActionNeckDirections[curNeck].ElementAt(Random.Range(0, AibuFrontActionNeckDirections[curNeck].Count));
-//            //    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:Asoko/MunePositions, changing [{curNeck}] to [{newNeck}]");
+//            //    //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:Asoko/MunePositions, changing [{curNeck}] to [{newNeck}]");
 //            //}
 //            //else //if (hFlag.nowAnimStateName.StartsWith("I"))
 //            //{
@@ -405,13 +405,13 @@
 //            //        newNeck = DirectionNeck.Cam;
 //            //    else
 //            //        newNeck = AibuFrontIdleNeckDirections[curNeck].ElementAt(Random.Range(0, AibuFrontIdleNeckDirections[curNeck].Count));
-//            //    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:IdlePositions, changing [{curNeck}] to [{newNeck}]");
+//            //    //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:IdlePositions, changing [{curNeck}] to [{newNeck}]");
 //            //}
 //            //else// if (poseType == 2)
 //            //{
 //            //    // BackPositions
 //            //    newNeck = AibuBackNeckDirections[curNeck].ElementAt(Random.Range(0, AibuBackNeckDirections[curNeck].Count));
-//            //    SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:BackPositions, changing [{curNeck}] to [{newNeck}]");
+//            //    //SensibleH.Logger.LogDebug($"LookSomewhere[{_main}]:BackPositions, changing [{curNeck}] to [{newNeck}]");
 //            //}
 //            if (newNeck != 0)
 //            {
@@ -459,7 +459,7 @@
 //            else
 //                hFlag.voice.eyenecks[_main] = id;
 //            CurrentEyes = EyeDirections[GetCurrentEyes];
-//            SensibleH.Logger.LogDebug($"SetEyes[{_main}][{CurrentEyes}]");
+//            //SensibleH.Logger.LogDebug($"SetEyes[{_main}][{CurrentEyes}]");
 //        }
 //        private void SetNeck(int id, bool quick = false)
 //        {
@@ -477,7 +477,7 @@
 //                FemalePoI[_main] = _specialNeckMove._auxCam;
 //            }
 //            _specialNeckMove.SetCooldown();
-//            SensibleH.Logger.LogDebug($"SetNeck[{_main}] = [{id}] speed = [{speedOfChange}]");
+//            //SensibleH.Logger.LogDebug($"SetNeck[{_main}] = [{id}] speed = [{speedOfChange}]");
 //        }
         
 //    }

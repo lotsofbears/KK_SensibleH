@@ -41,7 +41,7 @@ namespace KK_SensibleH.EyeNeckControl
         private List<Transform> _listOfMyPoI = new List<Transform>();
         private Transform GetPoi(HandCtrl.AibuColliderKind aibuItem, Target target)
         {
-            SensibleH.Logger.LogDebug($"Poi:Get:{aibuItem}:{target}");
+            //SensibleH.Logger.LogDebug($"Poi:Get:{aibuItem}:{target}");
             switch (target)
             {
                 case Target.Myself:
@@ -99,7 +99,7 @@ namespace KK_SensibleH.EyeNeckControl
                                 itemList.Add(i);
                         }
                         var count = itemList.Count;
-                        SensibleH.Logger.LogDebug($"Poi:Set:Aibu:Options:{count}");
+                        //SensibleH.Logger.LogDebug($"Poi:Set:Aibu:Options:{count}");
                         if (count > 0)
                         {
                             transform = GetPoi((HandCtrl.AibuColliderKind)(itemList[Random.Range(0, count)] + 2), Target.Myself);
@@ -172,7 +172,7 @@ namespace KK_SensibleH.EyeNeckControl
                     transform = GetPoi((HandCtrl.AibuColliderKind)Random.Range(1, 5), Target.FemalePartner);
                     break;
             }
-            SensibleH.Logger.LogDebug($"Poi:Set:{transform}");
+            //SensibleH.Logger.LogDebug($"Poi:Set:{transform}");
             if (transform != null)
             {
                 FemalePoI[_main] = transform.gameObject;

@@ -50,7 +50,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.Reaction))]
         public static void ManyActionsPostfix()
         {
-            LoopController.Instance.OnUserInput();
+            LoopController.OnUserInput();
         }
         [HarmonyPrefix, HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertClick))]
         public static bool OnInsertPrefix()
@@ -59,10 +59,9 @@ namespace KK_SensibleH.Patches.StaticPatches
             {
                 return false;
             }
-            LoopController.Instance.OnUserInput();
+            //LoopController.OnUserInput();
             return true;
         }
-
         [HarmonyPrefix, HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalClick))]
         public static bool OnInsertAnalPrefix()
         {
@@ -70,7 +69,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             {
                 return false;
             }
-            LoopController.Instance.OnUserInput();
+            //LoopController.OnUserInput();
             return true;
         }
         [HarmonyPostfix]
@@ -87,7 +86,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static void HandleOnPullClick()
         {
             maleBreathDelegate?.Invoke((int)ClickType.Pull_novoice);
-            LoopController.Instance.OnUserInput();
+            //LoopController.OnUserInput();
             LoopController.Instance.OnSonyuClick(pullOut: true);
         }
 
@@ -95,7 +94,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static void OnInsertNoVoiceClickPostfix()
         {
             maleBreathDelegate?.Invoke((int)ClickType.Insert_novoice);
-            LoopController.Instance.OnUserInput();
+            //LoopController.OnUserInput();
             LoopController.Instance.OnSonyuClick(pullOut: false);
         }
 
@@ -103,7 +102,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         public static void OnInsertAnalNoVoiceClickPostfix()
         {
             maleBreathDelegate?.Invoke((int)ClickType.InsertAnal_novoice);
-            LoopController.Instance.OnUserInput();
+            //LoopController.OnUserInput();
             LoopController.Instance.DoAnalClick();
         }
         [HarmonyPrefix, HarmonyPatch(typeof(Input), nameof(Input.GetMouseButtonUp))]

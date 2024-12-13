@@ -15,7 +15,7 @@ using KKAPI;
 
 namespace KK_SensibleH
 {
-    [BepInPlugin(GUID, "KK_SensibleH", Version)]
+    [BepInPlugin(GUID, Name, Version)]
     [BepInProcess(KoikatuAPI.GameProcessName)]
     [BepInDependency(KoikatuAPI.GUID)]
     [BepInDependency(KK_VR.VRPlugin.GUID)]
@@ -24,6 +24,7 @@ namespace KK_SensibleH
     public class SensibleH : BaseUnityPlugin
     {
         public const string GUID = "kk.sensible.h";
+        public const string Name = "KK_SensibleH";
         public const string Version = "0.1.1";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
@@ -45,8 +46,6 @@ namespace KK_SensibleH
         public static ConfigEntry<FrenchType> FrenchKiss { get; set; }
         public static ConfigEntry<int> KissEyesLimit { get; set; }
         public static ConfigEntry<KeyboardShortcut> Cfg_TestKey { get; set; }
-        public static ConfigEntry<KeyboardShortcut> Cfg_TestKey2 { get; set; }
-        public static ConfigEntry<KeyboardShortcut> Cfg_TestKey3 { get; set; }
         public static bool MoveNeckGlobal;
         public static int[] EyeNeckPtn = { -1, -1, -1 };
 
@@ -239,18 +238,6 @@ namespace KK_SensibleH
             Cfg_TestKey = Config.Bind(
                 section: "SensibleH",
                 key: "TestKey1",
-                defaultValue: KeyboardShortcut.Empty,
-                "Key to manually trigger test"
-                );
-            Cfg_TestKey2 = Config.Bind(
-                section: "SensibleH",
-                key: "TestKey2",
-                defaultValue: KeyboardShortcut.Empty,
-                "Key to manually trigger test"
-                );
-            Cfg_TestKey3 = Config.Bind(
-                section: "SensibleH",
-                key: "TestKey3",
                 defaultValue: KeyboardShortcut.Empty,
                 "Key to manually trigger test"
                 );

@@ -54,10 +54,9 @@ namespace KK_SensibleH.Patches.StaticPatches
             // There is a bug that leaves the loop hanging at "to" value. Trying to catch it.
             // Correlation with disabled behavior? loop is still running though.
             HoHoTracking[instance] = true;
-            var timeDelta = Time.deltaTime;
-            var absStep = Time.deltaTime * 0.2f;
+            var absStep = Mathf.Min(Time.deltaTime, 0.03f) * 0.2f;
             var step = from > to ? -absStep : absStep;
-            SensibleH.Logger.LogWarning($"StartChangeOverTime[{instance}][from:{from}][to:{to}][step:{step}][absStep:{absStep}][timeDelta:{timeDelta}]");
+            //SensibleH.Logger.LogWarning($"StartChangeOverTime[{instance}][from:{from}][to:{to}][step:{step}][absStep:{absStep}][timeDelta:{timeDelta}]");
             while (Mathf.Abs(from - to) > absStep)
             {
                 from += step;
@@ -67,7 +66,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             instance.ChangeHohoAkaRate(to);
             HoHoTracking[instance] = false;
-            SensibleH.Logger.LogWarning($"EndChangeOverTime[{instance}]");
+            //SensibleH.Logger.LogWarning($"EndChangeOverTime[{instance}]");
         }
 #if KKS
         /// <summary>
@@ -87,7 +86,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPrefix, HarmonyPatch(typeof(GameAssist), nameof(GameAssist.DecreaseTalkTime))]
 #else
         /// <summary>
-        /// We set 10 times more talk attempts.
+        /// We set ~10 times more talk attempts.
         /// </summary>
         [HarmonyPrefix, HarmonyPatch(typeof(Communication), nameof(Communication.DecreaseTalkTime))]
 #endif

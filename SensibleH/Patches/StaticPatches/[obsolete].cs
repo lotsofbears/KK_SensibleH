@@ -184,78 +184,78 @@
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetLayerWeight))]
 //        //public static void SetLayerWeight()
 //        //{
-//        //    SensibleH.Logger.LogDebug($"SetLayerWeight");
+//        //    //SensibleH.Logger.LogDebug($"SetLayerWeight");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.EnableDynamicBone))]
 //        //public static void EnableDynamicBone()
 //        //{
-//        //    SensibleH.Logger.LogDebug($"EnableDynamicBone");
+//        //    //SensibleH.Logger.LogDebug($"EnableDynamicBone");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetItem))]
 //        //public static void SetItemPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("SetItem");
+//        //    //SensibleH.Logger.LogDebug("SetItem");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.AnimatrotRestrart))]
 //        //public static void AnimatrotRestrartPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("AnimatrotRestrart");
+//        //    //SensibleH.Logger.LogDebug("AnimatrotRestrart");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.KissAction))]
 //        //public static void KissActionPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("KissAction");
+//        //    //SensibleH.Logger.LogDebug("KissAction");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
 //        //public static void DragActionPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("DragAction");
+//        //    //SensibleH.Logger.LogDebug("DragAction");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.FinishAction))]
 //        //public static void FinishActionPrefix(HandCtrl __instance)
 //        //{
-//        //    SensibleH.Logger.LogDebug($"FinishAction[timeDragCalc: {__instance.flags.timeDragCalc}]");
+//        //    //SensibleH.Logger.LogDebug($"FinishAction[timeDragCalc: {__instance.flags.timeDragCalc}]");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.JudgeProc))]
 //        //public static void JudgeProcPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("JudgeProc");
+//        //    //SensibleH.Logger.LogDebug("JudgeProc");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetDragStartLayer))]
 //        //public static void SetDragStartLayerPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("SetDragStartLayer");
+//        //    //SensibleH.Logger.LogDebug("SetDragStartLayer");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HFlag), nameof(HFlag.WaitSpeedProcItem))]
 //        //public static void WaitSpeedProcItemPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("WaitSpeedProcItem");
+//        //    //SensibleH.Logger.LogDebug("WaitSpeedProcItem");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HFlag), nameof(HFlag.WaitSpeedProcAibu))]
 //        //public static void WaitSpeedProcAibuPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("WaitSpeedProcAibu");
+//        //    //SensibleH.Logger.LogDebug("WaitSpeedProcAibu");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HAibu), nameof(HAibu.Proc))]
 //        //public static void HaibuProcPrefix(HAibu __instance)
 //        //{
-//        //    SensibleH.Logger.LogDebug($"HaibuProc[{__instance.hand.actionUseItem}");
+//        //    //SensibleH.Logger.LogDebug($"HaibuProc[{__instance.hand.actionUseItem}");
 //        //}
 
 //        //[HarmonyPrefix, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ClickAction))]
 //        //public static void ClickActionPrefix()
 //        //{
-//        //    SensibleH.Logger.LogDebug("ClickAction");
+//        //    //SensibleH.Logger.LogDebug("ClickAction");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckTarget))]
 //        //public static void ChangeChangeLookNeckTargetPrefix()//(int targetType, Transform trfTarg = null, float rate = 0.5f, float rotDeg = 0f, float range = 1f, float dis = 0.8f)
 //        //{
-//        //    SensibleH.Logger.LogDebug("ChangeLookNeckTarget ");
+//        //    //SensibleH.Logger.LogDebug("ChangeLookNeckTarget ");
 //        //}
 //        //[HarmonyPrefix, HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeLookNeckPtn))]
 //        //public static void ChangeLookNeckPtnPrefix(int ptn, float rate = 1f)
 //        //{
-//        //    SensibleH.Logger.LogDebug($"ChangeLookNeckPtn {ptn}");
+//        //    //SensibleH.Logger.LogDebug($"ChangeLookNeckPtn {ptn}");
 //        //}
 //        /*
 //         * During kiss neckPtn is 3;
@@ -269,7 +269,7 @@
 //        //{
 //        //    ptn = 25;
 //        //    blend = true;
-//        //    SensibleH.Logger.LogDebug($"ChangePtnEyes {ptn}");
+//        //    //SensibleH.Logger.LogDebug($"ChangePtnEyes {ptn}");
 //        //}
 
 //        //[HarmonyPrefix]
@@ -278,7 +278,7 @@
 //        //{
 //        //    ptn = 14;
 //        //    blend = true;
-//        //    SensibleH.Logger.LogDebug($"ChangePtnEyebrow {ptn}");
+//        //    //SensibleH.Logger.LogDebug($"ChangePtnEyebrow {ptn}");
 //        //}
 //        //[HarmonyPrefix]
 //        //[HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeEyebrowOpenMax))]

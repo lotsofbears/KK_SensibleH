@@ -62,7 +62,7 @@ namespace KK_SensibleH.Caress
         private Vector3 GetMouthAttachmentPoint => _tongueOut ? _attachment.position : _attachment.TransformPoint(new Vector3(0f, 0.0f, 0.01f));
         private void Awake()
         {
-            SensibleH.Logger.LogDebug($"Thread[Awake]");
+            //SensibleH.Logger.LogDebug($"Thread[Awake]");
             Instance = this;
             _chara = _chaControl[0];
             //_mouthAcc = _female.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/a_n_mouth");
@@ -134,10 +134,10 @@ namespace KK_SensibleH.Caress
         {
             if (AttachmentPoints.ContainsKey(colliderKind) && tongueOut)
             {
-                SensibleH.Logger.LogDebug($"UpdateAttachmentPoint[{colliderKind}]");
+                //SensibleH.Logger.LogDebug($"UpdateAttachmentPoint[{colliderKind}]");
                 var path = AttachmentPoints[colliderKind];
                 _attachment = _chara.objBodyBone.transform.Find(path);
-                SensibleH.Logger.LogDebug($"UpdateAttachmentPoint[pathFound]");
+                //SensibleH.Logger.LogDebug($"UpdateAttachmentPoint[pathFound]");
                 _actionType = colliderKind;
                 _tongueOut = tongueOut;
                 //if (colliderKind != HandCtrl.AibuColliderKind.mouth)
@@ -220,13 +220,13 @@ namespace KK_SensibleH.Caress
         }
         private void OnDestroy()
         {
-            SensibleH.Logger.LogDebug($"Thread:OnDestroy");
-            Destroy(particleSystem);
-            Destroy(ito);
+            //SensibleH.Logger.LogDebug($"Thread:OnDestroy");
+            if (particleSystem != null) Destroy(particleSystem);
+            if (ito != null) Destroy(ito);
 
-            Destroy(top.gameObject);
-            Destroy(tail.gameObject);
-            Destroy(head.gameObject);
+            if (top != null) Destroy(top.gameObject);
+            if (tail != null) Destroy(tail.gameObject);
+            if (head != null) Destroy(head.gameObject);
         }
         private void Update()
         {

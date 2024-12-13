@@ -124,7 +124,7 @@ namespace KK_SensibleH.Caress
 
         private void Awake()
         {
-            SensibleH.Logger.LogDebug($"Kiss[Awake]");
+            //SensibleH.Logger.LogDebug($"Kiss[Awake]");
             Instance = this;
             _female = _chaControl[0];
             _eyes = _female.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
@@ -140,7 +140,7 @@ namespace KK_SensibleH.Caress
         }
         internal void EndHelper(MonoBehaviour behavior)
         {
-            SensibleH.Logger.LogDebug($"Kiss:EndHelper[{behavior}]");
+            //SensibleH.Logger.LogDebug($"Kiss:EndHelper[{behavior}]");
             Destroy(behavior);
         }
         private void CullIto()
@@ -285,7 +285,7 @@ namespace KK_SensibleH.Caress
         }
         private IEnumerator BeroKiss()
         {
-            SensibleH.Logger.LogDebug($"Kiss:BeroKiss[Start:French = {FrenchKiss.Value}]");
+            //SensibleH.Logger.LogDebug($"Kiss:BeroKiss[Start:French = {FrenchKiss.Value}]");
             if (_activePatch == null)
             {
                 // Extra check if we don't go through the "Disengage" phase, and start the new kiss immediately.
@@ -353,7 +353,7 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.Disengaging;
-            SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_handCtrl.IsKissAction()}");
+            //SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_handCtrl.IsKissAction()}");
             if (!_frenchKiss)
             {
                 SuppressVoice = true;
@@ -417,11 +417,11 @@ namespace KK_SensibleH.Caress
 
             _female.ChangeEyesBlinkFlag(true);
             kissAction = false;
-            SensibleH.Logger.LogDebug("BeroKiss[End]");
+            //SensibleH.Logger.LogDebug("BeroKiss[End]");
         }
         private IEnumerator BeroLick()
         {
-            SensibleH.Logger.LogDebug($"BeroLick[Start]");
+            //SensibleH.Logger.LogDebug($"BeroLick[Start]");
             if (_activePatch == null)
             {
                 // Extra check if we don't go through the "Disengage" phase, and start the new kiss immediately.
@@ -454,7 +454,7 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.InAction;
-            SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_handCtrl.useItems[2] != null}");
+            //SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_handCtrl.useItems[2] != null}");
             var minValue = Mathf.Abs(-25 + UnityEngine.Random.value * 50f);
             while (_handCtrl.useItems[2] != null)
             {
@@ -480,7 +480,7 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.Disengaging;
-            SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_handCtrl.IsKissAction()}");
+            //SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_handCtrl.IsKissAction()}");
             //if (!_frenchKiss)
             //{
             //    SuppressVoice = true;
@@ -534,7 +534,7 @@ namespace KK_SensibleH.Caress
 
             //_female.ChangeEyesBlinkFlag(true);
             kissAction = false;
-            SensibleH.Logger.LogDebug("BeroBero[End]");
+            //SensibleH.Logger.LogDebug("BeroBero[End]");
         }
         private void OnDestroy()
         {

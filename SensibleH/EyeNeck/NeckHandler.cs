@@ -190,7 +190,7 @@ namespace KK_SensibleH
                 0f);
         }
 
-        // Like repeat but floor isn't 0.
+        // Like repeat but the floor isn't 0.
         private float RepeatEx(float number)
         {
             // If we pass the limit, we roll random to negate further progress.
@@ -210,7 +210,7 @@ namespace KK_SensibleH
         {
             _state = State.Move;
             _lerp = 0f;
-            SensibleH.Logger.LogDebug($"StartMove:{_moveSpeed}");
+            //SensibleH.Logger.LogDebug($"StartMove:{_moveSpeed}");
         }
         /// <summary>
         /// Move from rotation a to rotation b.
@@ -235,7 +235,7 @@ namespace KK_SensibleH
             _lerp = 0f;
             _driftSpeed = Mathf.Max(0.2f, _moveSpeed * Random.Range(0.25f, 0.5f));
             _rootTargetRot = _root.localRotation * Quaternion.Euler(Random.Range(-4f, 4f), Random.Range(-4f, 4f), 0f);
-            SensibleH.Logger.LogDebug($"StartDrift:{_driftSpeed}");
+            //SensibleH.Logger.LogDebug($"StartDrift:{_driftSpeed}");
         }
         /// <summary>
         /// Move considerably slower between rotations. Possibly in consecutive fashion.

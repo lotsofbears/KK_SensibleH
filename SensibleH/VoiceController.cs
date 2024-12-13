@@ -53,7 +53,7 @@ namespace KK_SensibleH
             }
             else
             {
-                SensibleH.Logger.LogDebug($"OnVoiceProc[{id}]");
+                //SensibleH.Logger.LogDebug($"OnVoiceProc[{id}]");
                 if (SensibleH.EyeNeckControl.Value)
                 {
                     _master._neckController.LookAtCam();
@@ -79,7 +79,7 @@ namespace KK_SensibleH
         }
         private IEnumerator PlayBeforeVoice(int pattern)
         {
-            SensibleH.Logger.LogDebug($"PlayBeforeVoice[Start]");
+            //SensibleH.Logger.LogDebug($"PlayBeforeVoice[Start]");
             _voice.state = HVoiceCtrl.VoiceKind.voice;
             _voice.notOverWrite = true;
             PlayNickname(pattern);
@@ -93,11 +93,11 @@ namespace KK_SensibleH
 
             _voice.state = HVoiceCtrl.VoiceKind.breath;
             _voice.notOverWrite = false;
-            SensibleH.Logger.LogDebug($"PlayBeforeVoice[End]");
+            //SensibleH.Logger.LogDebug($"PlayBeforeVoice[End]");
         }
         private IEnumerator PlayAfterVoice(int pattern)
         {
-            SensibleH.Logger.LogDebug($"PlayAfterVoice[Start]");
+            //SensibleH.Logger.LogDebug($"PlayAfterVoice[Start]");
             yield return new WaitForSeconds(1f);
             var charaVoice = _chara.asVoice;
             var haltTime = charaVoice.clip.length - (0.5f + Random.value / 2f);
@@ -106,11 +106,11 @@ namespace KK_SensibleH
                 yield return new WaitForSeconds(0.2f);
             }
             PlayNickname(pattern);
-            SensibleH.Logger.LogDebug($"PlayAfterVoice[End]");
+            //SensibleH.Logger.LogDebug($"PlayAfterVoice[End]");
         }
         private void PlayInsteadOfVoice(int pattern)
         {
-            SensibleH.Logger.LogDebug($"PlayInsteadOfVoice");
+            //SensibleH.Logger.LogDebug($"PlayInsteadOfVoice");
             hFlag.voice.playVoices[_main] = -1;
             PlayNickname(pattern);
             switch (hFlag.mode)
@@ -195,7 +195,7 @@ namespace KK_SensibleH
 
         public void PlayNickname(int pattern)
         {
-            SensibleH.Logger.LogDebug($"PlayNickname[{pattern}]");
+            //SensibleH.Logger.LogDebug($"PlayNickname[{pattern}]");
 #if KK
             var callFileData = SaveData.FindCallFileData(_heroine.personality, _heroine.callMyID);
 #else
@@ -211,7 +211,7 @@ namespace KK_SensibleH
                 voiceTrans = hFlag.transVoiceMouth[_main]
             };
 
-            SensibleH.Logger.LogDebug($"{callFileData.bundle} + {callFileData.GetFileName(pattern)}");
+            //SensibleH.Logger.LogDebug($"{callFileData.bundle} + {callFileData.GetFileName(pattern)}");
             _chara.ChangeMouthPtn(0, true);
 #if KK
             _chara.SetVoiceTransform(Utils.Voice.OnecePlayChara(setting));
@@ -257,7 +257,7 @@ namespace KK_SensibleH
             var asset = bundle.Substring(index + 1);
             bundle = bundle.Remove(index + 1) + GetBundle(personalityId, hVoice: false);
 
-            SensibleH.Logger.LogDebug($"{bundle} + {asset}");
+            //SensibleH.Logger.LogDebug($"{bundle} + {asset}");
             var setting = new Utils.Voice.Setting
             {
                 no = _heroine.voiceNo,

@@ -10,7 +10,7 @@ namespace KK_SensibleH.Patches.StaticPatches
 {
     class PatchEyeNeck
     {
-        public static int[] NeckTargetTag = { 0, 0 };
+        public static int[] NeckTargetTag = [0, 0];
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HMotionEyeNeck), nameof(HMotionEyeNeck.SetEyeNeckPtn))]
         public static void PrefixSetEyeNeckPtn(ref int _id, ref GameObject _objCamera, bool _isConfigEyeDisregard, bool _isConfigNeckDisregard, HMotionEyeNeckMale __instance)
