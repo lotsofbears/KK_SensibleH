@@ -19,7 +19,7 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;KK</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -63,15 +63,14 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="KK_BetterSquirt">
-      <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\KK_BetterSquirt.dll</HintPath>
+      <HintPath>..\Libs\KK_BetterSquirt.dll</HintPath>
     </Reference>
     <Reference Include="KK_Fix_ResourceUnloadOptimizations, Version=21.5.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\KK_Fix_ResourceUnloadOptimizations.dll</HintPath>
+      <HintPath>..\Libs\KK_Fix_ResourceUnloadOptimizations.dll</HintPath>
     </Reference>
-    <Reference Include="KK_VR, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libs\KK_VR.dll</HintPath>
+    <Reference Include="KoikatuVR">
+      <HintPath>..\Libs\KoikatuVR.dll</HintPath>
     </Reference>
     <Reference Include="Sirenix.Serialization, Version=1.0.5.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\IllusionLibs.Koikatu.Sirenix.Serialization.2019.4.27.4\lib\net35\Sirenix.Serialization.dll</HintPath>
@@ -92,11 +91,8 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="VRGIN">
-      <HintPath>..\..\..\..\..\..\KKTSU_VRA\BepInEx\plugins\KK_MainGameVR\VRGIN.dll</HintPath>
+      <HintPath>..\Libs\VRGIN.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -104,6 +100,9 @@
   <ItemGroup>
     <Analyzer Include="..\packages\KoikatuCompatibilityAnalyzer.1.1.0\analyzers\dotnet\cs\KoikatuCompatibilityAnalyzer.dll" />
     <Analyzer Include="..\packages\Microsoft.Unity.Analyzers.1.18.0\analyzers\dotnet\cs\Microsoft.Unity.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="..\SensibleH\SensibleH.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -9,6 +9,7 @@
     <Import_RootNamespace>SensibleH</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AutoMode\LoopController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AutoMode\LoopProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Caress\Kiss.cs" />

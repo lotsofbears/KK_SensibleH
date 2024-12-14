@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("KK_SensibleH")]
+[assembly: AssemblyTitle("KKS_SensibleH")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("https://github.com/lotsofbears/KK_SensibleH")]
-[assembly: AssemblyProduct("KK_SensibleH")]
+[assembly: AssemblyProduct("KKS_SensibleH")]
 [assembly: AssemblyCopyright("Copyright ©  2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("4cbae0d9-303f-49a6-ad92-0b512dbb6c5d")]
+[assembly: Guid("5aff54d9-1727-4c96-bff8-a52b080f3017")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -29,8 +29,14 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
+/*
+ * Complimentary for KK
+ * 
+ * All testers I catched bailed on me.
+ * 
+ */
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0")]
-[assembly: AssemblyFileVersion("1.0.0")]
+[assembly: AssemblyVersion("1.0.1")]
+[assembly: AssemblyFileVersion("1.0.1")]
