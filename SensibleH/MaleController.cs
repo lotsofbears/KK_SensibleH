@@ -24,7 +24,7 @@ namespace KK_SensibleH
         private float SetNeck()
         {
             SetMalePoI();
-            _chaControlM.neckLookCtrl.neckLookScript.changeTypeLeapTime = Random.Range(1.5f, 2.5f);
+            male.neckLookCtrl.neckLookScript.changeTypeLeapTime = Random.Range(1.5f, 2.5f);
             return Time.time + Random.Range(10f, 20f);
         }
         private float SetEyes() 
@@ -100,9 +100,10 @@ namespace KK_SensibleH
             //        transform = null;
             //        break;
             //}
-            transform = _chaControl[main].objBodyBone.GetComponentsInChildren<Transform>().ToList<Transform>()
+            transform = lstFemale[main].objBodyBone.GetComponentsInChildren<Transform>()
                         .Where(t => t.name.Contains("cf_J_Eye_tz"))
-                        .Select(t => t.transform).FirstOrDefault<Transform>();
+                        .Select(t => t.transform)
+                        .FirstOrDefault();
             //SensibleH.Logger.LogDebug($"SetMalePoI: = {transform.gameObject}");
             MalePoI = transform.gameObject;
         }

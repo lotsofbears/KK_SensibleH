@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using static KK_SensibleH.GirlController;
+using static KK_SensibleH.HeadManipulator;
 using static KK_SensibleH.EyeNeckControl.NewNeckController;
 using Random = UnityEngine.Random;
 using KKAPI;

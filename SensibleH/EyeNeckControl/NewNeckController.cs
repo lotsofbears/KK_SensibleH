@@ -21,7 +21,7 @@ namespace KK_SensibleH.EyeNeckControl
         private DirectionEye _currentEyes;
         private DirectionNeck _currentNeck;
 
-        private GirlController _master;
+        private HeadManipulator _master;
         private SpecialNeckMovement _specialNeckMove;
         private PoiHandler _poiHandler;
 
@@ -42,7 +42,6 @@ namespace KK_SensibleH.EyeNeckControl
         //private bool lookAway;
         private bool _neckBusy;
         private bool _neckAfterEvent;
-        private bool _vr;
         private bool _camWasClose;
         //private bool _preSetVoiceEyeCam;
         private PoseType _poseType;
@@ -66,21 +65,16 @@ namespace KK_SensibleH.EyeNeckControl
         {
             get
             {
-                switch (hFlag.mode)
+                return hFlag.mode switch
                 {
-                    case HFlag.EMode.aibu:
-                        return hFlag.voice.timeAibu.timeIdle - hFlag.voice.timeAibu.timeIdleCalc;
-                    case HFlag.EMode.houshi:
-                        return hFlag.voice.timeHoushi.timeIdle - hFlag.voice.timeHoushi.timeIdleCalc;
-                    case HFlag.EMode.sonyu:
-                        return hFlag.voice.timeSonyu.timeIdle - hFlag.voice.timeSonyu.timeIdleCalc;
-                    case HFlag.EMode.masturbation:
-                        return hFlag.timeMasturbation.timeIdle - hFlag.timeMasturbation.timeIdleCalc;
+                    HFlag.EMode.aibu => hFlag.voice.timeAibu.timeIdle - hFlag.voice.timeAibu.timeIdleCalc,
+                    HFlag.EMode.houshi => hFlag.voice.timeHoushi.timeIdle - hFlag.voice.timeHoushi.timeIdleCalc,
+                    HFlag.EMode.sonyu => hFlag.voice.timeSonyu.timeIdle - hFlag.voice.timeSonyu.timeIdleCalc,
+                    HFlag.EMode.masturbation => hFlag.timeMasturbation.timeIdle - hFlag.timeMasturbation.timeIdleCalc,
                     //case HFlag.EMode.lesbian:
                     //    return hFlag.timeLesbian.timeIdle - hFlag.timeLesbian.timeIdleCalc;
-                    default:
-                        return 10f;
-                }
+                    _ => 10f,
+                };
             }
         }
         private int GetNeckFromCurrentAnimation => _hMotionEyeNeck.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] / 17 * 17;
@@ -183,17 +177,16 @@ namespace KK_SensibleH.EyeNeckControl
         private bool _wasEyeContact;
         private bool GetEyeContact => Vector3.Angle(_eyes.position - VR.Camera.Head.position, VR.Camera.Head.forward) < 30f;
         private bool IsCamClose => Vector3.Distance(_eyes.position, VR.Camera.Head.position) < 0.4f;
-        internal void Initialize(GirlController master, int main, bool vr, float familiarity)
+        internal void Initialize(HeadManipulator master, int main, bool vr, float familiarity)
         {
             _master = master;
             _main = main;
             _hMotionEyeNeck = main == 0 ? _eyeneckFemale : _eyeneckFemale1;
-            _chara = _chaControl[main];
+            _chara = lstFemale[main];
             _familiarity = familiarity;
-            _vr = vr;
             _specialNeckMove = new SpecialNeckMovement(master, this, main, vr);
             _poiHandler = new PoiHandler(main);
-            if (_vr)
+            if (SensibleHController.IsVR)
             {
                 _eyes = _chara.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
             }
@@ -230,7 +223,7 @@ namespace KK_SensibleH.EyeNeckControl
             }
             if (neckMovable && !neckMoving && !LoopProperties.IsKissLoop) // _handCtrl.IsKissAction())
             {
-                if (_vr)
+                if (SensibleHController.IsVR)
                 {
                     if (IsCamClose)
                     {
@@ -276,7 +269,7 @@ namespace KK_SensibleH.EyeNeckControl
                 }
                 if (_neckActive)
                 {
-                    if (SwapStaticNeck()) return;
+                    //if (SwapStaticNeck()) return;
                     if (!_neckBusy)
                     {
                         if (IsNeckTimeToMove)
@@ -348,7 +341,7 @@ namespace KK_SensibleH.EyeNeckControl
                 }
                 
             }
-            else if (!neckMovable && _neckActive && !neckMoving && (!_vr || !IsCamClose))
+            else if (!neckMovable && _neckActive && !neckMoving && (!SensibleHController.IsVR || !IsCamClose))
             {
                 //SensibleH.Logger.LogDebug($"Neck:Main:Proc:Halt:BadState");
                 Halt();
@@ -581,7 +574,7 @@ namespace KK_SensibleH.EyeNeckControl
         }
         private void MoveNeckInit(float customUntil = 0f)
         {
-            if (VRHelper.IsGirlPoV())
+            if (KK_VR.Features.PoV.Active && KK_VR.Features.PoV.GirlPoV)
             {
                 // Not really tested, but my guess it won't be pretty.
                 return;

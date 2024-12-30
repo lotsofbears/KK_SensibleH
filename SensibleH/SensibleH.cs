@@ -51,21 +51,22 @@ namespace KK_SensibleH
         public static bool MoveNeckGlobal;
         public static int[] EyeNeckPtn = { -1, -1, -1 };
 
-        internal static List<GirlController> _girlControllers;
+        internal static List<HeadManipulator> headManipulators = [];
         internal static HandCtrl _handCtrl;
         internal static HandCtrl _handCtrl1;
         internal static HMotionEyeNeckFemale _eyeneckFemale;
         internal static HMotionEyeNeckFemale _eyeneckFemale1;
         internal static HFlag hFlag;
-        internal static List<ChaControl> _chaControl;
-        internal static ChaControl _chaControlM;
+        internal static HFlag.EMode mode;
+        internal static List<ChaControl> lstFemale;
+        internal static ChaControl male;
         internal static HVoiceCtrl _hVoiceCtrl;
         internal static HSprite _sprite;
         internal static GameObject MalePoI;
         internal static GameObject[] FemalePoI;
 
-        internal static float BiasF;
-        internal static float BiasM;
+        internal static float BiasF { get; set; }
+        internal static float BiasM { get; set; }
         internal static float gaugeMultiplier;
         internal static bool OLoop;
         internal static bool MoMiActive;

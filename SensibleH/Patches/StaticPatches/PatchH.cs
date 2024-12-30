@@ -71,13 +71,24 @@ namespace KK_SensibleH.Patches.StaticPatches
                 __instance.flags.timeLesbian.timeMin = 25f;// UnityEngine.Random.Range(20, 30);
                 __instance.flags.timeLesbian.timeMax = 35f;//__instance.flags.timeMasturbation.timeMin + 20f;
             }
-            SensibleHController.Instance.OnPositionChange(_nextAinmInfo);
+            switch (__instance.flags.mode)
+            {
+                case HFlag.EMode.houshi:
+                case HFlag.EMode.houshi3P:
+                case HFlag.EMode.houshi3PMMF:
+                    mode = HFlag.EMode.houshi;
+                    break;
+                case HFlag.EMode.sonyu:
+                case HFlag.EMode.sonyu3P:
+                case HFlag.EMode.sonyu3PMMF:
+                    mode = HFlag.EMode.sonyu;
+                    break;
+                default:
+                    mode = __instance.flags.mode;
+                    break;
+            }
+            SensibleHController.Instance.OnChangeAnimator(_nextAinmInfo);
         }
-        //[HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.ChangeCategory))]
-        //public static void ChangeCategoryPostfix()
-        //{
-        //    SensibleHController.Instance.RepositionDirLight();
-        //}
 
         /// <summary>
         /// We check for non Orgasm/OrgasmAfter loops and run the timer that by default is being used only for the action restart after the finish.
@@ -145,13 +156,13 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HFlag), nameof(HFlag.FemaleGaugeUp))]
         public static void PrefixFemaleGaugeUp(ref float _addPoint)
         {
-            _addPoint = _addPoint * BiasF;
+            _addPoint *= BiasF;
         }
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HFlag), nameof(HFlag.MaleGaugeUp))]
         public static void PrefixMaleGaugeUp(ref float _addPoint)
         {
-            _addPoint = _addPoint * BiasM;
+            _addPoint *= BiasM;
         }
         
         

@@ -12,7 +12,7 @@ namespace KK_SensibleH.EyeNeckControl
         internal PoiHandler(int main)
         {
             _main = main;
-            _chara = _chaControl[main];
+            _chara = lstFemale[main];
             AddPoi(_chara.objBodyBone.transform.Find(GetPoiPath(HandCtrl.AibuColliderKind.muneL)).gameObject, new Vector3(0.025f, 0f, 0.075f));
             AddPoi(_chara.objBodyBone.transform.Find(GetPoiPath(HandCtrl.AibuColliderKind.muneR)).gameObject, new Vector3(-0.025f, 0f, 0.075f));
             AddPoi(_chara.objBodyBone.transform.Find(GetPoiPath(HandCtrl.AibuColliderKind.kokan)).gameObject, new Vector3(0f, 0f, 0.075f));
@@ -48,10 +48,10 @@ namespace KK_SensibleH.EyeNeckControl
                     return _listOfMyPoI[(int)aibuItem - 2].transform;
 
                 case Target.FemalePartner:
-                    return _chaControl[_main == 0 ? 1 : 0].transform.Find(GetPoiPath(aibuItem));
+                    return lstFemale[_main == 0 ? 1 : 0].transform.Find(GetPoiPath(aibuItem));
 
                 case Target.MalePartner:
-                    return _chaControlM.transform.Find(GetPoiPath(aibuItem));
+                    return male.transform.Find(GetPoiPath(aibuItem));
 
                 default:
                     return null;

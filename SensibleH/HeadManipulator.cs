@@ -19,7 +19,7 @@ namespace KK_SensibleH
     /// Recently Broken:
     /// 
     /// </summary>
-    public class GirlController : MonoBehaviour
+    public class HeadManipulator : MonoBehaviour
     {
         /*
          * Opening some clothes triggers some reaction. Just patch "maybe HitReactionPlay()" there. Or throw away. Low value.
@@ -27,18 +27,18 @@ namespace KK_SensibleH
         public void Initialize(int main, float familiarity)
         {
             _main = main;
-            _chara = _chaControl[_main];
+            _chara = lstFemale[main];
             _familiarity = familiarity;
             //SensibleH.Logger.LogDebug($"familiarity[{main}] = [{familiarity}]");
             //_vr = UnityEngine.VR.VRSettings.enabled;
-            _vr = VRGIN.Helpers.SteamVRDetector.IsRunning;
             _voiceController = this.gameObject.AddComponent<VoiceController>();
             _voiceController.Initialize(this, main);
             //_neckController = this.gameObject.AddComponent<NewNeckController>();
             _neckController = new NewNeckController();
-            _neckController.Initialize(this, main, _vr, familiarity);
+            _neckController.Initialize(this, main, SensibleHController.IsVR, familiarity);
             OnPositionChange();
         }
+
         //private void OnDestroy()
         //{
         //    //They are parented, they'll be destroyed automatically.
@@ -54,12 +54,11 @@ namespace KK_SensibleH
 
         //private bool malePoV;
         //private bool femalePoV;
-        private bool _vr;
 
-        private int[] reactions = { 9, 10, 13, 14 };
-        private int[] reactionsTop = { 8, 9, 11, 12 };
-        private int[] reactionsBottom = { 10, 13, 14 };
-        private int[] reactionsFull = { 8, 9, 10, 11, 12, 13, 14 };
+        private readonly int[] reactions = { 9, 10, 13, 14 };
+        private readonly int[] reactionsTop = { 8, 9, 11, 12 };
+        private readonly int[] reactionsBottom = { 10, 13, 14 };
+        private readonly int[] reactionsFull = { 8, 9, 10, 11, 12, 13, 14 };
         private ChaControl _chara;
         internal NewNeckController _neckController;
         internal VoiceController _voiceController;

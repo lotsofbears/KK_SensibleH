@@ -18,6 +18,7 @@ using KK_SensibleH.Caress;
 using VRGIN.Core;
 using RootMotion.FinalIK;
 using static Illusion.Utils;
+using KKAPI.Utilities;
 namespace KK_SensibleH
 {
     /// <summary>
@@ -35,7 +36,8 @@ namespace KK_SensibleH
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
         private readonly int[] _clothes = { 1, 3, 5};
         private bool _hEnd;
-        internal static bool _vr;
+        internal static bool IsVR => _vr;
+        private static bool _vr;
         //#if KK
         //        private Transform[] _ref = new Transform[22];
         //        enum Refs
@@ -506,33 +508,29 @@ namespace KK_SensibleH
             _handCtrl1 = traverse.Field("hand1").GetValue<HandCtrl>();
             _hVoiceCtrl = traverse.Field("voice").GetValue<HVoiceCtrl>();
 
-            _chaControl = traverse.Field("lstFemale").GetValue<List<ChaControl>>();
-            _chaControlM = traverse.Field("male").GetValue<ChaControl>();
+            lstFemale = traverse.Field("lstFemale").GetValue<List<ChaControl>>();
+            male = traverse.Field("male").GetValue<ChaControl>();
             
             hFlag = flag;
-            if (LstHeroine == null)
-            {
-                LstHeroine = new Dictionary<string, int>();
-            }
+            LstHeroine ??= [];
             _eyeneckFemale = traverse.Field("eyeneckFemale").GetValue<HMotionEyeNeckFemale>();
             _eyeneckFemale1 = traverse.Field("eyeneckFemale1").GetValue<HMotionEyeNeckFemale>();
-            var charaCount = _chaControl.Count;
-            _girlControllers = new List<GirlController>(charaCount);
-            FemalePoI = new GameObject[charaCount];
+            headManipulators.Clear();
+            FemalePoI = new GameObject[lstFemale.Count];
 
             _moMiController = proc.gameObject.AddComponent<MoMiController>();
             //_maleController = proc.gameObject.AddComponent<MaleController>();
             _loopController = proc.gameObject.AddComponent<LoopController>();
             _loopController.Initialize(proc, this);
-            for (int i = 0; i < charaCount; i++)
+            for (int i = 0; i < lstFemale.Count; i++)
             {
                 //if (!_redressTargets.ContainsKey(hFlag.lstHeroine[i]))
                 //{
                 //    _redressTargets.Add(hFlag.lstHeroine[i], new List<byte>());
                 //}
-                var heroine = this.gameObject.AddComponent<GirlController>();
-                heroine.Initialize(i, GetFamiliarity(i));
-                _girlControllers.Add(heroine);
+                var chaControlEx = lstFemale[i].gameObject.AddComponent<HeadManipulator>();
+                chaControlEx.Initialize(i, GetFamiliarity(i));
+                headManipulators.Add(chaControlEx);
             }
             DressDudeForAction();
 
@@ -546,20 +544,16 @@ namespace KK_SensibleH
                 hFlag.isAnalInsertOK = Random.value < 0.75f;
             }
 
-            var pipi = _chaControlM.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cm_J_dan_top/cm_J_dan100_00");
+            var pipi = male.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cm_J_dan_top/cm_J_dan100_00");
             TestH.size = (pipi.localScale.x + pipi.localScale.y) * 0.5f;
 
             UpdateSettings();
             StartCoroutine(OnceInAwhile());
         }
 
-        private IEnumerator DoLater()
-        {
-            yield return new WaitForSeconds(1f);
-        }
         private void DressDudeForAction()
         {
-            var states = _chaControlM.fileStatus.clothesState;
+            var states = male.fileStatus.clothesState;
             for (int i = 0; i < states.Length; i++)
             {
                 if (_clothes.Contains(i))
@@ -567,14 +561,15 @@ namespace KK_SensibleH
                 else
                     states[i] = 0;
             }
-            _chaControlM.UpdateClothesStateAll();
+            male.UpdateClothesStateAll();
         }
 
         private IEnumerator OnceInAwhile()
         {
+            var wait = new WaitForSeconds(1f);
             while (true)
             {
-                yield return new WaitForEndOfFrame();
+                yield return CoroutineUtils.WaitForEndOfFrame;
                 if (_hEnd || hFlag == null)
                 {
                     //SensibleH.Logger.LogDebug($"HEnd");
@@ -592,7 +587,7 @@ namespace KK_SensibleH
                         yield break;
                     }
 
-                    yield return new WaitForSeconds(1f);
+                    yield return wait;
                     continue;
                 }
 #if KK
@@ -602,9 +597,9 @@ namespace KK_SensibleH
 #endif
 
                 _loopController.Proc();
-                foreach (var girl in _girlControllers)
+                foreach (var head in headManipulators)
                 {
-                    girl.Proc();
+                    head.Proc();
                 }
                 if (MoveNeckGlobal && (!SensibleH.EyeNeckControl.Value || (EyeNeckPtn[0] == -1 && EyeNeckPtn[1] == -1)))
                 {
@@ -614,7 +609,7 @@ namespace KK_SensibleH
                 {
                     FirstTouch = !_handCtrl.IsItemTouch();
                 }
-                yield return new WaitForSeconds(1f);
+                yield return wait;
             }
         }
 
@@ -652,28 +647,27 @@ namespace KK_SensibleH
             {
                 if (SuppressVoice)
                 {
-                    _girlControllers[main]._lastVoice = hFlag.voice.playVoices[main];
+                    headManipulators[main]._lastVoice = hFlag.voice.playVoices[main];
                     hFlag.voice.playVoices[main] = -1;
                 }
                 else
                 {
-                    _girlControllers[main].OnVoiceProc();
+                    headManipulators[main].OnVoiceProc();
                 }
             }
         }
-        public void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo)
+        public void OnChangeAnimator(HSceneProc.AnimationListInfo nextAnimInfo)
         {
             if (hFlag != null)
             {
                 CurrentMain = hFlag.nowAnimationInfo.nameAnimation.Contains("Alt") ? 1 : 0;
 
                 _loopController.OnPositionChange(nextAnimInfo);
-                _moMiController.OnPositionChange(nextAnimInfo);
                 _sprite.ForceCloseAllMenu();
 
-                foreach (var girl in _girlControllers)
+                foreach (var head in headManipulators)
                 {
-                    girl.OnPositionChange();
+                    head.OnPositionChange();
                 }
                 foreach (var obj in _sprite.menuActionSub.lstObj)
                 {
@@ -681,16 +675,18 @@ namespace KK_SensibleH
                 }
                 UpdateSettings();
                 SetTouchAvailability();
+
             }
 
         }
         internal static void UpdateSettings()
         {
-            hFlag.rateClickGauge = 2f / (float)GaugeSpeed.Value;
+            hFlag.rateClickGauge = 2f / GaugeSpeed.Value;
+            hFlag.rateDragGauge = 0.02f / GaugeSpeed.Value;
         }
         public void DoFirstTouchProc()
         {
-            List<int> voiceId = new List<int>();
+            var voiceId = new List<int>();
             foreach (var item in _handCtrl.useItems)
             {
                 if (item != null)
@@ -709,7 +705,7 @@ namespace KK_SensibleH
         {
             if (hFlag != null)
             {
-                _girlControllers[0]._neckController.LookAtPoI(item);
+                headManipulators[0]._neckController.LookAtPoI(item);
             }
         }
 
@@ -748,20 +744,6 @@ namespace KK_SensibleH
             { 151, 151, 149, -1, -1, -1 }
         };
 #if KK
-        //protected override void OnPeriodChange(Cycle.Type period)
-        //{
-        //    // Implemented by default in KKS.
-        //    foreach (var heroine in Game.Instance.HeroineList)
-        //    {
-        //        //for (int i = 0; i < heroine.talkTemper.Count(); i++)
-        //        //{
-        //        //    // 2 - denial
-        //        //    //heroine.talkTemper[i] = (byte)Random.Range(0, 3);
-        //        //    //heroine.talkTemper[i] = (byte)2;
-        //        //}
-        //        ShuffleTemper(heroine);
-        //    }
-        //}
         public static void ShuffleTemper(SaveData.Heroine heroine)
         {
             var temper = heroine.m_TalkTemper;
@@ -805,8 +787,9 @@ namespace KK_SensibleH
         {
 
 #if KK
-            foreach (var chara in _chaControl)
+            foreach (var chara in lstFemale)
             {
+                if (chara == null) continue;
                 //var clone = Game.Instance.actScene.GetComponentsInChildren<ChaControl>()
                 //    .Where(c => c.fileParam.fullname.Equals(chara.fileParam.fullname) && c.fileParam.personality == chara.fileParam.personality)
                 //    .FirstOrDefault();
@@ -814,25 +797,25 @@ namespace KK_SensibleH
                 //    .Where(h => h.chaCtrl == chara)
                 //    .FirstOrDefault();
                 _redressTargets.Add(chara.fileParam.fullname, new List<byte>());
-                var target = _redressTargets[chara.fileParam.fullname];
+                var targetList = _redressTargets[chara.fileParam.fullname];
                 for (var i = 0; i < chara.fileStatus.clothesState.Length; i++)
                 {
                     if (_auxClothesSlots.Contains(i) && chara.fileStatus.clothesState[i] > 1)
                     {
-                        target.Add(3);
+                        targetList.Add(3);
                         //cloneSaveData.charFile.status.clothesState[j] = 3;
                         //clone.fileStatus.clothesState[j] = 3;
                     }
                     else
                     {
-                        target.Add(0);
+                        targetList.Add(0);
                         //cloneSaveData.charFile.status.clothesState[j] = 0;
                         //clone.fileStatus.clothesState[j] = 0;
                     }
                 }
                 //clone.chaCtrl.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)chara.fileStatus.coordinateType);
-                target.Add((byte)chara.fileStatus.coordinateType);
-                target.Add((byte)chara.fileParam.personality);
+                targetList.Add((byte)chara.fileStatus.coordinateType);
+                targetList.Add((byte)chara.fileParam.personality);
 
                 ////var heroine = _heroineList[i];
                 //var chara = _chaControl[i].chaFile;
@@ -857,19 +840,17 @@ namespace KK_SensibleH
         private void ReDressAfter()
         {
             // Proper redressing has to be done after H if we want changed outfit to stay put (atleast for a while).
-            // Not in KKS. Also we prompt a girl to put on a different outfit, even if this period it is already done.
-            //
-            // There are a lot of null checks in console and sometimes failed to load outfits around the school, but pretty sure, I contribute none to that,
-            // As it keeps on happening even without any of my edits/plugins, and the plugin in question is quite important.. 
+            // Not in KKS. Also we prompt a girl to put on a different outfit, even if this period it was already done.
+
             //SensibleH.Logger.LogDebug($"ReDressAfter");
 #if KK
-            var _gameMgr = Game.Instance;
             foreach (var target in _redressTargets)
             {
+                if (target.Value.Count == 0) continue;
                 var saveData = Game.Instance.HeroineList
                     .Where(h => h.Name.Equals(target.Key) && h.personality == target.Value[target.Value.Count - 1])
                     .FirstOrDefault();
-
+                if (saveData == null) continue;
                 var chara = saveData.chaCtrl;
                 var state = chara.fileStatus.clothesState;
                 for (var i = 0; i < state.Length; i++)
@@ -885,7 +866,7 @@ namespace KK_SensibleH
 
                 saveData.coordinates[0] = target.Value[target.Value.Count - 2];
                 saveData.isDresses[0] = false;
-                _gameMgr.actScene.actCtrl.SetDesire(0, saveData, 200);
+                Game.Instance.actScene.actCtrl.SetDesire(0, saveData, 200);
         
             }
             _redressTargets.Clear();
@@ -910,11 +891,10 @@ namespace KK_SensibleH
 
             Destroy(_moMiController);
             Destroy(_loopController);
-            foreach (var controller in _girlControllers)
+            foreach (var head in headManipulators)
             {
-                Destroy(controller);
+                Destroy(head);
             }
-
             OLoop = false;
             MoveNeckGlobal = false;
         }

@@ -29,12 +29,6 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-/*
- * Complimentary for KK
- * 
- * All testers I catched bailed on me.
- * 
- */
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]

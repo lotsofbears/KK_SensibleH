@@ -17,7 +17,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoveNeckGlobal && __instance.chara.sex == 1)
             {
-                if (__instance.chara == _chaControl[0])
+                if (__instance.chara == lstFemale[0])
                 {
                     _id = EyeNeckPtn[0];
                 }
@@ -36,7 +36,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoveNeckGlobal && __instance.chara.sex == 1)
             {
-                if (__instance.chara == _chaControl[0])
+                if (__instance.chara == lstFemale[0])
                 {
                     if (!IsNeckSet[0])
                     {
@@ -73,7 +73,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (MoveNeckGlobal && __instance.sex == 1)
             {
-                if (__instance == _chaControl[0])
+                if (__instance == lstFemale[0])
                 {
                     if (!IsNeckSet[0])
                     {

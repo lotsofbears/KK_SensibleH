@@ -126,7 +126,7 @@ namespace KK_SensibleH.Caress
         {
             //SensibleH.Logger.LogDebug($"Kiss[Awake]");
             Instance = this;
-            _female = _chaControl[0];
+            _female = lstFemale[0];
             _eyes = _female.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
             ReloadBlendValues();
             var tongue = _female.transform.GetComponentsInChildren<Transform>().ToList()

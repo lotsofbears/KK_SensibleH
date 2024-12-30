@@ -17,6 +17,7 @@ using KK_SensibleH.EyeNeckControl;
 using KKAPI;
 using KKAPI.MainGame;
 using ActionGame.Place;
+using KKAPI.Utilities;
 
 namespace KK_SensibleH.Caress
 {
@@ -59,10 +60,10 @@ namespace KK_SensibleH.Caress
         //}
         public static string[] FakePrefix = new string[3];
         public static string[] FakePostfix = new string[3];
-        public static bool ResetDrag;
-        public static bool FakeDrag;
-        public static Vector2 FakeDragLength;
-        public static bool FakeMouseButton;
+        public static bool ResetDrag { get; set; }
+        public static bool FakeDrag { get; set; }
+        public static Vector2 FakeDragLength { get; set; }
+        public static bool FakeMouseButton { get; set; }
         public static MoMiController Instance;
 
         private bool _kissCo;
@@ -70,14 +71,8 @@ namespace KK_SensibleH.Caress
         private bool _moMiCo;
 
         private float[] _postfixTimers = new float[3];
-        //private bool _endLickCo;
-        //private bool _moMiCo;
-        private bool _vr;
         private bool _judgeCooldown;
         private bool _touchAnim;
-        internal bool _aibu;
-        internal bool _houshi;
-        internal bool _sonyu;
         private float _inactiveTimestamp;
         private float _wait;
         private float _itemCountMultiplier;
@@ -92,11 +87,9 @@ namespace KK_SensibleH.Caress
         //private Transform _shoulders;
 
 
-        private List<MoMiCircles> _circles = new List<MoMiCircles>();
-        private GameCursor _gameCursor;
-        internal List<Harmony> _activePatches = new List<Harmony>();
+        private List<MoMiCircles> _circles = [];
         internal Coroutine[] _activeItems = new Coroutine[6];
-        private Dictionary<int, ActiveItem> _items = new Dictionary<int, ActiveItem>();
+        private Dictionary<int, ActiveItem> _items = [];
         internal bool IsTouchCrossFade => _touchAnim;
         private bool IsCrossFadeOver => _wait < Time.time;
         //private float GetFpsDelta => Time.deltaTime * 60f;
@@ -104,28 +97,19 @@ namespace KK_SensibleH.Caress
         private void Awake()
         {
             Instance = this;
-            _gameCursor = GameCursor.Instance;
-            _vr = VRGIN.Helpers.SteamVRDetector.IsRunning;
-            // //SensibleH.Logger.LogDebug($"MoMi[Awake] vr-{_vr}");
             for (var i = 0; i < 3; i++)
             {
                 _circles.Add(new MoMiCircles());
             }
-            if (_vr)
+            if (SensibleHController.IsVR)
             {
                 this.gameObject.AddComponent<Kiss>();
-                //var chara = _chaControl[0];
-                //_eyes = chara.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");
-                //_head = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_j_neck/cf_j_head");
-                //_neck = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_j_neck");
-                //_maleEyes = _chaControlM.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz");
-                //_shoulders = chara.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_backsk_00");
             }
             if (SensibleH.HoldPubicHair.Value)
             {
                 // Due to InsertAnimation acc pubic hair behaves.. wildly.
                 // We help it to keep atleast some cohesion.
-                var acc = _chaControl[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cf_j_kokan/a_n_kokan")
+                var acc = lstFemale[0].objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cf_j_kokan/a_n_kokan")
                     .GetComponentsInChildren<Transform>(includeInactive: true)
                     .Where(t => t.name.StartsWith("ca_slot", StringComparison.Ordinal))
                     .FirstOrDefault();
@@ -135,16 +119,11 @@ namespace KK_SensibleH.Caress
                     _targetScale = _pubicHair.transform.lossyScale;
                 }
             }
-            //FakeMouseButton = false;
-            //FakeDrag = false;
-            //ResetDrag = false;
-            //FakeDragLength = Vector2.zero;
             for (var i = 0; i < 3; i++)
             {
                 FakePrefix[i] = null;
                 FakePostfix[i] = null;
             }
-            OnPositionChange();
         }
 
         private void OnDestroy()
@@ -160,40 +139,44 @@ namespace KK_SensibleH.Caress
         /// </summary>
         public static void OnLickStart(HandCtrl.AibuColliderKind colliderKind)
         {
-            // First call before mouse clicks to stop our side if we are active.
-            // Second to do.. stuff.
-            if (colliderKind == HandCtrl.AibuColliderKind.none)
+            if (Instance != null)
             {
-                if (Instance._moMiCo) Instance.Halt();
+                // First call before mouse clicks to stop our side if we are active.
+                // Second to do.. stuff.
+                if (colliderKind == HandCtrl.AibuColliderKind.none)
+                {
+                    if (Instance._moMiCo) Instance.Halt();
+                }
+                else
+                {
+                    Instance._lickCo = true;
+                    Instance.JudgeProc(2, fakeIt: true);
+                    Kiss.Instance.Cyu(colliderKind);
+                }
             }
-            else
-            {
-                Instance._lickCo = true;
-                // // //SensibleH.Logger.LogDebug($"OnLickStart[2]");
-                Instance.JudgeProc(2, fakeIt: true);
-                Kiss.Instance.Cyu(colliderKind);
-            }
-            //SensibleH.Logger.LogDebug($"Lick:Start:{FakeMouseButton}:{FakeDrag}");
         }
         /// <summary>
         /// Hook for MainGameVR.
         /// </summary>
         public static void OnKissStart(HandCtrl.AibuColliderKind colliderKind)
         {
-            if (colliderKind == HandCtrl.AibuColliderKind.none)
+            if (Instance != null)
             {
-                if (Instance._moMiCo) Instance.Halt();
-                _girlControllers[0]._neckController.OnKissVrStart();
+                if (colliderKind == HandCtrl.AibuColliderKind.none)
+                {
+                    if (Instance._moMiCo) Instance.Halt();
+                    headManipulators[0]._neckController.OnKissVrStart();
 #if KK
-                IllusionFixes.ResourceUnloadOptimizations.DisableUnload.Value = true;
+                    // No patch helps to get the last bit of the lag in KK. Only this does.
+                    IllusionFixes.ResourceUnloadOptimizations.DisableUnload.Value = true;
 #endif
+                }
+                else
+                {
+                    Instance._kissCo = true;
+                    Kiss.Instance.Cyu(HandCtrl.AibuColliderKind.mouth);
+                }
             }
-            else
-            {
-                Instance._kissCo = true;
-                Kiss.Instance.Cyu(HandCtrl.AibuColliderKind.mouth);
-            }
-            //SensibleH.Logger.LogDebug($"Kiss:Start:{FakeMouseButton}:{FakeDrag}");
         }
 
         /// <summary>
@@ -201,8 +184,11 @@ namespace KK_SensibleH.Caress
         /// </summary>
         public static void OnKissEnd()
         {
-            _girlControllers[0]._neckController.OnKissVrEnd();
-            Instance.Halt();
+            if (Instance != null)
+            {
+                headManipulators[0]._neckController.OnKissVrEnd();
+                Instance.Halt();
+            }
         }
 
         /// <summary>
@@ -210,31 +196,32 @@ namespace KK_SensibleH.Caress
         /// </summary>
         public static void ReleaseItem(HandCtrl.AibuColliderKind colliderKind)
         {
-            Instance.StopItemCo((int)colliderKind - 2);
+            if (Instance != null)
+            {
+                Instance.StopItemCo((int)colliderKind - 2);
+            }
         }
         public static void MoMiJudgeProc(HandCtrl.AibuColliderKind colliderKind)
         {
-            Instance.JudgeProc(_handCtrl.useAreaItems[(int)colliderKind - 2].idUse);
+            if (Instance != null)
+            {
+                Instance.JudgeProc(_handCtrl.useAreaItems[(int)colliderKind - 2].idUse);
+            }
         }
         private void StopItemCo(int area)
         {
             if (_activeItems[area] != null)
+            {
                 StopCoroutine(_activeItems[area]);
+            }
         }
         private void Halt()
         {
-            //SensibleH.Logger.LogDebug($"MoMi:Halt");
-
             StopAllCoroutines();
-            foreach (var patch in _activePatches)
-            {
-                patch.UnpatchSelf();
-            }
-            _activePatches.Clear();
             _items.Clear();
 
             Cursor.visible = true;
-            _gameCursor.UnLockCursor();
+            GameCursor.Instance.UnLockCursor();
 
             _moMiCo = false;
             _kissCo = false;
@@ -243,22 +230,12 @@ namespace KK_SensibleH.Caress
             FakeDrag = false; 
             FakeMouseButton = false;
 #if KK
-            if (_vr)
+            if (SensibleHController.IsVR)
             {
-//                if (_mousePressDown)
-//                {
-//                    // This case applicable only when action is initiated by trigger(button on controller).
-//#if KK
-//                    KK_VR.Caress.HandCtrlHooks.InjectMouseButtonUp(0);
-//#else
-//                    KKS_VR.Caress.HandCtrlHooks.InjectMouseButtonUp(0);
-//#endif
-//                    _mousePressDown = false;
-//                    //SensibleH.Logger.LogDebug($"MoMi:ButtonHold:Release");
-//                }
                 IllusionFixes.ResourceUnloadOptimizations.DisableUnload.Value = false;
             }
 #endif
+
         }
         private void Update()
         {
@@ -266,9 +243,8 @@ namespace KK_SensibleH.Caress
             {
                 _touchAnim = IsTouch && !IsCrossFadeOver;
                 _drag = _handCtrl.ctrl == HandCtrl.Ctrl.drag;
-                //// //SensibleH.Logger.LogDebug($"[{GameCursor.isLock}][{_handCtrl.actionUseItem}][Hands[{hand[0] != null}][{hand[1] != null}]]");   
-                if (Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.IsKissAction())) //(!_touchAnim && _handCtrl.actionUseItem == -1 && !_handCtrl.isKiss)) _handCtrl.useItems[_trackItem] == null
-                {
+                if (Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.IsKissAction()))
+                { 
                     Halt();
                 }
                 else if (_judgeCooldown)
@@ -305,7 +281,6 @@ namespace KK_SensibleH.Caress
         /// </summary>
         private IEnumerator MoMiCo(bool skipWait = false)
         {
-            //SensibleH.Logger.LogDebug($"MoMi:Start:Item - {_handCtrl.actionUseItem}:Kiss - {_handCtrl.IsKissAction()}");
             _moMiCo = true;
             if (!skipWait)
             {
@@ -313,7 +288,7 @@ namespace KK_SensibleH.Caress
                 _touchAnim = IsTouch;
 
                 yield return new WaitUntil(() => !_touchAnim);
-                if (!_vr)
+                if (!SensibleHController.IsVR)
                 {
                     yield return new WaitForSeconds(1f);
                 }
@@ -326,7 +301,7 @@ namespace KK_SensibleH.Caress
             }
             _kissCo = IsKiss;
             MoMiActive = true;
-            if (_vr)
+            if (SensibleHController.IsVR)
             {
                 if (!_lickCo && !_kissCo)
                 {
@@ -362,7 +337,7 @@ namespace KK_SensibleH.Caress
             }
             
             var count = _items.Count;
-            FakeDrag = !(_sonyu && hFlag.nowAnimStateName.EndsWith("Loop", StringComparison.Ordinal));
+            FakeDrag = !(mode == HFlag.EMode.sonyu && hFlag.nowAnimStateName.EndsWith("Loop", StringComparison.Ordinal));
             if (count != 0)
             {
                 ResetDrag = true;
@@ -398,15 +373,13 @@ namespace KK_SensibleH.Caress
         /// </summary>
         private IEnumerator ItemCo(bool kiss, int itemId)
         {
-            // //SensibleH.Logger.LogDebug($"ItemCo[{itemId}][Online]");
             var judgeProc = !kiss;
             var item = _items[itemId];
             var midPos = new Vector2(0.5f, 0.5f);
             while (true)
             {
-                // //SensibleH.Logger.LogDebug($"Item:{itemId}[NewLoop]");
                 // Variable judgeProc mainly keeps track of our current position (middle or anywhere but);
-                if (item.pattern == -1)// || item.startPair)
+                if (item.pattern == -1)
                 {
                     judgeProc = true;
                 }
@@ -431,7 +404,7 @@ namespace KK_SensibleH.Caress
                                 // There are cases when the game "helps" us with the wrong vector.
                                 hFlag.xy[item.area] = currentPos += stepVec;
                             }
-                            yield return new WaitForEndOfFrame();
+                            yield return CoroutineUtils.WaitForEndOfFrame;
                         }
                         //yield return new WaitForSeconds(0.1f);
                     }
@@ -440,25 +413,25 @@ namespace KK_SensibleH.Caress
                     // Otherwise we'll get a bad state and premature Halt().
                     // Proper wait after judgeProc is within the range 0.55f - 0.60f, 0.55f looks well and doesn't fall off all that often.
                     judgeProc = true;
-                    //yield return new WaitForEndOfFrame();
+                    //yield return CoroutineUtils.WaitForEndOfFrame;
                     if (JudgeProc(itemId))
                     {
                         var wait = 0f;
                         yield return new WaitForSeconds(0.4f);
                         if (Random.value < 0.4f)
                         {
-                            _girlControllers[0].Reaction();
+                            headManipulators[0].Reaction();
                             //AddToDragLengthBoost(2f);
 
                             if (Random.value < 0.5f)
                             {
                                 wait = CaressAreaReaction(itemId);
                                 // TODO proper handle for special cameras, etc.
-                                _girlControllers[0]._neckController.LookAway();
+                                headManipulators[0]._neckController.LookAway();
                             }
                             else
                             {
-                                _girlControllers[0]._neckController.LookAtPoI();
+                                headManipulators[0]._neckController.LookAtPoI();
                                 yield return new WaitForSeconds(0.15f);
                             }
                         }
@@ -473,18 +446,18 @@ namespace KK_SensibleH.Caress
                             {
                                 yield return new WaitForSeconds(wait);
                                 wait = 0f;
-                                //yield return new WaitForEndOfFrame();
+                                //yield return CoroutineUtils.WaitForEndOfFrame;
                                 if (JudgeProc(itemId))
                                 {
                                     yield return new WaitForSeconds(0.55f);
                                 }
                             }
-                            //yield return new WaitForEndOfFrame();
+                            //yield return CoroutineUtils.WaitForEndOfFrame;
                             JudgeProc(itemId);
                             if (Random.value < num * 0.5f)
                             {
                                 yield return new WaitForSeconds(0.4f);
-                                _girlControllers[0].Reaction();
+                                headManipulators[0].Reaction();
                                 yield return new WaitForSeconds(0.15f);
                             }
                             else
@@ -498,11 +471,11 @@ namespace KK_SensibleH.Caress
                         }
                         if (_touchAnim)
                         {
-                            var timestamp = Time.time;
+                            //var timestamp = Time.time;
                             yield return new WaitUntil(() => !_touchAnim);
                             // //SensibleH.Logger.LogDebug($"Item:{itemId}[ExtraWaitAfterCaressReaction:{Time.time - timestamp}]");
                         }
-                        yield return new WaitForEndOfFrame();
+                        yield return CoroutineUtils.WaitForEndOfFrame;
                     }
                 }
 
@@ -525,11 +498,11 @@ namespace KK_SensibleH.Caress
                         {
                             hFlag.xy[item.area] = currentPos += stepVec;
                         }
-                        yield return new WaitForEndOfFrame();
+                        yield return CoroutineUtils.WaitForEndOfFrame;
                     }
                     judgeProc = false;
                 }
-                judgeProc = item.pattern == -1 ? true : false;
+                judgeProc = item.pattern == -1;
                 while (item.loopEndTime > Time.time)
                 {
                     if (judgeProc)
@@ -541,7 +514,7 @@ namespace KK_SensibleH.Caress
                         else
                         {
                             // //SensibleH.Logger.LogDebug($"Item:{itemId}[CantDoJudgeLoop]");
-                            yield return new WaitForEndOfFrame();
+                            yield return CoroutineUtils.WaitForEndOfFrame;
                             break;
                         }
                     }
@@ -556,7 +529,7 @@ namespace KK_SensibleH.Caress
                                 AddToDragLength((_itemCountMultiplier + (item.speed + 2f - item.intensity) * _itemCountTiny) * Vector2.one); //  * (1f + hFlag.gaugeFemale * 0.002f) 
                             }
                         }
-                        yield return new WaitForEndOfFrame();
+                        yield return CoroutineUtils.WaitForEndOfFrame;
                     }
                 }
             }
@@ -650,7 +623,6 @@ namespace KK_SensibleH.Caress
         private void PairItems(int idUse, bool midPos)
         {
             var item = _items[idUse];
-            //var fpsDelta = GetFpsDelta;
 
             var leader = _items.Values
                 .Where(i => i.hasPair && i.area != item.area)
@@ -856,561 +828,12 @@ namespace KK_SensibleH.Caress
                     }
                 }
             }
-            _girlControllers[0].SquirtHandler();
+            headManipulators[0].SquirtHandler();
 
             // Test.
             SetCrossFadeWait(waitTime);
             //hFlag.SpeedUpClick(0.25f + Random.value * 0.25f, 1.5f);
             return waitTime;
         }
-        internal void OnPositionChange(HSceneProc.AnimationListInfo nextAnimInfo = null)
-        {
-            var mode = nextAnimInfo == null ? hFlag.mode : nextAnimInfo.mode;
-            switch (mode)
-            {
-                case HFlag.EMode.aibu:
-                    _aibu = true;
-                    _houshi = false;
-                    _sonyu = false;
-                    break;
-                case HFlag.EMode.houshi:
-                case HFlag.EMode.houshi3P:
-                case HFlag.EMode.houshi3PMMF:
-                    _aibu = false;
-                    _houshi = true;
-                    _sonyu = false;
-                    break;
-                case HFlag.EMode.sonyu:
-                case HFlag.EMode.sonyu3P:
-                case HFlag.EMode.sonyu3PMMF:
-                    _aibu = false;
-                    _houshi = false;
-                    _sonyu = true;
-                    break;
-                default:
-                    _aibu = false;
-                    _houshi = false;
-                    _sonyu = false;
-                    break;
-            }
-        }
-        //private void UpdateDevices()
-        //{
-        //    _device = SteamVR_Controller.Input((int)VR.Mode.Right.Tracking.index);
-        //    _device1 = SteamVR_Controller.Input((int)VR.Mode.Left.Tracking.index);
-        //}
-
-        ///// <summary>
-        ///// Purely VR feature, allows us to actually kiss.. stock of MainGameVR / KK_VR is a joke.
-        ///// </summary>
-        ///// <returns></returns>
-        //private IEnumerator KissCo()
-        //{
-        //    // //SensibleH.Logger.LogDebug($"KissCo[Start]");
-        //    yield return new WaitForEndOfFrame();
-        //    _kissCo = true;
-        //    _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlKiss)));
-        //    _activePatches.Add(Harmony.CreateAndPatchAll(typeof(PatchSteamVR)));
-        //    var origin = VR.Camera.Origin;
-        //    var head = VR.Camera.Head;
-        //    //var neck = GetKissStartPosition();
-
-        //    _girlControllers[0]._eyeNeckController.OnKissVrStart();
-        //    Kiss.Instance.Cyu();
-
-        //    // In light of recent rework, whole "FindRoll" function is busted.
-        //    var rollDelta = FindRollDelta();
-        //    if (Math.Abs(rollDelta) < 5f)
-        //    {
-        //        //var signedAngle = SignedAngle(head.position - _eyes.position, _eyes.forward, _eyes.up);
-        //        var signedAngle = SignedAngle(head.position - _shoulders.position, _shoulders.forward, _shoulders.up);
-        //        // //SensibleH.Logger.LogDebug($"KissCo[signedAngle] = {signedAngle}]");
-        //        if (Math.Abs(signedAngle) < 10f)
-        //        {
-        //            rollDelta = 25f * (Random.value > 0.5f ? 1 : -1);
-        //            if (_sonyu)
-        //                rollDelta *= Random.value * 2f;
-
-        //            // //SensibleH.Logger.LogDebug($"KissCo[RandomRoll] Everything else is too small to consider it {rollDelta}");
-        //        }
-        //        else
-        //            rollDelta = signedAngle;
-        //    }
-        //    var angleModRight = rollDelta * 0.0111f;// 90f;
-        //    var absModRight = Mathf.Abs(angleModRight);
-        //    var angleModUp = 1f - absModRight;
-        //    if (absModRight > 1f)
-        //        angleModRight = absModRight - (angleModRight - absModRight);
-
-
-        //    var offsetRight = angleModRight * 0.0667f; // 15f; // 25f
-        //    var offsetForward = 0.09f;
-        //    var offsetUp = -0.04f - (Math.Abs(offsetRight) * 0.5f);
-        //    var startDistance = Vector3.Distance(_eyes.position, head.position) - offsetForward;
-        //    //var steps = 0f;
-        //    var timer = Time.time + 3f;
-
-        //    // Placeholder.
-        //    // Change this one to something more interesting.
-        //    MoMiController.FakeDragLength = Vector2.one * 0.5f;
-
-        //    //var newPosUpMod = _shoulders.up * 0.1f;
-        //    //var newXZpos = new Vector3(head.position.x, _shoulders.position.y + newPosUpMod.y, head.position.z);
-        //    //var newZYpos = new Vector3(_shoulders.position.x + newPosUpMod.x, head.position.y, head.position.z);
-
-        //    //var yaw = SignedAngle(newXZpos - (_shoulders.position + newPosUpMod), _shoulders.forward + newPosUpMod, _shoulders.up + newPosUpMod);
-        //    //var pitch = SignedAngle(newZYpos - (_shoulders.position + newPosUpMod), _shoulders.forward + newPosUpMod, _shoulders.right + newPosUpMod);
-        //    //var posDelta = head.position - _shoulders.position;
-        //    //var angleDeltaUp = Vector3.Angle(posDelta, _shoulders.up);
-        //    //var signedDeltaForward = SignedAngle(posDelta, _shoulders.forward, _shoulders.up);
-        //    //while (timer > Time.time)
-        //    //{
-        //    //    // God knows what method.
-        //    //    var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
-        //    //    Vector3 moveTowards;
-        //    //    var fpsDelta = GetFpsDelta;
-        //    //    var angle = Vector3.Angle(VR.Camera.Head.position - adjustedEyes, _eyes.forward);
-        //    //    //var curDist = (adjustedEyes - head.position).magnitude;
-        //    //    if (angle < 30f)
-        //    //    {
-        //    //        // //SensibleH.Logger.LogDebug($"KissCo[MoveTo] LowAngle {angle}");
-        //    //        //We move directly to the ~lips.
-        //    //        moveTowards = Vector3.MoveTowards(VR.Camera.Head.position, adjustedEyes + _eyes.forward * offsetForward, 0.0025f * fpsDelta);
-        //    //        steps += 0.00125f * fpsDelta;
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        // //SensibleH.Logger.LogDebug($"KissCo[MoveTo] HighAngle {angle}");
-        //    //        //We move to the Forward Vector of girl's face.
-        //    //        //moveTowards = adjustedEyes + (_eyes.forward * (offsetForward + Mathf.Clamp01(startDist - steps)));
-        //    //        moveTowards = Vector3.MoveTowards(VR.Camera.Head.position, adjustedEyes + _eyes.forward * (offsetForward + Mathf.Clamp01(startDist - steps)), 0.0025f * fpsDelta);
-        //    //    }
-        //    //    //if (moveTowards.y < adjustedEyes.y)
-        //    //    //    moveTowards.y = adjustedEyes.y;
-
-        //    //    var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight));
-        //    //    origin.rotation = Quaternion.RotateTowards(origin.rotation, lookRotation, fpsDelta);
-        //    //    origin.position += moveTowards - head.position;
-        //    //    yield return new WaitForEndOfFrame();
-        //    //}
-        //    //var inPosition = false;
-        //    var oldEyePos = _eyes.position;
-        //    //while (true)//(timer > Time.time)
-        //    //{
-        //    //    // Glue Method.
-        //    //    // Voice interrupt will be in Cyu.
-        //    //    var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
-        //    //    var targetPos = adjustedEyes + _eyes.forward * (offsetForward + Mathf.Clamp01(startDistance - steps));
-        //    //    Vector3 moveTowards;
-        //    //    var deltaEyesPos = _eyes.position - oldEyePos;
-        //    //    //camera.MoveFixMoveCam(deltaEyesPos);
-        //    //    oldEyePos = _eyes.position;
-        //    //    if (!inPosition)
-        //    //    {
-        //    //        moveTowards = Vector3.MoveTowards(head.position, deltaEyesPos + targetPos, Time.deltaTime * 0.13f);
-        //    //        steps += Time.deltaTime * 0.13f;
-        //    //        if (Vector3.Distance(moveTowards, targetPos) < 0.005f)
-        //    //            inPosition = true;
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        moveTowards = targetPos;
-        //    //        steps += Time.deltaTime * step;
-        //    //        if (!IsTouch && (steps > startDistance || timer < Time.time))
-        //    //        {
-        //    //            break;
-        //    //        }
-        //    //    }
-
-        //    //    var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight)); // + _eyes.forward * -0.1f);
-        //    //    origin.rotation = Quaternion.RotateTowards(origin.rotation, lookRotation, Time.deltaTime * 90f);
-        //    //    origin.position += moveTowards - head.position;
-        //    //    yield return new WaitForEndOfFrame();
-        //    //}
-        //    while (timer > Time.time)
-        //    {
-        //        // Simple MoveTowards + added head movement.
-        //        // With newest neck looks very good with added (due to girls' sway) eye's deltaPos.
-        //        // Requires more testing.
-        //        var adjustedEyes = _eyes.position + (_eyes.up * offsetUp) + (_eyes.right * offsetRight);
-        //        var targetPos = adjustedEyes + _eyes.forward * offsetForward;
-
-        //        var deltaEyesPos = _eyes.position - oldEyePos;
-        //        oldEyePos = _eyes.position;
-        //        //camera.MoveFixMoveCam(deltaEyesPos);
-        //        var moveTowards = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.07f);
-        //        var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight)); // + _eyes.forward * -0.1f);
-        //        origin.rotation = Quaternion.RotateTowards(origin.rotation, lookRotation, Time.deltaTime * 90f);
-        //        origin.position += moveTowards + deltaEyesPos - head.position;
-        //        yield return new WaitForEndOfFrame();
-        //    }
-        //    //// //SensibleH.Logger.LogDebug($"KissCo[UnPatch]");
-        //    var lastElement = _activePatches.Count - 1;
-        //    _activePatches[lastElement].UnpatchSelf();
-        //    _activePatches.RemoveAt(lastElement);
-        //    UpdateDevices();
-        //    //if (!_moMiCo)
-        //    //{
-        //    //    // Pretty sure it's online for a while at this point.
-        //    //    _moMiCo = true;
-        //    //    _activeCoroutines.Add(StartCoroutine(MoMiCo()));
-        //    //}
-        //    while (true)
-        //    {
-        //        if (_device.GetPress(ButtonMask.Grip) || _device1.GetPress(ButtonMask.Grip))
-        //        {
-        //            if (Vector3.Distance(_eyes.position, head.position) > 0.25f)
-        //            {
-        //                Halt();
-        //                yield break;
-        //            }
-        //        }
-        //        else if (_device.GetPressUp(ButtonMask.Trigger) || _device1.GetPressUp(ButtonMask.Trigger))
-        //        {
-        //            Halt();
-        //            yield break;
-        //        }
-        //        else
-        //        {
-        //            var deltaEyesPos = _eyes.position - oldEyePos;
-        //            oldEyePos = _eyes.position;
-        //            var targetPos = _eyes.position + (_eyes.right * offsetRight) + (_eyes.forward * offsetForward) + (_eyes.up * offsetUp);
-        //            var moveTowards = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.05f);
-        //            var lookRotation = Quaternion.LookRotation(_eyes.position + (_eyes.right * offsetRight) - moveTowards, (_eyes.up * angleModUp) + (_eyes.right * angleModRight)); // + _eyes.forward * -0.1f);
-        //            origin.rotation = Quaternion.RotateTowards(origin.rotation, lookRotation, Time.deltaTime * 15f);
-        //            origin.position += moveTowards + deltaEyesPos - head.position;
-        //        }
-        //        yield return new WaitForEndOfFrame();
-        //    }
-        //}
-        ///// <summary>
-        ///// Properly disengages the player from VR actions. Leaves the player not familiar with "Grip Move" hanging, that is being in weird X-axis rotation.
-        ///// </summary>
-        //internal IEnumerator EndKissCo()
-        //{
-        //    // //SensibleH.Logger.LogDebug($"EndKissCo[Start]");
-        //    _endKissCo = true;
-        //    var origin = VR.Camera.Origin;
-        //    var head = VR.Camera.Head;
-        //    var pov = POV.Instance != null && POV.Active;
-        //    UpdateDevices();
-        //    if (_device.GetPress(ButtonMask.Grip) || _device1.GetPress(ButtonMask.Grip))
-        //    {
-        //        yield return new WaitUntil(() => !_device.GetPress(ButtonMask.Grip) && !_device1.GetPress(ButtonMask.Grip));
-        //        yield return new WaitForEndOfFrame();
-        //    }
-        //    if (Vector3.Distance(_eyes.position, head.position) < 0.25f)
-        //    {
-        //        // Get away first if we are too close. Different for active pov.
-        //        //// //SensibleH.Logger.LogDebug($"EndKissCo[MoveCameraAway][pov = {pov}]");
-        //        var step = Time.deltaTime * 0.12f; //0.0034f * delta;
-        //        if (pov && _maleEyes != null)
-        //        {
-        //            //// //SensibleH.Logger.LogDebug($"EndKissCo[PoV]");
-        //            var upVec = _maleEyes.position.y - _eyes.position.y > 0.3f ? (Vector3.up * (step * 3f)) : Vector3.zero;
-        //            while (_handCtrl.isKiss || _handCtrl.actionUseItem != -1) // _handCtrl.isKiss
-        //            {
-        //                var newPos = head.position + (head.forward * -step) + upVec;
-        //                origin.rotation = Quaternion.RotateTowards(origin.rotation, Quaternion.Euler(origin.eulerAngles.x, origin.eulerAngles.y, 0f), GetFpsDelta);
-        //                origin.position += newPos - head.position;
-        //                yield return new WaitForEndOfFrame();
-        //            }
-        //        }
-        //        else
-        //        {
-        //            while (Vector3.Distance(_eyes.position, head.position) < 0.3f)
-        //            {
-        //                var newPos = head.position + (head.forward * -step);
-        //                origin.rotation = Quaternion.RotateTowards(origin.rotation, Quaternion.Euler(origin.eulerAngles.x, origin.eulerAngles.y, 0f), GetFpsDelta);
-        //                origin.position += newPos - head.position;
-        //                yield return new WaitForEndOfFrame();
-        //            }
-        //        }
-        //    }
-        //    if (!pov)
-        //    {
-        //        //var newYZpos = new Vector3(_shoulders.position.x, head.position.y, head.position.z);
-        //        //var angleDelta = Vector3.Angle(newYZpos - _shoulders.position, _shoulders.forward);
-        //        if (true)  //(Math.Abs(Mathf.DeltaAngle(origin.eulerAngles.x, 0f)) < 50f)
-        //        {
-        //            while (true)
-        //            {
-        //                if (!_device.GetPress(ButtonMask.Grip) || !_device1.GetPress(ButtonMask.Grip))
-        //                {
-        //                    var oldHeadPos = head.position;
-        //                    var lookAt = Quaternion.LookRotation(_eyes.position - head.position);
-        //                    origin.rotation = Quaternion.RotateTowards(origin.rotation, Quaternion.Euler(lookAt.eulerAngles.x, origin.eulerAngles.y, 0f), GetFpsDelta);
-        //                    origin.position += oldHeadPos - head.position;
-        //                    if ((int)origin.eulerAngles.z == 0 && (int)origin.eulerAngles.x == (int)lookAt.eulerAngles.x)
-        //                        break;
-        //                }
-        //                yield return new WaitForEndOfFrame();
-        //            }
-        //        }
-        //        else
-        //        {
-        //            while ((int)origin.eulerAngles.z != 0)
-        //            {
-        //                if (!_device.GetPress(ButtonMask.Grip) || !_device1.GetPress(ButtonMask.Grip))
-        //                {
-        //                    var oldHeadPos = head.position;
-        //                    origin.rotation = Quaternion.RotateTowards(origin.rotation, Quaternion.Euler(origin.eulerAngles.x, origin.eulerAngles.y, 0f), GetFpsDelta);
-        //                    origin.position += oldHeadPos - head.position;
-        //                }
-        //                yield return new WaitForEndOfFrame();
-        //            }
-        //        }
-        //    }
-        //    _endKissCo = false;
-        //    _handCtrl.DetachAllItem();
-        //    hFlag.click = HFlag.ClickKind.de_muneL;
-        //    // //SensibleH.Logger.LogDebug($"EndKissCo[End]");
-        //}
-        //public static void StartVrAction(HandCtrl.AibuColliderKind colliderKind)
-        //{
-        //    if (_endKissCo)
-        //    {
-        //        // //SensibleH.Logger.LogDebug($"StartVrAction[EndKissCo]");
-        //        Instance.Halt(disengage: false);
-        //        _endKissCo = false;
-        //    }
-        //    if (!_kissCo)
-        //    {
-        //        if (colliderKind == HandCtrl.AibuColliderKind.mouth)
-        //        {
-        //            if (_moMiCo || _lickCo)
-        //            {
-        //                Instance.Halt(disengage: false);
-        //            }
-        //            // //SensibleH.Logger.LogDebug($"StartVrAction[KissCo]");
-        //            Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.KissCo()));
-
-        //        }
-        //        else if (!_lickCo)
-        //        {
-        //            // //SensibleH.Logger.LogDebug($"StartVrAction[LickCo]");
-        //            if (_moMiCo)//if (_kissCo)
-        //            {
-        //                Instance.Halt(disengage: false);
-        //            }
-        //            if (hFlag.mode == HFlag.EMode.aibu)
-        //                hFlag.click = (HFlag.ClickKind)colliderKind; //(_handCtrl.selectKindTouch + 14);
-        //            Instance._activeCoroutines.Add(Instance.StartCoroutine(Instance.LickCo(colliderKind)));
-        //        }
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Purely VR feature, helps immensely with Licking of MainGameVR.
-        ///// TODO Centering of camera in sonyu, so it looks more plausible.
-        ///// </summary>
-        //private IEnumerator LickCo(HandCtrl.AibuColliderKind colliderKind)
-        //{
-        //    // //SensibleH.Logger.LogDebug($"LickCo[Start]");
-        //    _lickCo = true;
-        //    _activeCoroutines.Add(StartCoroutine(AttachCo(colliderKind)));
-        //    yield return CaressUtil.ClickCo();
-        //    yield return new WaitUntil(() => !IsTouch);
-        //    //yield return new WaitUntil(() => _handCtrl.actionUseItem == -1);
-
-        //    _mousePressDown = true;
-        //    HandCtrlHooks.InjectMouseButtonDown(0);
-
-        //    // Is this really necessary ?
-        //    MoMiActive = true;
-
-        //    yield return new WaitUntil(() => GameCursor.isLock);
-
-        //    // Most likely somebody along the line wants this Wait badly.
-        //    yield return new WaitForEndOfFrame();
-        //    if (!_moMiCo)
-        //    {
-        //        // //SensibleH.Logger.LogDebug($"LickCo[AddMoMiCo]");
-        //        _moMiCo = true;
-        //        _activeCoroutines.Add(StartCoroutine(MoMiCo(skipWait: true)));
-        //    }
-        //    JudgeProc(2, fakeIt: true);
-        //}
-        ///// <summary>
-        ///// Partner in crime of LickCo.
-        ///// </summary>
-        //private IEnumerator AttachCo(HandCtrl.AibuColliderKind colliderKind)
-        //{
-        //    // //SensibleH.Logger.LogDebug($"AttachCo[Start]");
-        //    var dic = PoI[colliderKind];
-        //    var poi = _chaControl[0].objBodyBone.transform.Find(dic.path);
-
-        //    var origin = VR.Camera.Origin;
-        //    var head = VR.Camera.Head;
-        //    var prevPoiPosition = poi.position;
-        //    // We check parameter as the update doesn't run centralized check just yet.
-        //    while (IsTouch || _handCtrl.useItems[2] == null)
-        //    {
-        //        // We move together with the point of interest during "Touch" animation
-        //        origin.position += poi.position - prevPoiPosition;
-        //        prevPoiPosition = poi.position;
-        //        yield return new WaitForEndOfFrame();
-        //    }
-        //    var item = _handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
-        //    //// //SensibleH.Logger.LogDebug($"AttachCo[Start] {poi.rotation.eulerAngles.x}");
-        //    if (poi.rotation.eulerAngles.x > 30f && poi.rotation.eulerAngles.x < 90f)
-        //    {
-        //        // Check if the girl is on all fours.
-        //        dic = PoI[HandCtrl.AibuColliderKind.none];
-        //    }
-        //    UpdateDevices();
-        //    while (true)
-        //    {
-        //        if (_handCtrl.useItems[2] == null || _device.GetPressDown(ButtonMask.Trigger) || _device1.GetPressDown(ButtonMask.Trigger))
-        //        {
-        //            // //SensibleH.Logger.LogDebug($"AttachCo[PrematureEnd] no transform/triggers");
-        //            Halt();
-        //        }
-        //        //// //SensibleH.Logger.LogDebug($"AttachCo[MoveToItem]");
-        //        var adjustedItem = item.position + item.forward * dic.itemOffsetForward + item.up * dic.itemOffsetUp;
-        //        var moveTo = Vector3.MoveTowards(head.position, adjustedItem, Time.deltaTime * 0.2f);
-        //        var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiOffsetUp - moveTo, poi.up * dic.directionUp + poi.forward * dic.directionForward);
-        //        origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, Time.deltaTime * 60f);
-        //        origin.position += moveTo - head.position;
-        //        if (Vector3.Distance(adjustedItem, head.position) < 0.002f)
-        //        {
-        //            break;
-        //        }
-        //        yield return new WaitForEndOfFrame();
-        //    }
-        //    while (true)
-        //    {
-        //        if (_device.GetPressDown(ButtonMask.Trigger) || _device1.GetPressDown(ButtonMask.Trigger)) //_handCtrl.useItems[2] == null || 
-        //        {
-        //            break;
-        //        }
-        //        else if (_device.GetPress(ButtonMask.Grip) || _device1.GetPress(ButtonMask.Grip))
-        //        {
-        //            if (Vector3.Distance(poi.position, head.position) > 0.15f)
-        //                break;
-        //        }
-        //        else
-        //        {
-        //            var targetPos = item.position + (item.forward * dic.itemOffsetForward) + (item.up * dic.itemOffsetUp);
-        //            var moveTo = Vector3.MoveTowards(head.position, targetPos, Time.deltaTime * 0.05f);
-        //            var lookAt = Quaternion.LookRotation(poi.position + poi.up * dic.poiOffsetUp - moveTo, poi.up * dic.directionUp + poi.forward * dic.directionForward);
-        //            origin.rotation = Quaternion.RotateTowards(origin.rotation, lookAt, Time.deltaTime * 15f);
-        //            origin.position += moveTo - head.position;
-        //        }
-        //        yield return new WaitForEndOfFrame();
-        //    }
-        //    Halt();
-        //    // //SensibleH.Logger.LogDebug($"AttachCo[End]");
-        //}
-        ///*
-        // * cf_j_tangroot.transform.
-        // *     forward+ (All subsequent measurements are done relative to the girl)
-        // *         boobs - vec.up
-        // *         ass - vec.down
-        // *         vag - vec.up
-        // *         anal - vec.forward 
-        // *     up+ (All subsequent measurements are done relative to the girl)
-        // *         boobs - vec.forward
-        // *         ass - vec.backward
-        // *         vag - vec.forward
-        // *         anal - vec.down
-        // */
-        //private Dictionary<HandCtrl.AibuColliderKind, LickItem> PoI = new Dictionary<HandCtrl.AibuColliderKind, LickItem>()
-        //{
-        //    // There are inconsistencies depending on the pose. Not fixed: ass, anal.
-        //    {
-        //        HandCtrl.AibuColliderKind.muneL, new LickItem {
-        //        path = "cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_bust00/cf_s_bust00_L/cf_d_bust01_L" +
-        //            "/cf_j_bust01_L/cf_d_bust02_L/cf_j_bust02_L/cf_d_bust03_L/cf_j_bust03_L/cf_s_bust03_L/k_f_mune03L_02",
-        //        itemOffsetForward = 0.08f,
-        //        itemOffsetUp = 0f,//-0.04f, 
-        //        poiOffsetUp = 0.05f,
-        //        directionUp = 1f,
-        //        directionForward = 0f
-        //        }
-        //    },
-        //    {
-        //        HandCtrl.AibuColliderKind.muneR, new LickItem {
-        //        path = "cf_n_height/cf_j_hips/cf_j_spine01/cf_j_spine02/cf_j_spine03/cf_d_bust00/cf_s_bust00_R/cf_d_bust01_R" +
-        //            "/cf_j_bust01_R/cf_d_bust02_R/cf_j_bust02_R/cf_d_bust03_R/cf_j_bust03_R/cf_s_bust03_R/k_f_mune03R_02",
-        //        itemOffsetForward = 0.08f,
-        //        itemOffsetUp = 0f,
-        //        poiOffsetUp = 0.05f,
-        //        directionUp = 1f,
-        //        directionForward = 0f
-        //        }
-        //    },
-        //    {
-        //        HandCtrl.AibuColliderKind.kokan, new LickItem {
-        //        path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02",
-        //        itemOffsetForward = 0.06f,
-        //        itemOffsetUp = 0.03f,
-        //        poiOffsetUp = 0f,
-        //        directionUp = 0.5f,
-        //        directionForward = 0.5f
-        //        }
-        //    },
-        //    {
-        //        HandCtrl.AibuColliderKind.anal, new LickItem {
-        //        path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02",
-        //        itemOffsetForward = -0.05f,//-0.06f, 
-        //        itemOffsetUp = -0.08f, // -0.06f
-        //        poiOffsetUp = 0f,
-        //        directionUp = 1f,
-        //        directionForward = 0f
-        //        }
-        //    },
-        //    {
-        //        HandCtrl.AibuColliderKind.siriL, new LickItem {
-        //        path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/aibu_hit_siri_L",
-        //        itemOffsetForward = -0.04f, // -0.06f
-        //        itemOffsetUp = 0.04f,
-        //        poiOffsetUp = 0.2f,
-        //        directionUp = 1f,
-        //        directionForward = 0f
-        //        }
-        //    },
-        //    {
-        //        HandCtrl.AibuColliderKind.siriR, new LickItem {
-        //        path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/aibu_hit_siri_R",
-        //        itemOffsetForward = -0.04f, // -0.06f
-        //        itemOffsetUp = 0.04f,
-        //        poiOffsetUp = 0.2f,
-        //        directionUp = 1f,
-        //        directionForward = 0f
-        //        }
-        //    },
-        //    {
-        //        HandCtrl.AibuColliderKind.none, new LickItem {
-        //        path = "cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_s_waist02/k_f_kosi02_02",
-        //        itemOffsetForward = -0.07f, // -0.01
-        //        itemOffsetUp = -0.01f,
-        //        poiOffsetUp = 0f,
-        //        directionUp = 0f,
-        //        directionForward = -1f
-        //        }
-        //    },
-
-
-        //};
-        //private float FindRollDelta()
-        //{
-        //    var headsetRoll = Mathf.DeltaAngle(VR.Camera.Head.eulerAngles.z, 0f);
-        //    var headRoll = Mathf.DeltaAngle(_neck.localRotation.eulerAngles.z, 0f) + Mathf.DeltaAngle(_head.localRotation.eulerAngles.z, 0f);
-
-        //    return Mathf.DeltaAngle(headsetRoll, headRoll);
-        //}
-        //private float SignedAngle(Vector3 from, Vector3 to, Vector3 axis)
-        //{
-        //    // This one brings little to no benefit with current neck states of the kiss.
-        //    // After recent rework became a local detractor.
-        //    float unsignedAngle = Vector3.Angle(from, to);
-
-        //    float cross_x = from.y * to.z - from.z * to.y;
-        //    float cross_y = from.z * to.x - from.x * to.z;
-        //    float cross_z = from.x * to.y - from.y * to.x;
-        //    float sign = Mathf.Sign(axis.x * cross_x + axis.y * cross_y + axis.z * cross_z);
-        //    return unsignedAngle * sign;
-        //}
     }
 }

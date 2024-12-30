@@ -38,7 +38,7 @@ namespace KK_SensibleH.EyeNeckControl
         private float _nextMoveAt;
         private float _moveDelta;
 
-        private GirlController _master;
+        private HeadManipulator _master;
         private NewNeckController _neck;
         private ChaControl _chara;
         private Transform _eyes;
@@ -47,14 +47,14 @@ namespace KK_SensibleH.EyeNeckControl
         private Transform _auxCamParent;
         private Vector3 _auxCamParentLastPos;
         private HMotionEyeNeckFemale _eyeNeckMotion;
-        internal SpecialNeckMovement(GirlController master, NewNeckController neck, int main, bool vr)
+        internal SpecialNeckMovement(HeadManipulator master, NewNeckController neck, int main, bool vr)
         {
             Instance = this;
             _master = master;
             _neck = neck;
             _main = main;
             _vr = vr;
-            _chara = SensibleH._chaControl[main];
+            _chara = SensibleH.lstFemale[main];
             _eyeNeckMotion = main == 0 ? SensibleH._eyeneckFemale : SensibleH._eyeneckFemale1;
             _neckLookTarget = _chara.objNeckLookTarget.transform;
             _eyes = _chara.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceUp_ty/cf_J_FaceUp_tz/cf_J_Eye_tz");

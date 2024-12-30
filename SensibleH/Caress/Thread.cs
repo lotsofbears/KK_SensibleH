@@ -64,7 +64,7 @@ namespace KK_SensibleH.Caress
         {
             //SensibleH.Logger.LogDebug($"Thread[Awake]");
             Instance = this;
-            _chara = _chaControl[0];
+            _chara = lstFemale[0];
             //_mouthAcc = _female.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/a_n_mouth");
             //_attachment = _chara.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/cf_J_MouthBase_ty/cf_J_MouthBase_rx/cf_J_MouthCavity");
             particleSystem = new GameObject("BeroItoEffect").AddComponent<ParticleSystem>();

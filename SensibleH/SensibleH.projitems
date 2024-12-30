@@ -16,14 +16,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Caress\MoMiCircles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Caress\MoMiController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Caress\Thread.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\EyeNeckController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\EyeNeckDictionaries.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\NewNeckController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\PoiHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\SpecialNeckMovement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)eyeneck\DirectionPicker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)eyeneck\NeckHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)GirlController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HeadManipulator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MaleController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchEyes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\[obsolete]PatchHandCtrlKiss.cs" />
@@ -43,7 +42,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)SensibleH.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SensibleHController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VoiceController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VRHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)EyeNeck\" />

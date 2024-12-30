@@ -25,7 +25,7 @@ namespace KK_SensibleH
     internal class VoiceController : MonoBehaviour
     {
         private SaveData.Heroine _heroine;
-        private GirlController _master;
+        private HeadManipulator _master;
         private ChaControl _chara;
         private HVoiceCtrl.Voice _voice;
         private int _main = 0;
@@ -34,13 +34,13 @@ namespace KK_SensibleH
         private int _lastVoice;
         //private string _lastVoiceId;
         internal bool IsVoiceActive => _voice.state == HVoiceCtrl.VoiceKind.voice;
-        internal void Initialize(GirlController master, int main)
+        internal void Initialize(HeadManipulator master, int main)
         {
             _main = main;
             _heroine = hFlag.lstHeroine[main];
             _nickAvailable = _heroine.isNickNameEvent || hFlag.isFreeH;
             _voice = _hVoiceCtrl.nowVoices[main];
-            _chara = _chaControl[main];
+            _chara = lstFemale[main];
             _master = master;
         }
         public void OnVoiceProc()

@@ -18,7 +18,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                 //SensibleH.Logger.LogDebug($"FakeMouse:Up:Reroute:MoMi");
                 return false;
             }
-            else if (SensibleHController._vr)
+            else if (SensibleHController.IsVR)
             {
                 //SensibleH.Logger.LogDebug($"FakeMouse:Up:Reroute:Vr");
                 return KK_VR.Caress.HandCtrlHooks.GetMouseButtonUp(button);

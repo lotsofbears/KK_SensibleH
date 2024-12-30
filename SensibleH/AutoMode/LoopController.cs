@@ -57,7 +57,7 @@ namespace KK_SensibleH.AutoMode
             fakeAnimButton.SetActive(true);
             OnPositionChange();
             SetCeiling();
-            var type = AccessTools.TypeByName("KK_MaleBreathVR.MaleBreathController");
+            var type = AccessTools.TypeByName("KK_MaleBreath.MaleBreathController");
             if (type != null)
             {
                 PatchLoop.maleBreathDelegate = AccessTools.MethodDelegate<Func<int, bool>>(AccessTools.FirstMethod(type, m => m.Name.Equals("ButtonClick")));
@@ -415,7 +415,7 @@ namespace KK_SensibleH.AutoMode
             {
                 if (!IsVoiceActive)
                 {
-                    StartCoroutine(RunAfterTimer(() => _girlControllers[CurrentMain].PlayVoice(309), Random.Range(1f, 3f)));
+                    StartCoroutine(RunAfterTimer(() => headManipulators[CurrentMain].PlayVoice(309), Random.Range(1f, 3f)));
                 }
                 //hFlag.voice.playVoices[CurrentMain] = 309;
             }
@@ -423,7 +423,7 @@ namespace KK_SensibleH.AutoMode
             {
                 if (_houshi && !IsVoiceActive)
                 {
-                    StartCoroutine(RunAfterTimer(() => _girlControllers[CurrentMain].PlayVoice(200), Random.Range(1f, 2f)));
+                    StartCoroutine(RunAfterTimer(() => headManipulators[CurrentMain].PlayVoice(200), Random.Range(1f, 2f)));
                 }
                 _wasAnalPlay = hFlag.isAnalPlay;
             }
@@ -1007,7 +1007,7 @@ namespace KK_SensibleH.AutoMode
             //SensibleH.Logger.LogDebug($"OnSonyuClick");
             if (!pullOut)
             {
-                runAfterCoroutine = StartCoroutine(RunAfterInsert(() => _girlControllers[CurrentMain].StartConvulsion(time: Random.value, playVoiceAfter: true)));
+                runAfterCoroutine = StartCoroutine(RunAfterInsert(() => headManipulators[CurrentMain].StartConvulsion(time: Random.value, playVoiceAfter: true)));
             }
             else
             {
@@ -1021,7 +1021,7 @@ namespace KK_SensibleH.AutoMode
                 {
                     specificVoice = 347;
                 }
-                runAfterCoroutine = StartCoroutine(RunAfterPullout(() => _girlControllers[CurrentMain].StartConvulsion(time: Random.value, playVoiceAfter: true, specificVoice)));
+                runAfterCoroutine = StartCoroutine(RunAfterPullout(() => headManipulators[CurrentMain].StartConvulsion(time: Random.value, playVoiceAfter: true, specificVoice)));
             }
         }
         //private void OnInsert()

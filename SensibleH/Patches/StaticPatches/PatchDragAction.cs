@@ -18,7 +18,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                 //SensibleH.Logger.LogDebug($"FakeMouse:Press:Reroute:Vr");
                 return true;
             }
-            else if (SensibleHController._vr)
+            else if (SensibleHController.IsVR)
             {
                 //SensibleH.Logger.LogDebug($"FakeMouse:Press:Reroute:Vr");
                 return KK_VR.Caress.HandCtrlHooks.GetMouseButton(button);
@@ -29,7 +29,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                 return Input.GetMouseButton(button);
             }
         }
-        public static void GetDragLength(HandCtrl hand)
+        public static void SetDragLength(HandCtrl hand)
         {
             if (MoMiController.FakeDrag)
             {
@@ -96,7 +96,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                         if (code.opcode == OpCodes.Ldflda && code.operand is FieldInfo field
                             && field.Name.Equals("calcDragLength"))
                         {
-                            yield return new CodeInstruction(OpCodes.Call, AccessTools.FirstMethod(typeof(PatchDragAction), m => m.Name.Equals(nameof(PatchDragAction.GetDragLength))));
+                            yield return new CodeInstruction(OpCodes.Call, AccessTools.FirstMethod(typeof(PatchDragAction), m => m.Name.Equals(nameof(PatchDragAction.SetDragLength))));
                             counter++;
                             continue;
                         }
