@@ -120,9 +120,11 @@ namespace KK_SensibleH.AutoMode
                     return new List<HSceneProc.AnimationListInfo>();
                 }
                 var mode =  HFlag.EMode.none;
+                // If it was a delegate request from somewhere out there
                 if (id != -2)
                 {
-                    mode = (HFlag.EMode)id;
+                    // For all(-1 aka none) or mode specific one
+                        mode = (HFlag.EMode)id;
                 }
                 else
                 {
@@ -149,24 +151,31 @@ namespace KK_SensibleH.AutoMode
                 }
                 return mode switch
                 {
+                    // -1 aka none for all animations
                     HFlag.EMode.none => lstUseAnimInfo
                         .SelectMany(e => e, (e, anim) => anim)
+                        .Where(anim => anim != hFlag.nowAnimationInfo)
                         .ToList(),
+
                     HFlag.EMode.aibu => lstUseAnimInfo
                         .SelectMany(e => e, (e, anim) => anim)
-                        .Where(anim => anim.mode == HFlag.EMode.aibu)
+                        .Where(anim => anim.mode == HFlag.EMode.aibu && anim != hFlag.nowAnimationInfo)
                         .ToList(),
+
                     HFlag.EMode.houshi => lstUseAnimInfo
                         .SelectMany(e => e, (e, anim) => anim)
-                        .Where(anim => anim.mode == HFlag.EMode.houshi || anim.mode == HFlag.EMode.houshi3P || anim.mode == HFlag.EMode.houshi3PMMF)
+                        .Where(anim => (anim.mode == HFlag.EMode.houshi || anim.mode == HFlag.EMode.houshi3P || anim.mode == HFlag.EMode.houshi3PMMF) && anim != hFlag.nowAnimationInfo)
                         .ToList(),
+
                     HFlag.EMode.sonyu => lstUseAnimInfo
                         .SelectMany(e => e, (e, anim) => anim)
-                        .Where(anim => anim.mode == HFlag.EMode.sonyu || anim.mode == HFlag.EMode.sonyu3P || anim.mode == HFlag.EMode.sonyu3PMMF)
+                        .Where(anim => (anim.mode == HFlag.EMode.sonyu || anim.mode == HFlag.EMode.sonyu3P || anim.mode == HFlag.EMode.sonyu3PMMF) && anim != hFlag.nowAnimationInfo)
                         .ToList(),
+
+                    // If didn't fit the criteria, go for the current hFlag.mode
                     _ => lstUseAnimInfo
                         .SelectMany(e => e, (e, anim) => anim)
-                        .Where(anim => anim.mode == hFlag.mode)
+                        .Where(anim => anim.mode == hFlag.mode && anim != hFlag.nowAnimationInfo)
                         .ToList(),
                 };
             }

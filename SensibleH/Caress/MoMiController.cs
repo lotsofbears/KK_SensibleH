@@ -147,13 +147,6 @@ namespace KK_SensibleH.Caress
             OnPositionChange();
         }
 
-        /*
-         * KissEnd check for upright target
-         * Cyu Propper attach point and it's variability
-         * Cyu for lick.
-         * 
-         * 
-         */
         private void OnDestroy()
         {
             Halt();
