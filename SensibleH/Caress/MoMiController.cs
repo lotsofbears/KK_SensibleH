@@ -49,15 +49,7 @@ namespace KK_SensibleH.Caress
             public bool inPair;
             public bool startPair;
         }
-        //class LickItem
-        //{
-        //    public string path;
-        //    public float itemOffsetForward;
-        //    public float itemOffsetUp;
-        //    public float poiOffsetUp;
-        //    public float directionUp;
-        //    public float directionForward;
-        //}
+
         public static string[] FakePrefix = new string[3];
         public static string[] FakePostfix = new string[3];
         public static bool ResetDrag { get; set; }
@@ -79,12 +71,9 @@ namespace KK_SensibleH.Caress
         private float _itemCountTiny;
         private bool _drag;
         private Vector3 _targetScale;
+#if DEBUG
         private Transform _pubicHair;
-        //private Transform _eyes;
-        //private Transform _head;
-        //private Transform _neck;
-        //private Transform _maleEyes;
-        //private Transform _shoulders;
+#endif
 
 
         private List<MoMiCircles> _circles = [];
@@ -92,8 +81,7 @@ namespace KK_SensibleH.Caress
         private Dictionary<int, ActiveItem> _items = [];
         internal bool IsTouchCrossFade => _touchAnim;
         private bool IsCrossFadeOver => _wait < Time.time;
-        //private float GetFpsDelta => Time.deltaTime * 60f;
-        private bool IsKiss => _handCtrl.IsKissAction(); // _kissCo ||
+        private bool IsKiss => _handCtrl.IsKissAction(); 
         private void Awake()
         {
             Instance = this;
@@ -105,6 +93,7 @@ namespace KK_SensibleH.Caress
             {
                 this.gameObject.AddComponent<Kiss>();
             }
+#if DEBUG
             if (SensibleH.HoldPubicHair.Value)
             {
                 // Due to InsertAnimation acc pubic hair behaves.. wildly.
@@ -119,6 +108,7 @@ namespace KK_SensibleH.Caress
                     _targetScale = _pubicHair.transform.lossyScale;
                 }
             }
+#endif
             for (var i = 0; i < 3; i++)
             {
                 FakePrefix[i] = null;
@@ -217,11 +207,22 @@ namespace KK_SensibleH.Caress
         }
         private void Halt()
         {
+#if KK
+            if (SensibleHController.IsVR)
+            {
+                IllusionFixes.ResourceUnloadOptimizations.DisableUnload.Value = false;
+            }
+#endif
             StopAllCoroutines();
             _items.Clear();
 
             Cursor.visible = true;
-            GameCursor.Instance.UnLockCursor();
+
+            // Really ?
+            if (GameCursor.Instance != null)
+            {
+                GameCursor.Instance.UnLockCursor();
+            }
 
             _moMiCo = false;
             _kissCo = false;
@@ -229,12 +230,6 @@ namespace KK_SensibleH.Caress
             MoMiActive = false;
             FakeDrag = false; 
             FakeMouseButton = false;
-#if KK
-            if (SensibleHController.IsVR)
-            {
-                IllusionFixes.ResourceUnloadOptimizations.DisableUnload.Value = false;
-            }
-#endif
 
         }
         private void Update()
@@ -269,11 +264,12 @@ namespace KK_SensibleH.Caress
             {
                 StartMoMi();
             }
-
+#if DEBUG
             if (_pubicHair != null && _pubicHair.gameObject.activeSelf)
             {
                 _pubicHair.localScale = Divide(Vector3.Scale(_targetScale, _pubicHair.localScale), _pubicHair.lossyScale);
             }
+#endif
         }
         private Vector3 Divide(Vector3 a, Vector3 b) => new Vector3(a.x / b.x, a.y / b.y, a.z / b.z);
         /// <summary>

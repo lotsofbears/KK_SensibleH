@@ -820,7 +820,7 @@ namespace KK_SensibleH.AutoMode
                         _hadClimax = false;
                         _busy = false;
                     }
-                    else if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish && (IsEndLoop || IsIdleInside || IsIdleOutside))
+                    else if (SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish && (IsEndLoop || IsIdleInside || IsIdleOutside))
                     {
                         _busy = false;
                         //SensibleH.Logger.LogDebug("Loop:UserInput:PostClimax");
@@ -828,7 +828,7 @@ namespace KK_SensibleH.AutoMode
                 }
                 else
                 {
-                    if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStart || SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish)
+                    if (SensibleH.AutoMode.Value == AutoModeKind.PromptStart || SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish)
                     {
                         _busy = false;
                         //_userInput = true;
@@ -1041,7 +1041,7 @@ namespace KK_SensibleH.AutoMode
         {
             //SensibleH.Logger.LogDebug($"Loop:Orgasm:F");
             PickHStats(1);
-            if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish)
+            if (SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish)
             {
                 _busy = true;
             }
@@ -1052,7 +1052,7 @@ namespace KK_SensibleH.AutoMode
         public void OnOrgasmM()
         {
             //SensibleH.Logger.LogDebug($"Loop:Orgasm:M");
-            if (SensibleH.AutoMode.Value == AutoModeKind.PromptAtStartAndFinish)
+            if (SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish)
             {
                 _busy = true;
             }

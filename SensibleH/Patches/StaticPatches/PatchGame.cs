@@ -104,7 +104,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPostfix, HarmonyPatch(typeof(TextScenario), nameof(TextScenario.Initialize))]
         public static void TextScenarioInitializePostfix(TextScenario __instance)
         {
-            if (__instance.advScene != null)
+            if (SensibleH.AutoADV.Value &&  __instance.advScene != null)
             {
                 __instance._isAuto = __instance.advScene.scenario.currentChara == null;
             }

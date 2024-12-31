@@ -36,6 +36,7 @@ namespace KK_SensibleH
         //private AnimatorStateInfo getCurrentAnimatorStateInfo;
         private readonly int[] _clothes = { 1, 3, 5};
         private bool _hEnd;
+        private bool _wasEnabled;
         internal static bool IsVR => _vr;
         private static bool _vr;
         //#if KK
@@ -450,32 +451,62 @@ namespace KK_SensibleH
         private void Start()
         {
             Instance = this;
-            _vr = SteamVRDetector.IsRunning;
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchClickAction)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchDragAction)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchEyeNeck)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchGame)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchH)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrl)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestGame)));
-            _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
-#if KKS
-                if (SensibleH.ProlongObi.Value)
-                {
-                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchObi)));
-                }
-#endif
-            if (_vr)
-            {
-                _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlVR)));
-            }
-
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += OnActiveSceneChanged;
 
+            _vr = SteamVRDetector.IsRunning;
+            _wasEnabled = SensibleH.Enabled.Value;
+            if (_vr && !SensibleH.Enabled.Value)
+            {
+                SensibleH.Enabled.Value = true;
+            }
         }
-        // Was it ported in KK_VR?
-        // private static int[] _reverbMaps = new int[] { 14, 15, 16, 18, 37, 45, 51, 52, 7501, 7550 };
+        private void TryEnable()
+        {
+            if (SensibleH.Enabled.Value)
+            {
+                if (_persistentPatches.Count == 0)
+                {
+                    SensibleH.Logger.LogDebug($"Apply patches");
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchClickAction)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchDragAction)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchEyeNeck)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchGame)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchH)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrl)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestGame)));
+                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
+#if KKS
+                    if (SensibleH.ProlongObi.Value)
+                    {
+                        _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchObi)));
+                    }
+#endif
+                    if (_vr)
+                    {
+                        _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlVR)));
+                    }
+                }
+                
+            }
+            else if (_persistentPatches.Count > 0)
+            {
+                SensibleH.Logger.LogDebug($"Remove patches");
+                foreach (var patch in _persistentPatches)
+                {
+                    patch.UnpatchSelf();
+                }
+                _persistentPatches.Clear();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Will fail on non graceful exit.
+            SensibleH.Enabled.Value = _wasEnabled;
+        }
+
+
         private readonly string[] _reverbMaps =
         [
             "Pool",
@@ -488,13 +519,17 @@ namespace KK_SensibleH
 
         private void OnActiveSceneChanged(UnityEngine.SceneManagement.Scene from, UnityEngine.SceneManagement.Scene to)
         {
-            if (_reverbMaps.Contains(to.name))
+            TryEnable();
+            if (SensibleH.Enabled.Value)
             {
-                var map = GameObject.Find("Map");
-                if (map != null && map.GetComponent<AudioReverbZone>() == null)
+                if (_reverbMaps.Contains(to.name))
                 {
-                    map.AddComponent<AudioReverbZone>();
-                    //SensibleH.Logger.LogDebug($"Added:{typeof(AudioReverbZone)}:to:{map.name}");
+                    var map = GameObject.Find("Map");
+                    if (map != null && map.GetComponent<AudioReverbZone>() == null)
+                    {
+                        map.AddComponent<AudioReverbZone>();
+                        //SensibleH.Logger.LogDebug($"Added:{typeof(AudioReverbZone)}:to:{map.name}");
+                    }
                 }
             }
         }
