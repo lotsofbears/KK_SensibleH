@@ -29,7 +29,8 @@ namespace KK_SensibleH
         public const string Version = "1.1.0";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
-        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<PluginState> Enabled { get; set; }
+        public static ConfigEntry<bool> OnlyInVR { get; set; }
         public static ConfigEntry<AutoModeKind> AutoMode { get; set; }
         public static ConfigEntry<AutoPoseType> AutoPickPose{ get; set; }
         public static ConfigEntry<bool> AutoRestartAction { get; set; }
@@ -108,15 +109,22 @@ namespace KK_SensibleH
             Inside,
             Both
         }
+        public enum PluginState
+        {
+            Disabled,
+            OnlyInVr,
+            Always,
+        }
+
 
         public void Awake()
         {
             Logger = base.Logger;
 
             Enabled = Config.Bind(
-                section: "",
+                section: "The changes take place after the scene change",
                 key: "Enable",
-                defaultValue: false
+                defaultValue: PluginState.OnlyInVr
                 );
             AutoMode = Config.Bind(
                 section: "AutoMode",
