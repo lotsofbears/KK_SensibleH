@@ -96,6 +96,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+	  <None Include="..\README.md">
+		  <Link>README.md</Link>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\KoikatuCompatibilityAnalyzer.1.1.0\analyzers\dotnet\cs\KoikatuCompatibilityAnalyzer.dll" />

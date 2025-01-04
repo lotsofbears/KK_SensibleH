@@ -154,6 +154,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+	  <None Include="..\README.md">
+		  <Link>README.md</Link>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.Unity.Analyzers.1.18.0\analyzers\dotnet\cs\Microsoft.Unity.Analyzers.dll" />

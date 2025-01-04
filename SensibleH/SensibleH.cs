@@ -91,7 +91,6 @@ namespace KK_SensibleH
             Disabled,
             PromptStart,
             PromptStartFinish,
-            //PromptAtStartAndDisableOnFinish,
             Automatic
         }
         public enum AutoPoseType
@@ -122,9 +121,11 @@ namespace KK_SensibleH
             Logger = base.Logger;
 
             Enabled = Config.Bind(
-                section: "The changes take place after the scene change",
+                section: "",
                 key: "Enable",
-                defaultValue: PluginState.OnlyInVr
+                defaultValue: PluginState.OnlyInVr,
+                new ConfigDescription(
+                    "The changes take place after the scene change")
                 );
             AutoMode = Config.Bind(
                 section: "AutoMode",
