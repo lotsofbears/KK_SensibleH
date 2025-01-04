@@ -2,7 +2,7 @@
 A Plugin for Koikatu and Koikatsu Sunshine aimed mostly to enhance the [VR](https://github.com/IllusionMods/KKS_VR) experience.
 
 ## Installation
-1. Install the latest versions of: 
+1. Install dependencies: 
     - [BepInEx v5](https://github.com/BepInEx/BepInEx/releases)
     - [IllusionModdingAPI](https://github.com/IllusionMods/IllusionModdingAPI)
     - [KK_BetterSquirt](https://github.com/MayouKurayami/KK_BetterSquirt)
@@ -29,6 +29,6 @@ Everything can be disabled at any given moment through settings. Changes take pl
 ### AutoMode
 Caress auto starts/stops after prolonged *MouseClick* or *Trigger* on an attached aitem, the rest is config driven.
 
-### Eye/neck control
+### Alternative eye/neck control
 Present in viable positions only, can glitch a bit when providing some functional to KK(S)_VR in non-viable positions.
 
