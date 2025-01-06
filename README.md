@@ -24,10 +24,10 @@ Those functions are:
 By default the plugin works only in VR mode, can be changed in the settings.  
 Nearly whole functional works outside of VR.  
 
-Everything can be disabled at any given moment through settings. Changes take place after the scene change.
+Everything can be enabled/disabled at any given moment via settings.
 
 ### AutoMode
-Caress auto starts/stops after prolonged *MouseClick* or *Trigger* on an attached aitem, the rest is config driven.
+AutoCaress starts/stops after prolonged *MouseClick* or *Trigger* on an attached aitem, the rest is config driven.
 
 ### Alternative eye/neck control
 Present in viable positions only, can glitch a bit when providing some functional to KK(S)_VR in non-viable positions.
