@@ -28,10 +28,10 @@ namespace KK_SensibleH.Patches.StaticPatches
             var dic = __instance.facelib[_voiceKind][_action][_idFace];
             if (SensibleH.hFlag != null && SensibleH.hFlag.mode == HFlag.EMode.houshi && dic.openMinMouth == 1f && (dic.mouth == 22 || dic.mouth == 21))
             {
-                //SensibleH.Logger.LogDebug($"TestH:SetFace:AlteringHoushiMouth[{_idFace}][{_voiceKind}][{_action}]");
                 dic.openMinMouth = size;
             }
         }
+
         public static int GetRandomBinary() => UnityEngine.Random.value > 0.5f ? 1 : 0;
         /// <summary>
         /// We substitute rigid set of targets to play voices with random one.
@@ -98,15 +98,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 yield return code;
             }
         }
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HFlag), nameof(HFlag.SetInsertKokanVoiceCondition))]
-        //[HarmonyPatch(typeof(HFlag), nameof(HFlag.SetInsertAnalVoiceCondition))]
-        //public static void HSonyuMotionChange()
-        //{
-        //    //SensibleH.Logger.LogDebug($"HSonyuMotionChangePrefix");
-        //}
-
-        //}
         /// <summary>
         /// Used as trigger to look at particular item.
         /// </summary>
@@ -119,83 +110,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 SensibleHController.Instance.OnTouch(_arrayArea);
             }
         }
-        //[HarmonyPostfix]
-        //[HarmonyPatch(typeof(MotionIK), nameof(MotionIK.LinkIK))]
-        //public static void LinkIKPostfix(int index, MotionIKData.State state, MotionIK.IKTargetPair pair, float __state)
-        //{
-        //    if (__state == 1f && pair.effector.positionWeight != 1f)
-        //    {
-        //        SensibleH.Logger.LogWarning($"LinkIK:ChangedPositionWeight:{pair.effector.bone.name}");
-        //    }
-
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiEmitterCtrl), nameof(ObiEmitterCtrl.OnEnable))]
-        //public static void ObiEmitterCtrlOnEnablePrefix(ObiEmitterCtrl __instance)
-        //{
-        //    //SensibleH.Logger.LogDebug($"ObiEmitterCtrlOnEnablePrefix [{__instance.gameObject.name}]");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiEmitterCtrl), nameof(ObiEmitterCtrl.SetCamera))]
-        //public static void ObiEmitterCtrlSetCameraPrefix()
-        //{
-        //    //SensibleH.Logger.LogDebug($"ObiEmitterCtrlSetCameraPrefix");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiEmitterCtrl), nameof(ObiEmitterCtrl.RemoveCamera))]
-        //public static void ObiEmitterCtrlRemoveCameraPrefix()
-        //{
-        //    //SensibleH.Logger.LogDebug($"ObiEmitterCtrlRemoveCameraPrefix");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiFluidManager), MethodType.Constructor)]
-        //public static void ObiFluidManagerPrefix()
-        //{
-        //    //SensibleH.Logger.LogDebug($"ObiFluidManagerConstructorPrefix");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiFluidManager), nameof(ObiFluidManager.Setup))]
-        //public static void ObiFluidManagerSetupPrefix()
-        //{
-        //    //SensibleH.Logger.LogDebug($"ObiFluidManagerSetupPrefix");
-        //}
-
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(ObiCtrl), MethodType.Constructor, new Type[] {typeof(HFlag)})]
-        //public static void ObiCtrlContructorPrefix()
-        //{
-        //    //SensibleH.Logger.LogDebug($"ObiCtrlContructorPrefix");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HActionBase), nameof(HActionBase.SetPlay))]
-        //public static void SetPlayPrefix(HActionBase __instance)
-        //{
-        //    //SensibleH.Logger.LogDebug($"SetPlay:{__instance.flags.nowAnimStateName}:{__instance.hand.action}\n{new StackTrace(0)}");
-        //}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.FinishAction))]
-        //public static void FinishActionPrefix(HandCtrl __instance)
-        //{
-        //    //SensibleH.Logger.LogDebug($"FinishAction");
-        ////}
-        //[HarmonyPrefix]
-        //[HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.BreathProc))]
-        //public static void ForceFinishPrefix()
-        //{
-        //    //SensibleH.Logger.LogDebug($"BreathProc");
-        ////}
-        //[HarmonyPostfix]
-        //[HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.GetPLayNumBreathList))]
-        //public static void OnCollisionPrefix(List<HVoiceCtrl.VoiceSelect> __result)
-        //{
-        //    //SensibleH.Logger.LogDebug($"GetPLayNumBreathList:{__result.Count}");
-        //}
-        //[HarmonyPostfix]
-        //[HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.IsPlayBreathVoicePtn))]
-        //public static void SetAnimationPrefix(bool __result)
-        //{
-        //    //SensibleH.Logger.LogDebug($"IsPlayBreathVoicePtn:{__result}");
-        //}
 #if KK
         /// <summary>
         /// A clutch to synchronize cloth states between action/talk scenes after H. Ugly but can't seem to find a culprit otherwise.
@@ -208,7 +122,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             // For some reason the clone comes with cloth states from a previous H Scene. We overwrite them with original states.
             // No clue where it hides those states, all the SaveData and ChaFiles are actual. 
 
-            TalkSceneClothesState( );
+            TalkSceneClothesState();
         }
         public static ChaControl _originalChara;
         public static TalkScene _talkScene;
@@ -238,97 +152,5 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
         }
 #endif
-
-            //#if KKS
-            //        //       [HarmonyPrefix]
-            //         //      [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.playDynamicBoneBust), new Type[]            
-            //        //        public static bool DisableShapeBodyIDPrefix(int LR, int id, bool disable)
-            //        //        {
-            //        //            SensibleH.Logger.LogInfo($"DisableShapeBodyID:{id}:{LR}:{disable}");
-
-            //        //            return !disable;
-            //        //        }
-            //        //        [HarmonyPrefix]
-            //        //        [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.DisableShapeBust))]              
-            //        //        public static bool DisableShapeBodyIDPrefix(int LR, bool disable)
-            //        //        {
-            //        //            SensibleH.Logger.LogInfo($"DisableShapeBodyID:{LR}:{disable}");
-            //        //            return !disable;
-            //        //        }
-
-            //        //[HarmonyPrefix]
-            //        //[HarmonyPatch(typeof(ChaControl), nameof(ChaControl.playDynamicBoneBust), [ typeof(int), typeof(bool) ])]
-            //        //public static void playDynamicBoneBustPrefix(int _nArea, ref bool _bPlay)
-            //        //{
-            //        //    SensibleH.Logger.LogInfo($"playDynamicBoneBustPrefix:{_nArea}:{_bPlay}");
-            //        //    _bPlay = true;
-
-            //        //}
-            //        //[HarmonyPrefix]
-            //        //[HarmonyPatch(typeof(ChaControl), nameof(ChaControl.playDynamicBoneBust), [ typeof(ChaInfo.DynamicBoneKind), typeof(bool) ])]
-            //        //public static void playDynamicBoneBustPrefix(ChaInfo.DynamicBoneKind _eArea, ref bool _bPlay)
-            //        //{
-            //        //    SensibleH.Logger.LogInfo($"playDynamicBoneBustPrefix:{_eArea}:{_bPlay}");
-            //        //    _bPlay = true;
-            //        //}
-            //#endif
-
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
-            //    typeof(string),
-            //    typeof(int),
-            //    typeof(float)
-            //})]
-            //public static void AnimatorPlay4(string stateName, int layer, float fixedTime)
-            //{
-            //    //SensibleH.Logger.LogDebug($"AnimatorPlayInFixedTime:3:{stateName}:{layer}:{fixedTime}");
-            //}
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
-            //    typeof(string)
-            //})]
-            //public static void AnimatorPlay5(string stateName)
-            //{
-            //    //SensibleH.Logger.LogDebug($"AnimatorPlayInFixedTime:2:{stateName}");
-            //}
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(UnityEngine.Animator), nameof(UnityEngine.Animator.PlayInFixedTime), new System.Type[]{
-            //    typeof(string),
-            //    typeof (int)
-            //})]
-            //public static void AnimatorPlay6(string stateName, int layer)
-            //{
-            //    //SensibleH.Logger.LogDebug($"AnimatorPlayInFixedTime:1:{stateName}:{layer}");
-            //}
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetLayerWeightDefault))]
-            //public static void SetLayerWeightDefaultPrefix()
-            //{
-            //    //SensibleH.Logger.LogDebug($"SetLayerWeightDefault");
-            //}
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetLayerWeight))]
-            //public static void SetLayerWeightPrefix()
-            //{
-            //    //SensibleH.Logger.LogDebug($"SetLayerWeight");
-            //}
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(HandCtrl.AibuItem), nameof(HandCtrl.AibuItem.SetHandColor), typeof(Color))]
-            //public static void SetHandColorPrefix(Color _color)
-            //{
-            //    SensibleH.Logger.LogInfo($"SetHandColor:{_color}");
-            //}
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.EnableShape))]
-            //public static void EnableShapePrefix()
-            //{
-            //    //SensibleH.Logger.LogDebug($"EnableShape");
-            //}
-            //[HarmonyPrefix]
-            //[HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetShapeON))]
-            //public static void SetShapeONPrefix()
-            //{
-            //    //SensibleH.Logger.LogDebug($"SetShapeON");
-            //}
-        }
     }
+}

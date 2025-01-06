@@ -9,3 +9,4 @@ using KK_SensibleH;
 [assembly: AssemblyProduct("KK_SensibleH")]
 [assembly: AssemblyCopyright("Copyright ©  2024")]
 [assembly: AssemblyVersion(SensibleH.Version)]
+[assembly: AssemblyFileVersion(SensibleH.Version)]

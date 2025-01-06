@@ -17,7 +17,6 @@ namespace KK_SensibleH.Caress
     internal class Thread : MonoBehaviour
     {
         public static Thread Instance;
-        private bool itoOn;
         private bool IsItoBreaking;
         private bool _exited;
         private float itoTimer;
@@ -148,11 +147,6 @@ namespace KK_SensibleH.Caress
                 //    _intermediateParent = null;
             }
 
-        }
-        private void StartIto()
-        {
-            itoOn = true;
-            ito.enabled = true;
         }
 
         private void BreakIto()

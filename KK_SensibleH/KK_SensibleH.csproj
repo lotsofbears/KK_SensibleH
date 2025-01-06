@@ -28,7 +28,7 @@
     <LangVersion>Preview</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin\KK\</OutputPath>
     <DefineConstants>TRACE;KK</DefineConstants>
@@ -36,6 +36,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>Preview</LangVersion>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.9.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -64,13 +65,16 @@
     </Reference>
     <Reference Include="KK_BetterSquirt">
       <HintPath>..\Libs\KK_BetterSquirt.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="KK_Fix_ResourceUnloadOptimizations, Version=21.5.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libs\KK_Fix_ResourceUnloadOptimizations.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="KoikatuVR">
       <HintPath>..\Libs\KoikatuVR.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sirenix.Serialization, Version=1.0.5.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\IllusionLibs.Koikatu.Sirenix.Serialization.2019.4.27.4\lib\net35\Sirenix.Serialization.dll</HintPath>
@@ -92,14 +96,14 @@
     </Reference>
     <Reference Include="VRGIN">
       <HintPath>..\Libs\VRGIN.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-	  <None Include="..\README.md">
-		  <Link>README.md</Link>
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+    <None Include="..\README.md">
+      <Link>README.md</Link>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\KoikatuCompatibilityAnalyzer.1.1.0\analyzers\dotnet\cs\KoikatuCompatibilityAnalyzer.dll" />

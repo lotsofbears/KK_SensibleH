@@ -25,8 +25,10 @@ namespace KK_SensibleH.AutoMode
         public static bool IsFinishLoop => hFlag.finish != HFlag.FinishKind.none && IsOrgasmLoop;
         public static bool IsActionLoop => hFlag.nowAnimStateName.EndsWith("Loop", StringComparison.Ordinal);// IsWeakLoop || IsStrongLoop || IsOrgasmLoop;
         public static bool IsEndLoop => IsEndInside || IsEndOutside;
-        public static bool IsSonyu => hFlag.mode == HFlag.EMode.sonyu || hFlag.mode == HFlag.EMode.sonyu3P;
-        public static bool IsHoushi => hFlag.mode == HFlag.EMode.houshi || hFlag.mode == HFlag.EMode.houshi3P;
+
+        // Modes are trimmed at animController change.
+        public static bool IsSonyu => mode == HFlag.EMode.sonyu;
+        public static bool IsHoushi => mode == HFlag.EMode.houshi;
         public static bool IsKissLoop
         {
             get

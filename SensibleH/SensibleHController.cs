@@ -19,6 +19,8 @@ using VRGIN.Core;
 using RootMotion.FinalIK;
 using static Illusion.Utils;
 using KKAPI.Utilities;
+using System.IO;
+using static Illusion.Component.ShortcutKey;
 namespace KK_SensibleH
 {
     /// <summary>
@@ -32,10 +34,14 @@ namespace KK_SensibleH
         private MoMiController _moMiController;
         private MaleController _maleController;
         private LoopController _loopController;
-        private readonly List<Harmony> _persistentPatches = new List<Harmony>();
-        //private AnimatorStateInfo getCurrentAnimatorStateInfo;
+        private readonly List<Harmony> _persistentPatches = [];
         private readonly int[] _clothes = { 1, 3, 5};
         private bool _hEnd;
+#if KK
+        internal static bool IsParty => _party;
+        private static readonly bool _party = BepInEx.Paths.ProcessName.Equals(KoikatuAPI.GameProcessNameSteam, StringComparison.Ordinal);
+#endif
+        internal static bool IsEnabled => SensibleH.Enabled.Value == PluginState.Always || (IsVR && SensibleH.Enabled.Value == PluginState.OnlyInVr);
         internal static bool IsVR => _vr;
         private static bool _vr;
         //#if KK
@@ -452,11 +458,15 @@ namespace KK_SensibleH
             Instance = this;
             _vr = SteamVRDetector.IsRunning;
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += OnActiveSceneChanged;
+            SensibleH.Enabled.SettingChanged += (sender, e) => TryEnable();
+            TryEnable();
         }
+
         private void TryEnable()
         {
-            if (SensibleH.Enabled.Value == PluginState.Always || (_vr && SensibleH.Enabled.Value == PluginState.OnlyInVr))
+            if (IsEnabled)
             {
+                StartH();
                 if (_persistentPatches.Count == 0)
                 {
                     SensibleH.Logger.LogDebug($"Apply patches");
@@ -467,15 +477,23 @@ namespace KK_SensibleH
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchH)));
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrl)));
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
-                    _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestGame)));
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
-#if KKS
+#if KK
+                    if (IsParty)
+                    {
+                        _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHParty)));
+                    }
+                    else
+                    {
+                        _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHNoParty)));
+                    }
+#else
                     if (SensibleH.ProlongObi.Value)
                     {
                         _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchObi)));
                     }
 #endif
-                    if (_vr)
+                    if (IsVR)
                     {
                         _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlVR)));
                     }
@@ -493,23 +511,25 @@ namespace KK_SensibleH
         }
 
 
-#if DEBUG
         private readonly string[] _reverbMaps =
         [
+#if KK
             "Pool",
             "ShawerRoom",
             "1FToilet",
             "2FToilet",
             "3FToilet",
-            "ToiletMale"
-        ];
+            "ToiletMale",
+#else
+            "BathRoom",
+            "ShowerRoom",
+            // Bathrooms in KKS are with wood walls, wouldn't have reverb.
 #endif
+        ];
 
         private void OnActiveSceneChanged(UnityEngine.SceneManagement.Scene from, UnityEngine.SceneManagement.Scene to)
         {
-            TryEnable();
-#if DEBUG
-            if (SensibleH.Enabled.Value)
+            if (SensibleH.AddReverb.Value && IsEnabled)
             {
                 if (_reverbMaps.Contains(to.name))
                 {
@@ -517,65 +537,73 @@ namespace KK_SensibleH
                     if (map != null && map.GetComponent<AudioReverbZone>() == null)
                     {
                         map.AddComponent<AudioReverbZone>();
-                        //SensibleH.Logger.LogDebug($"Added:{typeof(AudioReverbZone)}:to:{map.name}");
                     }
                 }
+            }
         }
-#endif
-        }
-        protected override void OnStartH(MonoBehaviour proc, HFlag flag, bool vr)
+        private void StartH()
         {
-            //SensibleH.Logger.LogDebug($"OnStartH");
-            if (SensibleH.Enabled.Value == PluginState.Always || (_vr && SensibleH.Enabled.Value == PluginState.OnlyInVr))
+            StopAllCoroutines();
+            if (_hEnd || hFlag == null) return;
+            if (_moMiController == null)
             {
-                StopAllCoroutines();
-                _hEnd = false;
-                var traverse = Traverse.Create(proc);
-                _handCtrl = traverse.Field("hand").GetValue<HandCtrl>();
-                _handCtrl1 = traverse.Field("hand1").GetValue<HandCtrl>();
-                _hVoiceCtrl = traverse.Field("voice").GetValue<HVoiceCtrl>();
-
-                lstFemale = traverse.Field("lstFemale").GetValue<List<ChaControl>>();
-                male = traverse.Field("male").GetValue<ChaControl>();
-
-                hFlag = flag;
-                LstHeroine ??= [];
-                _eyeneckFemale = traverse.Field("eyeneckFemale").GetValue<HMotionEyeNeckFemale>();
-                _eyeneckFemale1 = traverse.Field("eyeneckFemale1").GetValue<HMotionEyeNeckFemale>();
-                headManipulators.Clear();
-                FemalePoI = new GameObject[lstFemale.Count];
-
-                _moMiController = proc.gameObject.AddComponent<MoMiController>();
-                //_maleController = proc.gameObject.AddComponent<MaleController>();
-                _loopController = proc.gameObject.AddComponent<LoopController>();
-                _loopController.Initialize(proc, this);
+                _moMiController = hFlag.gameObject.AddComponent<MoMiController>();
+            }
+            if (_loopController == null)
+            {
+                _loopController = hFlag.gameObject.AddComponent<LoopController>();
+                _loopController.Initialize(hFlag.gameObject.GetComponent<HSceneProc>(), this);
+            }
+            if (headManipulators.Count == 0)
+            {
                 for (int i = 0; i < lstFemale.Count; i++)
                 {
-                    //if (!_redressTargets.ContainsKey(hFlag.lstHeroine[i]))
-                    //{
-                    //    _redressTargets.Add(hFlag.lstHeroine[i], new List<byte>());
-                    //}
                     var chaControlEx = lstFemale[i].gameObject.AddComponent<HeadManipulator>();
                     chaControlEx.Initialize(i, GetFamiliarity(i));
                     headManipulators.Add(chaControlEx);
                 }
+            }
+
+            // Gameplay Enhancements by ManlyMarco attempts to change this too, but the value changed is irrelevant in practice.
+            if (hFlag.isInsertOK[0])
+            {
+                hFlag.isInsertOK[0] = Random.value < 0.75f;
+            }
+            if (hFlag.isAnalInsertOK)
+            {
+                hFlag.isAnalInsertOK = Random.value < 0.75f;
+            }
+            UpdateSettings();
+            StartCoroutine(OnceInAwhile());
+        }
+        protected override void OnStartH(MonoBehaviour proc, HFlag flag, bool vr)
+        {
+            //SensibleH.Logger.LogDebug($"OnStartH");
+            StopAllCoroutines();
+            _hEnd = false;
+            var traverse = Traverse.Create(proc);
+            _handCtrl = traverse.Field("hand").GetValue<HandCtrl>();
+            _handCtrl1 = traverse.Field("hand1").GetValue<HandCtrl>();
+            _hVoiceCtrl = traverse.Field("voice").GetValue<HVoiceCtrl>();
+
+            lstFemale = traverse.Field("lstFemale").GetValue<List<ChaControl>>();
+            male = traverse.Field("male").GetValue<ChaControl>();
+
+            hFlag = flag;
+            LstHeroine ??= [];
+            _eyeneckFemale = traverse.Field("eyeneckFemale").GetValue<HMotionEyeNeckFemale>();
+            _eyeneckFemale1 = traverse.Field("eyeneckFemale1").GetValue<HMotionEyeNeckFemale>();
+            headManipulators.Clear();
+            FemalePoI = new GameObject[lstFemale.Count];
+
+
+            var pipi = male.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cm_J_dan_top/cm_J_dan100_00");
+            TestH.size = (pipi.localScale.x + pipi.localScale.y) * 0.5f;
+
+            if (IsEnabled)
+            {
                 DressDudeForAction();
-
-                // Gameplay Enhancements by ManlyMarco attempts to change this too, but the value changed is irrelevant in practice.
-                if (hFlag.isInsertOK[0])
-                {
-                    hFlag.isInsertOK[0] = Random.value < 0.75f;
-                }
-                if (hFlag.isAnalInsertOK)
-                {
-                    hFlag.isAnalInsertOK = Random.value < 0.75f;
-                }
-
-                var pipi = male.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cm_J_dan_top/cm_J_dan100_00");
-                TestH.size = (pipi.localScale.x + pipi.localScale.y) * 0.5f;
-
-                UpdateSettings();
-                StartCoroutine(OnceInAwhile());
+                StartH();
             }
         }
 

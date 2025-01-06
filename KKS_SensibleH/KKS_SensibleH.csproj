@@ -64,9 +64,11 @@
     </Reference>
     <Reference Include="KKS_BetterSquirt">
       <HintPath>F:\Illusion\KKTSUS\BepInEx\plugins\KKS_BetterSquirt.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="KKS_MainGameVR">
       <HintPath>..\Libs\KKS_MainGameVR.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sirenix.Serialization, Version=2.1.13.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.CoreModule.2019.4.9\lib\net46\Sirenix.Serialization.dll</HintPath>
@@ -107,6 +109,7 @@
     <Reference Include="Unity.XR.OpenVR, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>F:\Illusion\KKTSUS\BepInEx\plugins\KKS_VR\Unity.XR.OpenVR.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\IllusionLibs.KoikatsuSunshine.UnityEngine.CoreModule.2019.4.9\lib\net46\UnityEngine.dll</HintPath>
@@ -150,14 +153,14 @@
     </Reference>
     <Reference Include="VRGIN_OpenXR">
       <HintPath>F:\Illusion\KKTSUS\BepInEx\plugins\KKS_VR\VRGIN_OpenXR.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-	  <None Include="..\README.md">
-		  <Link>README.md</Link>
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+    <None Include="..\README.md">
+      <Link>README.md</Link>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.Unity.Analyzers.1.18.0\analyzers\dotnet\cs\Microsoft.Unity.Analyzers.dll" />

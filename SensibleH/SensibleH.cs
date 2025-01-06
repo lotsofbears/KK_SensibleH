@@ -18,6 +18,9 @@ namespace KK_SensibleH
 {
     [BepInPlugin(GUID, Name, Version)]
     [BepInProcess(KoikatuAPI.GameProcessName)]
+#if KK
+    [BepInProcess(KoikatuAPI.GameProcessNameSteam)]
+#endif
     [BepInDependency(KoikatuAPI.GUID)]
     [BepInDependency(KK_VR.VRPlugin.GUID)]
     [BepInDependency(KK_BetterSquirt.BetterSquirt.GUID)] // F it, normal version stays in hard dependencies, no clue how to pass reflected enum type to the delegate.
@@ -26,7 +29,7 @@ namespace KK_SensibleH
     {
         public const string GUID = "kk.sensible.h";
         public const string Name = "KK_SensibleH";
-        public const string Version = "1.1.0";
+        public const string Version = "1.2";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<PluginState> Enabled { get; set; }
@@ -52,6 +55,7 @@ namespace KK_SensibleH
         public static ConfigEntry<int> GaugeSpeed { get; set; }
         public static ConfigEntry<FrenchType> FrenchKiss { get; set; }
         public static ConfigEntry<int> KissEyesLimit { get; set; }
+        public static ConfigEntry<bool> AddReverb { get; set; }
         public static bool MoveNeckGlobal;
         public static int[] EyeNeckPtn = { -1, -1, -1 };
 
@@ -120,6 +124,7 @@ namespace KK_SensibleH
         {
             Logger = base.Logger;
 
+
             Enabled = Config.Bind(
                 section: "",
                 key: "Enable",
@@ -127,6 +132,8 @@ namespace KK_SensibleH
                 new ConfigDescription(
                     "The changes take place after the scene change")
                 );
+
+
             AutoMode = Config.Bind(
                 section: "AutoMode",
                 key: "State",
@@ -142,6 +149,8 @@ namespace KK_SensibleH
                 null,
                 new ConfigurationManagerAttributes { Order = 10 }
                 ));
+
+
             AutoPickPose = Config.Bind(
                 section: "AutoMode",
                 key: "Position change",
@@ -154,6 +163,8 @@ namespace KK_SensibleH
                 null,
                 new ConfigurationManagerAttributes { Order = 9 }
                 ));
+
+
             AutoRestartAction = Config.Bind(
                 section: "AutoMode",
                 key: "Restart",
@@ -163,6 +174,8 @@ namespace KK_SensibleH
                 null,
                 new ConfigurationManagerAttributes { Order = 7 }
                 ));
+
+
             Edge = Config.Bind(
                 section: "AutoMode",
                 key: "Edge",
@@ -172,6 +185,8 @@ namespace KK_SensibleH
                 null,
                 new ConfigurationManagerAttributes { Order = 6 }
                 ));
+
+
             ActionFrequency = Config.Bind(
                 section: "AutoMode",
                 key: "Change frequency",
@@ -180,6 +195,8 @@ namespace KK_SensibleH
                 new AcceptableValueRange<float>(0.1f, 2f),
                 new ConfigurationManagerAttributes { Order = 8 }
                 )); 
+
+
             EdgeFrequency = Config.Bind(
                 section: "AutoMode",
                 key: "Edge frequency",
@@ -188,6 +205,8 @@ namespace KK_SensibleH
                 new AcceptableValueRange<float>(0.1f, 2f),
                 new ConfigurationManagerAttributes { Order = 5 }
                 ));
+
+
             NeckLimit = Config.Bind(
                 section: "Tweaks",
                 key: "Neck limit",
@@ -196,12 +215,15 @@ namespace KK_SensibleH
                 "Changes take place on scene reload or new position.",
                 new AcceptableValueRange<float>(0.5f, 1.5f))
                 );
+
+
             EyeNeckControl = Config.Bind(
                 section: "Tweaks",
                 key: "Eye/neck control",
                 defaultValue: true,
                 "Allow plugin to introduce alternative control of eyes and neck."
                 );
+
 #if DEBUG
             HoldPubicHair = Config.Bind(
                 section: "Tweaks",
@@ -210,6 +232,7 @@ namespace KK_SensibleH
                 "Hold the scale of pubic hair accessory attached to the crouch."
                 );
 #endif
+
             AutoADV = Config.Bind(
                 section: "Tweaks",
                 key: "Auto ADV",
@@ -220,6 +243,7 @@ namespace KK_SensibleH
                     new ConfigurationManagerAttributes { Order = -9 }
                 ));
 
+
             DisablePeskySounds = Config.Bind(
                 section: "Tweaks",
                 key: "Disable button click SFX",
@@ -229,6 +253,8 @@ namespace KK_SensibleH
                 null,
                 new ConfigurationManagerAttributes { Order = -10 }
                 ));
+
+
             GaugeSpeed = Config.Bind(
                 section: "Tweaks",
                 key: "Excitement slowdown",
@@ -237,6 +263,7 @@ namespace KK_SensibleH
                     "Decreases the speed of excitement gauge increase by value times.",
                     new AcceptableValueRange<int>(1, 10))
                 );
+
 #if KKS
             ProlongObi = Config.Bind(
                 section: "Tweaks",
@@ -245,6 +272,7 @@ namespace KK_SensibleH
                 "Increases the time when ejaculation fluid is present."
                 );
 #endif
+
             FrenchKiss = Config.Bind(
                 section: "Kiss",
                 key: "Tongue",
@@ -254,15 +282,27 @@ namespace KK_SensibleH
                 null,
                 new ConfigurationManagerAttributes { Order = 10 }
                 ));
+
+
             KissEyesLimit = Config.Bind(
                 section: "Kiss",
                 key: "Eyes",
-            defaultValue: 50,
-            new ConfigDescription("Maximum openness of the eyes during kissing.\n" +
-            "Set to 0 to keep eyes closed during kiss",
-            new AcceptableValueRange<int>(0, 100),
-            new ConfigurationManagerAttributes { Order = 9, ShowRangeAsPercent = false }
-            ));
+                defaultValue: 50,
+                new ConfigDescription("Maximum openness of the eyes during kissing.\n" +
+                "Set to 0 to keep eyes closed during kiss",
+                new AcceptableValueRange<int>(0, 100),
+                new ConfigurationManagerAttributes { Order = 9, ShowRangeAsPercent = false }
+                ));
+
+
+            AddReverb = Config.Bind(
+                section: "Tweaks",
+                key: "Reverb",
+                defaultValue: true,
+                new ConfigDescription("Add reverb SFX to some maps",
+                null,
+                new ConfigurationManagerAttributes { Order = -20 }
+                ));
 #if DEBUG
             Cfg_TestKey = Config.Bind(
                 section: "SensibleH",

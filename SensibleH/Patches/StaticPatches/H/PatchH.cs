@@ -27,12 +27,12 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.ChangeAnimator))]
         public static void ChangeAnimatorPostfix(HSceneProc.AnimationListInfo _nextAinmInfo, HSceneProc __instance)
         {
-            // Pre heat of masturbation/lesbian scene. They didn't wait for us to start.
-            // This breaks better squirt of all things? How in hell?
-            if (__instance.flags.mode == HFlag.EMode.masturbation || __instance.flags.mode == HFlag.EMode.lesbian) // !__instance.flags.isFreeH && 
+            // Pre heat of masturbation/lesbian scene in mainGame. They didn't wait for us to start.
+            if (!__instance.flags.isFreeH && (__instance.flags.mode == HFlag.EMode.masturbation || __instance.flags.mode == HFlag.EMode.lesbian))  
             {
                 __instance.flags.gaugeFemale = UnityEngine.Random.Range(0, 70);
             }
+            // By default used only to restart the action, we opt to replay voices with this timer also.
             if (__instance.flags.mode == HFlag.EMode.masturbation)
             {
                 __instance.flags.timeMasturbation.timeMin = 25f; //UnityEngine.Random.Range(20, 30);
@@ -71,22 +71,12 @@ namespace KK_SensibleH.Patches.StaticPatches
                 __instance.flags.timeLesbian.timeMin = 25f;// UnityEngine.Random.Range(20, 30);
                 __instance.flags.timeLesbian.timeMax = 35f;//__instance.flags.timeMasturbation.timeMin + 20f;
             }
-            switch (__instance.flags.mode)
+            mode = __instance.flags.mode switch
             {
-                case HFlag.EMode.houshi:
-                case HFlag.EMode.houshi3P:
-                case HFlag.EMode.houshi3PMMF:
-                    mode = HFlag.EMode.houshi;
-                    break;
-                case HFlag.EMode.sonyu:
-                case HFlag.EMode.sonyu3P:
-                case HFlag.EMode.sonyu3PMMF:
-                    mode = HFlag.EMode.sonyu;
-                    break;
-                default:
-                    mode = __instance.flags.mode;
-                    break;
-            }
+                HFlag.EMode.houshi or HFlag.EMode.houshi3P or HFlag.EMode.houshi3PMMF => HFlag.EMode.houshi,
+                HFlag.EMode.sonyu or HFlag.EMode.sonyu3P or HFlag.EMode.sonyu3PMMF => HFlag.EMode.sonyu,
+                _ => __instance.flags.mode,
+            };
             SensibleHController.Instance.OnChangeAnimator(_nextAinmInfo);
         }
 
@@ -170,12 +160,12 @@ namespace KK_SensibleH.Patches.StaticPatches
         /// We adjust CrossFader's FadeTime for specific animations.
         /// </summary>
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(Animator), nameof(Animator.CrossFadeInFixedTime), new Type[]
-        {
+        [HarmonyPatch(typeof(Animator), nameof(Animator.CrossFadeInFixedTime),
+        [
             typeof(string),
             typeof(float),
             typeof(int)
-        })]
+        ])]
 #if KK
         public static void CrossFadeInFixedTimePrefix(string stateName, ref float transitionDuration, int layer)
         {
@@ -230,6 +220,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         /// <summary>
         /// A hook for CyuVR's tongue manipulations. 
         /// </summary>
+        // Use   [DefaultExecutionOrder(???)] instead ?
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FaceBlendShape), nameof(FaceBlendShape.LateUpdate))]
         public static void FaceBlendShapeLateUpdateHook()
@@ -269,18 +260,10 @@ namespace KK_SensibleH.Patches.StaticPatches
                 __instance.LoopProc(true);
             }
         }
-        /// <summary>
-        /// Breath in OLoop enabler.
-        /// </summary>
-        [HarmonyPrefix, HarmonyPatch(typeof(HVoiceCtrl), nameof(HVoiceCtrl.BreathProc))]
-        public static void BreathProcPrefix(ref AnimatorStateInfo _ai, HVoiceCtrl __instance)
-        {
-            if (OLoop && __instance.flags.mode == HFlag.EMode.sonyu)
-                _ai = sLoopInfo;
-        }
+
         /// <summary>
         /// By default when there is an item and no action is conducted, there is no voice procs.
-        /// We look for lack of action and non "Idle" or "Orgasm" pose and run IsIdleTime() timer on proc, and then we handle the voice ourselves.
+        /// We look for lack of action and non "Idle/Orgasm" pose and run IsIdleTime() timer on proc, and then we handle the voice ourselves.
         /// </summary>
         [HarmonyPostfix, HarmonyPatch(typeof(HAibu), nameof(HAibu.Proc))]
         public static void HAibuProcPostfix(HAibu __instance)
@@ -306,6 +289,9 @@ namespace KK_SensibleH.Patches.StaticPatches
                     
             }
         }
+        /// <summary>
+        /// Retain character visibility when going into HPoint move scene.
+        /// </summary>
         [HarmonyPostfix, HarmonyPatch(typeof(HSceneProc), nameof(HSceneProc.GotoPointMoveScene))]
         public static void GotoPointMoveScenePrefix(HSceneProc __instance)
         {
@@ -314,12 +300,23 @@ namespace KK_SensibleH.Patches.StaticPatches
                 __instance.lstFemale[i].visibleAll = __instance.lstOldFemaleVisible[i];
             }
             __instance.male.visibleAll = __instance.lstOldMaleVisible[0];
-            if (__instance.male1)
+            __instance.item.SetVisible(true);
+            __instance.hand.SceneChangeItemEnable(true);
+#if KK
+            if (SensibleHController.IsParty) return;
+            // For some reason even without accessing this part of the code we get an exception in Party.
+            var male1 = Traverse.Create(__instance).Field("male1").GetValue<ChaControl>();
+            if (male1 != null)
+            {
+                male1.visibleAll = __instance.lstOldMaleVisible[1];
+            }
+
+#else
+            if (__instance.male1 != null)
             {
                 __instance.male1.visibleAll = __instance.lstOldMaleVisible[1];
             }
-            __instance.item.SetVisible(true);
-            __instance.hand.SceneChangeItemEnable(true);
+#endif
         }
     }
 }

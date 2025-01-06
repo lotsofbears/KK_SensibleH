@@ -27,17 +27,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\PatchEyes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\[obsolete]PatchHandCtrlKiss.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\[obsolete]PatchKoikatuVR.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)patches\staticpatches\PatchClickAction.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)patches\staticpatches\PatchDragAction.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)patches\staticpatches\PatchHandCtrl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\PatchHParty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\PatchHNoParty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\HandCtrl\PatchClickAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\HandCtrl\PatchDragAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\HandCtrl\PatchHandCtrl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\[obsolete].cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchEyeNeck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchGame.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchH.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchLoop.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchHandCtrlVR.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\PatchH.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\PatchLoop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\HandCtrl\PatchHandCtrlVR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\PatchObi.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\TestGame.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\TestH.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SensibleH.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SensibleHController.cs" />
@@ -45,5 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)EyeNeck\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\HandCtrl\" />
   </ItemGroup>
 </Project>

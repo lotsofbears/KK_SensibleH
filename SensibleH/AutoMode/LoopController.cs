@@ -39,8 +39,6 @@ namespace KK_SensibleH.AutoMode
         private bool _busy;
         private bool _restart;
         private bool _hadClimax;
-        private bool _sonyu;
-        private bool _houshi;
         private bool _finishLoop;
 
         internal void Initialize(MonoBehaviour _proc, SensibleHController master)
@@ -50,7 +48,6 @@ namespace KK_SensibleH.AutoMode
             var traverse = Traverse.Create(_proc);
             lstUseAnimInfo = traverse.Field("lstUseAnimInfo").GetValue<List<HSceneProc.AnimationListInfo>[]>();
             _lstProc = traverse.Field("lstProc").GetValue<List<HActionBase>>();
-            //SensibleH.Logger.LogDebug($"lstProc = {_lstProc}:{_lstProc != null}");
             _sprite = traverse.Field("sprite").GetValue<HSprite>();
             fakeAnimButton = Instantiate(_sprite.objMotionListNode, gameObject.transform, false);
             fakeAnimButton.AddComponent<HSprite.AnimationInfoComponent>();
@@ -86,17 +83,15 @@ namespace KK_SensibleH.AutoMode
                 case HFlag.EMode.houshi3P:
                     menu = _sprite.houshi3P.categoryActionButton.lstButton;
                     break;
-                case HFlag.EMode.houshi3PMMF:
-                    menu = _sprite.houshi3PDark.categoryActionButton.lstButton;
-                    break;
                 case HFlag.EMode.sonyu:
                     menu = _sprite.sonyu.categoryActionButton.lstButton;
                     break;
                 case HFlag.EMode.sonyu3P:
                     menu = _sprite.sonyu3P.categoryActionButton.lstButton;
                     break;
+                case HFlag.EMode.houshi3PMMF:
                 case HFlag.EMode.sonyu3PMMF:
-                    menu = _sprite.sonyu3PDark.categoryActionButton.lstButton;
+                    menu = GetDarkSprite(hFlag.mode);
                     break;
                 default:
                     return new List<Button>();
@@ -111,6 +106,15 @@ namespace KK_SensibleH.AutoMode
                 .Where(button => button.isActiveAndEnabled && button.interactable && button.name.StartsWith(name, StringComparison.Ordinal))
                 .ToList();
             return choices;
+        }
+        private static List<Button> GetDarkSprite(HFlag.EMode mode)
+        {
+            return mode switch
+            {
+                HFlag.EMode.houshi3PMMF => _sprite.houshi3PDark.categoryActionButton.lstButton,
+                HFlag.EMode.sonyu3PMMF => _sprite.sonyu3PDark.categoryActionButton.lstButton,
+                _ => new List<Button>()
+            };
         }
         public List<HSceneProc.AnimationListInfo> GetAvailableAnimations(int id = -2)
         {
@@ -228,7 +232,7 @@ namespace KK_SensibleH.AutoMode
         {
             //SensibleH.Logger.LogDebug($"LoopProc Busy[{_busy}] Restart[{_restart}] Climax[{_hadClimax}]");
 
-            if (_edgeActive || (!_houshi && !_sonyu) || _finishLoop)
+            if (_edgeActive || (!IsHoushi && !IsSonyu) || _finishLoop)
             {
                 return;
             }
@@ -249,7 +253,7 @@ namespace KK_SensibleH.AutoMode
             else if (_busy && SensibleH.AutoMode.Value == AutoModeKind.Automatic)
             {
                 _busy = false;
-                if (SensibleH.AutoMode.Value == AutoModeKind.Automatic && _houshi)
+                if (SensibleH.AutoMode.Value == AutoModeKind.Automatic && IsHoushi)
                     SetHoushiAutoMode(true);
             }
             else if (SensibleH.AutoMode.Value != AutoModeKind.Disabled && !_busy)
@@ -268,7 +272,7 @@ namespace KK_SensibleH.AutoMode
                     }
                     _actionTimer += 1;
 
-                    if (_sonyu)
+                    if (IsSonyu)
                     {
                         if (_nextLoopChange < _actionTimer && hFlag.gaugeMale > 10f)
                         {
@@ -280,7 +284,7 @@ namespace KK_SensibleH.AutoMode
                         }
                     }
                 }
-                else if (_sonyu && (IsIdleInside || IsEndInside))
+                else if (IsSonyu && (IsIdleInside || IsEndInside))
                 {
                     ChangeMotion();
                 }
@@ -338,16 +342,24 @@ namespace KK_SensibleH.AutoMode
             switch (mode)
             {
                 case HFlag.EMode.houshi:
-                case HFlag.EMode.houshi3P:
-                case HFlag.EMode.houshi3PMMF:
                     if (SensibleH.AutoMode.Value == AutoModeKind.Automatic)
+                    {
                         _sprite.houshi.tglRely.isOn = true;
+                    }
                     else
+                    {
                         _sprite.houshi.tglRely.isOn = false;
-                    _houshi = true;
-                    _sonyu = false;
-                    //hFlag.rely = true;
-                    //Sprite.rely.InitTimer();
+                    }
+                    break;
+                case HFlag.EMode.houshi3P:
+                    if (SensibleH.AutoMode.Value == AutoModeKind.Automatic)
+                    {
+                        _sprite.houshi3P.tglRely.isOn = true;
+                    }
+                    else
+                    {
+                        _sprite.houshi3P.tglRely.isOn = false;
+                    }
                     break;
                 case HFlag.EMode.sonyu:
 #if KK
@@ -355,31 +367,44 @@ namespace KK_SensibleH.AutoMode
 #else
                     _sprite.sonyu.btAutoFinishSpriteCtl.now = false;
 #endif
-                    _houshi = false;
-                    _sonyu = true;
                     break;
                 case HFlag.EMode.sonyu3P:
 #if KK
-                    _sprite.sonyu.tglAutoFinish.isOn = false;
+                    _sprite.sonyu3P.tglAutoFinish.isOn = false;
 #else
-                    _sprite.sonyu.btAutoFinishSpriteCtl.now = false;
+                    _sprite.sonyu3P.btAutoFinishSpriteCtl.now = false;
 #endif
-                    _houshi = false;
-                    _sonyu = true;
                     break;
+                case HFlag.EMode.houshi3PMMF:
                 case HFlag.EMode.sonyu3PMMF:
-#if KK
-                    _sprite.sonyu.tglAutoFinish.isOn = false;
-#else
-                    _sprite.sonyu.btAutoFinishSpriteCtl.now = false;
-#endif
-                    _houshi = false;
-                    _sonyu = true;
+                    ToggleAutoDark(mode);
                     break;
                 default:
-                    _houshi = false;
-                    _sonyu = false;
                     break;
+            }
+        }
+        private void ToggleAutoDark(HFlag.EMode mode)
+        {
+            switch (mode)
+            {
+                case HFlag.EMode.houshi3PMMF:
+                    if (SensibleH.AutoMode.Value == AutoModeKind.Automatic)
+                    {
+                        _sprite.houshi3PDark.tglRely.isOn = true;
+                    }
+                    else
+                    {
+                        _sprite.houshi3PDark.tglRely.isOn = false;
+                    }
+                    break;
+                case HFlag.EMode.sonyu3PMMF:
+
+#if KK
+                    _sprite.sonyu3PDark.tglAutoFinish.isOn = false;
+#else
+                    _sprite.sonyu3PDark.btAutoFinishSpriteCtl.now = false;
+#endif
+                        break;
             }
 
         }
@@ -389,10 +414,10 @@ namespace KK_SensibleH.AutoMode
             _edgeActive = true;
             //_girlController[CurrentMain].MoveNeckHalt();
             var setting = SensibleH.Edge.Value;
-            var pullOut = _houshi || setting == EdgeType.Outside || (setting == EdgeType.Both && Random.value > 0.5f);
+            var pullOut = IsHoushi || setting == EdgeType.Outside || (setting == EdgeType.Both && Random.value > 0.5f);
             if (ChangeLoop())
             {
-                if (_houshi)
+                if (IsHoushi)
                     SetHoushiAutoMode(false);
                 if (!IsOrgasmLoop)
                 {
@@ -421,7 +446,7 @@ namespace KK_SensibleH.AutoMode
             }
             else
             {
-                if (_houshi && !IsVoiceActive)
+                if (IsHoushi && !IsVoiceActive)
                 {
                     StartCoroutine(RunAfterTimer(() => headManipulators[CurrentMain].PlayVoice(200), Random.Range(1f, 2f)));
                 }
@@ -449,7 +474,7 @@ namespace KK_SensibleH.AutoMode
                 yield return new WaitForSeconds(0.2f);
                 ChangeEdge();
             }
-            if (_sonyu)
+            if (IsSonyu)
             {
                 while (!IsWeakLoop)
                 {
@@ -459,7 +484,7 @@ namespace KK_SensibleH.AutoMode
             }
             ChangeSpeed(request: Speed.Fast, urgent: true);
             _nextEdge = GetNextTimer(6f * SensibleH.EdgeFrequency.Value);
-            if (_houshi)
+            if (IsHoushi)
             {
                 SetHoushiAutoMode(true);
             }
@@ -793,11 +818,11 @@ namespace KK_SensibleH.AutoMode
             _hadClimax = false;
             _busy = false;
             //_userInput = true;
-            if (_houshi)
+            if (IsHoushi)
             {
                 hFlag.click = HFlag.ClickKind.again;
             }
-            else if (_sonyu && IsEndOutside)
+            else if (IsSonyu && IsEndOutside)
             {
                 ClickButton();
             }
@@ -832,7 +857,7 @@ namespace KK_SensibleH.AutoMode
                     {
                         _busy = false;
                         //_userInput = true;
-                        if (_houshi)
+                        if (IsHoushi)
                             SetHoushiAutoMode(true);
                         //SensibleH.Logger.LogDebug("Loop:UserInput:PreClimax");
                     }

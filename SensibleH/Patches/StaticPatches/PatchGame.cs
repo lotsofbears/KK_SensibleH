@@ -11,7 +11,7 @@ namespace KK_SensibleH.Patches.StaticPatches
 {
     internal class PatchGame
     {
-        private static Dictionary<ChaControl, bool> HoHoTracking = new Dictionary<ChaControl, bool>();
+        private static Dictionary<ChaControl, bool> HoHoTracking = [];
 
         //public static int[] PersonalitiesKKS = { 39, 40, 41, 42, 43 };
 
@@ -98,6 +98,7 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
 
         }
+
         /// <summary>
         /// Auto ADV default if there is no heroine present.
         /// </summary>

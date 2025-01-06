@@ -82,30 +82,34 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
         }
 
-        [HarmonyPostfix, HarmonyPatch(typeof(HSprite), nameof(HSprite.OnPullClick))]
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnPullClick))]
         public static void HandleOnPullClick()
         {
             maleBreathDelegate?.Invoke((int)ClickType.Pull_novoice);
-            //LoopController.OnUserInput();
             LoopController.Instance.OnSonyuClick(pullOut: true);
         }
 
-        [HarmonyPostfix, HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertNoVoiceClick))]
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertNoVoiceClick))]
         public static void OnInsertNoVoiceClickPostfix()
         {
             maleBreathDelegate?.Invoke((int)ClickType.Insert_novoice);
-            //LoopController.OnUserInput();
             LoopController.Instance.OnSonyuClick(pullOut: false);
         }
 
-        [HarmonyPostfix, HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalNoVoiceClick))]
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalNoVoiceClick))]
         public static void OnInsertAnalNoVoiceClickPostfix()
         {
             maleBreathDelegate?.Invoke((int)ClickType.InsertAnal_novoice);
-            //LoopController.OnUserInput();
             LoopController.Instance.DoAnalClick();
         }
-        [HarmonyPrefix, HarmonyPatch(typeof(Input), nameof(Input.GetMouseButtonUp))]
+
+        // Necessary to click a fake button that changes animations.
+        // Invocation didn't work i think?
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Input), nameof(Input.GetMouseButtonUp))]
         public static bool GetMouseButtonUpPrefix(int button, ref bool __result)
         {
             if (button == 0 && FakeButtonUp)
@@ -114,7 +118,6 @@ namespace KK_SensibleH.Patches.StaticPatches
                 return false;
             }
             return true;
-
         }
         [HarmonyPostfix]
         [HarmonyPatch(typeof(HFlag), nameof(HFlag.AddAibuOrg))]
@@ -137,22 +140,23 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             LoopController.Instance.OnOrgasmM();
         }
+        /// <summary>
+        /// The value when orgasm animation plays, shuffled up by the plugin.
+        /// </summary>
         public static float FemaleCeiling = 100f;
+        /// <summary>
+        /// The value when pre-orgasm voices start to play, shuffled by the plugin.
+        /// </summary>
         public static float FemaleUpThere = 70f;
         private static bool RandomBinary() => UnityEngine.Random.value < 0.5f;
         public static bool Play70Voice(HandCtrl handCtrl)
         {
-            //var result = 
-            //if (result)
-            //{
-            //    // Set proper voice timing if we didn't roll 70+ voice;
-                
-            //}
             handCtrl.flags.voice.SetSonyuWaitTime(true);
             return handCtrl.IsKissAction() || RandomBinary();
         }
+
         /// <summary>
-        /// We override 70+ voice lines with kiss lines, otherwise we play them with 50% chance instead of once per gauge fill. 
+        /// We override 70+ voice lines with kiss lines if kissing, otherwise we play them with 50% chance instead of once per gauge fill. 
         /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HSonyu), nameof(HSonyu.LoopProc))]
         public static IEnumerable<CodeInstruction> HSonyuLoopProcTranspiler(IEnumerable<CodeInstruction> instructions)
@@ -285,10 +289,8 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
         }
         /// <summary>
-        /// Patch auto condom away.
+        /// Patch auto put-a-condom away.
         /// </summary>
-        /// <param name="instructions"></param>
-        /// <returns></returns>
         [HarmonyTranspiler, HarmonyPatch(typeof(HSonyu), nameof(HSonyu.Proc))]
         public static IEnumerable<CodeInstruction> HSonyuLoopTranspiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -321,58 +323,11 @@ namespace KK_SensibleH.Patches.StaticPatches
                 }
                 yield return code;
             }
-
-
-
-
-            //var done = false;
-            //var counter = 0;
-            //var part = 0;
-            //foreach (var code in instructions)
-            //{
-            //    if (!done)
-            //    {
-            //        if (counter == 0)
-            //        {
-            //            if (code.opcode == OpCodes.Ldfld && code.operand is FieldInfo info
-            //                && info.Name.Equals("is70Voices"))
-            //            {
-            //                counter++;
-            //            }
-            //        }
-            //        else if (counter == 1)
-            //        {
-            //            if (code.opcode == OpCodes.Ldc_I4_0)
-            //            {
-            //                counter++;
-            //            }
-            //            else
-            //            {
-            //                counter = 0;
-            //            }
-            //        }
-            //        else if (counter == 2)
-            //        {
-            //            if (code.opcode == OpCodes.Ldc_I4_0)
-            //            {
-            //                code.opcode = OpCodes.Ldc_I4_1;
-            //                counter = 0;
-            //                part++;
-            //                if (part == 2)
-            //                {
-            //                    done = true;
-            //                }
-            //            }
-            //        }
-            //    }
-            //    yield return code;
-            //}
         }
+
         /// <summary>
         /// We introduce custom borders for voice play.
         /// </summary>
-        /// <param name="instructions"></param>
-        /// <returns></returns>
         [HarmonyTranspiler, HarmonyPatch(typeof(HAibu), nameof(HAibu.Proc))]
         public static IEnumerable<CodeInstruction> HAibuProcTranspiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -397,142 +352,5 @@ namespace KK_SensibleH.Patches.StaticPatches
                 yield return code;
             }
         }
-        //[HarmonyTranspiler, HarmonyPatch(typeof(HSonyu), nameof(HSonyu.LoopProc))]
-        //public static IEnumerable<CodeInstruction> HSonyuLoopProcTranspiler(IEnumerable<CodeInstruction> instructions)
-        //{
-        //    var part = -1;
-        //    var counter = 0;
-        //    var done = false;
-        //    var hand = AccessTools.Field(typeof(HSonyu), "hand");
-        //    var isKiss = AccessTools.Method(typeof(PatchLoop), nameof(Play70Voice));
-        //    var upThere = AccessTools.Field(typeof(PatchLoop), nameof(FemaleUpThere));
-        //    foreach (var code in instructions)
-        //    {
-        //        if (!done)
-        //        {
-        //            if (part == -1)
-        //            {
-        //                if (counter == 0 && code.opcode == OpCodes.Call && code.operand is MethodInfo info
-        //                    && info.Name.Equals("RangeEqualOn"))
-        //                {
-        //                    counter++;
-        //                }
-        //                else if (counter == 1)
-        //                {
-        //                    if (code.opcode == OpCodes.Ldc_R4)
-        //                    {
-        //                        yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(PatchLoop), nameof(FemaleCeiling)));
-        //                        counter = 0;
-        //                        part++;
-        //                        continue;
-        //                    }
-        //                }
-        //            }
-        //            else if (part < 2)
-        //            {
-        //                if (counter == 0 && code.opcode == OpCodes.Ldc_R4
-        //                    && code.operand is float number
-        //                    && number == 70f)
-        //                {
-        //                    yield return new CodeInstruction(OpCodes.Ldsfld, upThere);
-        //                    counter++;
-        //                    continue;
-        //                }
-        //                else if (counter == 1)
-        //                {
-        //                    if (code.opcode == OpCodes.Blt_Un)
-        //                    {
-        //                        counter++;
-        //                    }
-        //                    else
-        //                    {
-        //                        counter = 0;
-        //                    }
-        //                }
-        //                else if (counter == 2)
-        //                {
-        //                    if (code.opcode == OpCodes.Ldfld
-        //                        && code.operand is FieldInfo field)
-        //                    {
-        //                        if (field.Name.Equals("flags"))
-        //                        {
-        //                            yield return new CodeInstruction(OpCodes.Nop);
-        //                            continue;
-        //                        }
-        //                        else if (field.Name.Equals("voice"))
-        //                        {
-        //                            yield return new CodeInstruction(OpCodes.Ldfld, hand);
-        //                            continue;
-        //                        }
-        //                        else if (field.Name.Equals("isFemale70PercentageVoicePlay") || field.Name.Equals("isMale70PercentageVoicePlay"))
-        //                        {
-        //                            yield return new CodeInstruction(OpCodes.Call, isKiss);
-        //                            counter = 0;
-        //                            part++;
-        //                            continue;
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //            else if (part == 2)
-        //            {
-        //                if (counter == 0 && code.opcode == OpCodes.Callvirt
-        //                    && code.operand is MethodInfo info && info.Name.Equals("SetSonyuIdleTime"))
-        //                {
-        //                    counter++;
-        //                }
-        //                else if (counter == 1 && code.opcode == OpCodes.Br)
-        //                {
-        //                    counter++;
-        //                }
-        //                else if (counter == 2)
-        //                {
-        //                    if (code.opcode == OpCodes.Ldarg_0)
-        //                    {
-        //                        code.opcode = OpCodes.Ldc_I4_0;
-        //                    }
-        //                    else if (code.opcode == OpCodes.Ldfld)
-        //                    {
-        //                        yield return new CodeInstruction(OpCodes.Nop);
-        //                        continue;
-        //                        //if (field.Name.Equals("flags"))
-        //                        //{
-        //                        //    yield return new CodeInstruction(OpCodes.Nop);
-        //                        //    continue;
-        //                        //}
-        //                        //else if (field.Name.Equals("voice"))
-        //                        //{
-        //                        //    yield return new CodeInstruction(OpCodes.Ldfld, hand);
-        //                        //    continue;
-        //                        //}
-        //                        //else if (field.Name.Equals("isFemale70PercentageVoicePlay") || field.Name.Equals("isMale70PercentageVoicePlay"))
-        //                        //{
-        //                        //    yield return new CodeInstruction(OpCodes.Call, isKiss);
-        //                        //    continue;
-        //                        //}
-        //                    }
-        //                    else if (code.opcode == OpCodes.Brtrue)
-        //                    {
-        //                        //yield return new CodeInstruction(OpCodes.Brfalse, code.operand);
-        //                        counter++;
-        //                        //continue;
-        //                    }
-
-        //                }
-        //                else if (counter == 3)
-        //                {
-        //                    if (code.opcode == OpCodes.Brtrue)
-        //                    {
-        //                        done = true;
-        //                    }
-        //                    yield return new CodeInstruction(OpCodes.Nop);
-        //                    continue;
-        //                }
-        //            }
-        //        }
-        //        yield return code;
-        //    }
-
-        //}
     }
 }

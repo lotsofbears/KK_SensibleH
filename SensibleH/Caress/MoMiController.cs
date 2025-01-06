@@ -74,7 +74,14 @@ namespace KK_SensibleH.Caress
 #if DEBUG
         private Transform _pubicHair;
 #endif
-
+        // Changing whole calculation to rebase it at Time.deltaTime is a pain.
+        // Here a clutch instead. Who knew that it scales with fps..
+        private float CacheFpsScale
+        {
+            get => _fpsScale;
+            set => _fpsScale = Time.deltaTime / (1f / 75f);
+        }
+        private float _fpsScale;
 
         private List<MoMiCircles> _circles = [];
         internal Coroutine[] _activeItems = new Coroutine[6];
@@ -363,6 +370,8 @@ namespace KK_SensibleH.Caress
                 ResetDrag = false;
                 FakeDragLength = Vector2.one;
             }
+            // Cache deltaTime scale.
+            CacheFpsScale = 1;
         }
         /// <summary>
         /// Moves attached items.
@@ -522,7 +531,7 @@ namespace KK_SensibleH.Caress
                             hFlag.xy[item.area] = vec;
                             if (_drag)
                             {
-                                AddToDragLength((_itemCountMultiplier + (item.speed + 2f - item.intensity) * _itemCountTiny) * Vector2.one); //  * (1f + hFlag.gaugeFemale * 0.002f) 
+                                AddToDragLength(CacheFpsScale * (_itemCountMultiplier + (item.speed + 2f - item.intensity) * _itemCountTiny) * Vector2.one); //  * (1f + hFlag.gaugeFemale * 0.002f) 
                             }
                         }
                         yield return CoroutineUtils.WaitForEndOfFrame;
@@ -545,7 +554,7 @@ namespace KK_SensibleH.Caress
         //}
         private void AddToDragLength(Vector2 vector)
         {
-            FakeDragLength += vector;
+            FakeDragLength +=  vector;
         }
         internal void SetCrossFadeWait(float time)
         {
