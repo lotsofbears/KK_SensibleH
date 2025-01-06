@@ -507,6 +507,7 @@ namespace KK_SensibleH
                     patch.UnpatchSelf();
                 }
                 _persistentPatches.Clear();
+                if (_moMiController != null) _moMiController.enabled = false;
             }
         }
 
@@ -548,6 +549,10 @@ namespace KK_SensibleH
             if (_moMiController == null)
             {
                 _moMiController = hFlag.gameObject.AddComponent<MoMiController>();
+            }
+            else
+            {
+                _moMiController.enabled = true;
             }
             if (_loopController == null)
             {
