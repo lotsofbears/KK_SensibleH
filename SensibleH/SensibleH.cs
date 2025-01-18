@@ -60,8 +60,8 @@ namespace KK_SensibleH
         public static int[] EyeNeckPtn = { -1, -1, -1 };
 
         internal static List<HeadManipulator> headManipulators = [];
-        internal static HandCtrl _handCtrl;
-        internal static HandCtrl _handCtrl1;
+        internal static HandCtrl handCtrl;
+        internal static HandCtrl handCtrl1;
         internal static HMotionEyeNeckFemale _eyeneckFemale;
         internal static HMotionEyeNeckFemale _eyeneckFemale1;
         internal static HFlag hFlag;

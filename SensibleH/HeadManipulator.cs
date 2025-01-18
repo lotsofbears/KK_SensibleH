@@ -100,8 +100,8 @@ namespace KK_SensibleH
             if ((hFlag.gaugeFemale - 25f) * 0.005f > Random.value)
             {
                 OverrideSquirt = true;
-                var hand = _main == 0 ? _handCtrl : _handCtrl1;
-                BetterSquirtController.RunSquirts(softSE: true, trigger: BetterSquirt.TriggerType.Touch, handCtrl: _main == 0 ? _handCtrl : _handCtrl1);
+                var hand = _main == 0 ? handCtrl : handCtrl1;
+                BetterSquirtController.RunSquirts(softSE: true, trigger: BetterSquirt.TriggerType.Touch, handCtrl: _main == 0 ? handCtrl : handCtrl1);
                 OverrideSquirt = false;
                 return true;
             }
@@ -127,11 +127,11 @@ namespace KK_SensibleH
             {
                 case HFlag.EMode.aibu:
                 case HFlag.EMode.houshi:
-                    if (_handCtrl.actionUseItem == -1)
+                    if (handCtrl.actionUseItem == -1)
                         touchType = (HandCtrl.AibuColliderKind)reactionsFull[Random.Range(0, reactionsFull.Count())];
                     else
                     {
-                        switch (_handCtrl.useItems[_handCtrl.actionUseItem].kindTouch)
+                        switch (handCtrl.useItems[handCtrl.actionUseItem].kindTouch)
                         {
                             case HandCtrl.AibuColliderKind.muneL:
                             case HandCtrl.AibuColliderKind.muneR:
@@ -154,9 +154,9 @@ namespace KK_SensibleH
                     break;
             }
             if (_main == 0)
-                _handCtrl.HitReactionPlay(touchType, shortPlay);
+                handCtrl.HitReactionPlay(touchType, shortPlay);
             else
-                _handCtrl1.HitReactionPlay(touchType, shortPlay);
+                handCtrl1.HitReactionPlay(touchType, shortPlay);
             //SensibleH.Logger.LogDebug($"GirlController[{_main}] - HitReactionPlay of type {touchType} was supposed to happen");
             return SquirtHandler();
         }

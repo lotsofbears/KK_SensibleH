@@ -50,11 +50,14 @@ namespace KK_SensibleH.Caress
         //public SkinnedMeshRenderer tangRenderer;
 
         internal bool IsItoActive => siruAmount != 0f;
+
+        private Transform _camera;
+
         /// <summary>
         /// As different models of VR headsets use different ranges for focal point, there are some differences in visual interpretation.
         /// Thus chosen ranges might not always optimal. (They seemed fine for "Pico 4")
         /// </summary>
-        private Vector3 GetHeadsetPosition => VR.Camera.transform.TransformPoint(new Vector3(0f, -0.05f, 0.05f));
+        private Vector3 GetHeadsetPosition => _camera.TransformPoint(new Vector3(0f, -0.05f, 0.05f));
         //private Vector3 GetIntermediateParentPosition => _intermediateParent.position;
         //private Vector3 GetAttachmentPosition => _attachment.position;
         private Vector3 GetAttachmentPosition => _actionType == HandCtrl.AibuColliderKind.mouth ? GetMouthAttachmentPoint : _attachment.position;
@@ -63,6 +66,7 @@ namespace KK_SensibleH.Caress
         {
             //SensibleH.Logger.LogDebug($"Thread[Awake]");
             Instance = this;
+            _camera = SensibleHController.IsVR ? VR.Camera.transform : hFlag.ctrlCamera.transform;
             _chara = lstFemale[0];
             //_mouthAcc = _female.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/a_n_mouth");
             //_attachment = _chara.objHeadBone.transform.Find("cf_J_N_FaceRoot/cf_J_FaceRoot/cf_J_FaceBase/cf_J_FaceLow_tz/cf_J_MouthBase_ty/cf_J_MouthBase_rx/cf_J_MouthCavity");
@@ -141,7 +145,7 @@ namespace KK_SensibleH.Caress
                 _tongueOut = tongueOut;
                 //if (colliderKind != HandCtrl.AibuColliderKind.mouth)
                 //{
-                //    _intermediateParent = _handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
+                //    _intermediateParent = handCtrl.useItems[2].obj.transform.Find("cf_j_tangroot");
                 //}
                 //else
                 //    _intermediateParent = null;

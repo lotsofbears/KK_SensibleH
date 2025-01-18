@@ -238,7 +238,7 @@ namespace KK_SensibleH.AutoMode
             }
             var timer = (int)Time.time;
 
-            if (MoMiController.Instance._lickCo || _handCtrl.isKiss)
+            if (MoMiController.Instance._lickCo || handCtrl.isKiss)
             {
                 //SensibleH.Logger.LogDebug($"Loop:Proc:Wait");
                 if (IsStrongLoop || IsOrgasmLoop)

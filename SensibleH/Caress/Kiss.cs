@@ -301,7 +301,7 @@ namespace KK_SensibleH.Caress
             
             var changeRate = Random.Range(10f, 20f);
             var initMouthOpenness = 25f + Random.value * 25f;
-            while (_handCtrl.IsKissAction()) // (_handCtrl.IsKissAction())
+            while (handCtrl.IsKissAction()) // (handCtrl.IsKissAction())
             {
                 var frameChange = Time.deltaTime * changeRate * 3f;
                 if (!_proximity)
@@ -330,7 +330,7 @@ namespace KK_SensibleH.Caress
             }
             _kissPhase = Phase.InAction;
             //SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_kissCo}");
-            while (_handCtrl.IsKissAction()) // _handCtrl.IsKissAction())
+            while (handCtrl.IsKissAction()) // handCtrl.IsKissAction())
             {
                 RandomMoveFloatTest(ref npWeight, ref npWeightTo, ref npWeightSpeed, 0f, 1f, ref npWeightTime, 0.1f, 0.5f);
                 RandomMoveFloatTest(ref npWeight2, ref npWeight2To, ref npWeightSpeed2, 0f, 1f, ref npWeightTime2, 0.1f, 0.5f);
@@ -353,7 +353,7 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.Disengaging;
-            //SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_handCtrl.IsKissAction()}");
+            //SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{handCtrl.IsKissAction()}");
             if (!_frenchKiss)
             {
                 SuppressVoice = true;
@@ -383,7 +383,7 @@ namespace KK_SensibleH.Caress
                 {
                     break;
                 }
-                if (_handCtrl.IsKissAction())
+                if (handCtrl.IsKissAction())
                 {
                     // In case there is already next one on the way.
                     kissAction = false;
@@ -438,7 +438,7 @@ namespace KK_SensibleH.Caress
 
             var changeRate = Random.Range(10f, 20f);
             var targetOpenness = Random.value * 70f;
-            while (_handCtrl.useItems[2] != null)
+            while (handCtrl.useItems[2] != null)
             {
                 var frameChange = Time.deltaTime * changeRate;
                 //curMouthValue = Mathf.Clamp(curMouthValue + (frameChange * 10f), 0f, 100f);
@@ -454,9 +454,9 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.InAction;
-            //SensibleH.Logger.LogDebug($"BeroKiss[InAction]{_handCtrl.useItems[2] != null}");
+            //SensibleH.Logger.LogDebug($"BeroKiss[InAction]{handCtrl.useItems[2] != null}");
             var minValue = Mathf.Abs(-25 + UnityEngine.Random.value * 50f);
-            while (_handCtrl.useItems[2] != null)
+            while (handCtrl.useItems[2] != null)
             {
                 //RandomMoveFloatTest(ref npWeight, ref npWeightTo, ref npWeightSpeed, 0f, 1f, ref npWeightTime, 0.1f, 0.5f);
                 //RandomMoveFloatTest(ref npWeight2, ref npWeight2To, ref npWeightSpeed2, 0f, 1f, ref npWeightTime2, 0.1f, 0.5f);
@@ -480,7 +480,7 @@ namespace KK_SensibleH.Caress
                 yield return null;
             }
             _kissPhase = Phase.Disengaging;
-            //SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{_handCtrl.IsKissAction()}");
+            //SensibleH.Logger.LogDebug($"BeroKiss[Disengaging]{handCtrl.IsKissAction()}");
             //if (!_frenchKiss)
             //{
             //    SuppressVoice = true;
@@ -503,7 +503,7 @@ namespace KK_SensibleH.Caress
                 {
                     break;
                 }
-                if (_handCtrl.useItems[2] != null)
+                if (handCtrl.useItems[2] != null)
                 {
                     // In case there is already next one on the way.
                     kissAction = false;

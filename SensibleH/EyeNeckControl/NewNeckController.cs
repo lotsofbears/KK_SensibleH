@@ -221,7 +221,7 @@ namespace KK_SensibleH.EyeNeckControl
                 else
                     PickEyes();
             }
-            if (neckMovable && !neckMoving && !LoopProperties.IsKissLoop) // _handCtrl.IsKissAction())
+            if (neckMovable && !neckMoving && !LoopProperties.IsKissLoop) // handCtrl.IsKissAction())
             {
                 if (SensibleHController.IsVR)
                 {
@@ -265,6 +265,17 @@ namespace KK_SensibleH.EyeNeckControl
                     else
                     {
                         _camWasClose = false;
+                    }
+                }
+                else
+                {
+                    if (handCtrl.IsKissAction())
+                    {
+                        if (_neckActive)
+                        {
+                            Halt();
+                        }
+                        return;
                     }
                 }
                 if (_neckActive)
@@ -455,7 +466,7 @@ namespace KK_SensibleH.EyeNeckControl
         /// </summary>
         internal bool LookAtPoI(int item = -1)
         {
-            if (IsNeckMovable && !_handCtrl.IsKissAction() && _poiHandler.SetFemalePoI(item))
+            if (IsNeckMovable && !handCtrl.IsKissAction() && _poiHandler.SetFemalePoI(item))
             {
                 //SensibleH.Logger.LogDebug($"Neck:Main:LookAtPoi");
                 _neckAfterEvent = true;
@@ -476,7 +487,7 @@ namespace KK_SensibleH.EyeNeckControl
         }
         public void LookAway()
         {
-            if (IsNeckMovable && !_handCtrl.IsKissAction())
+            if (IsNeckMovable && !handCtrl.IsKissAction())
             {
                 //SensibleH.Logger.LogDebug($"Neck:Main:LookAway");
                 _neckAfterEvent = true;

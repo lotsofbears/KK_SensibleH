@@ -453,6 +453,7 @@ namespace KK_SensibleH
             }
         }
 #endif
+
         private void Start()
         {
             Instance = this;
@@ -587,8 +588,8 @@ namespace KK_SensibleH
             StopAllCoroutines();
             _hEnd = false;
             var traverse = Traverse.Create(proc);
-            _handCtrl = traverse.Field("hand").GetValue<HandCtrl>();
-            _handCtrl1 = traverse.Field("hand1").GetValue<HandCtrl>();
+            handCtrl = traverse.Field("hand").GetValue<HandCtrl>();
+            handCtrl1 = traverse.Field("hand1").GetValue<HandCtrl>();
             _hVoiceCtrl = traverse.Field("voice").GetValue<HVoiceCtrl>();
 
             lstFemale = traverse.Field("lstFemale").GetValue<List<ChaControl>>();
@@ -668,7 +669,7 @@ namespace KK_SensibleH
                 }
                 if (!FirstTouch)
                 {
-                    FirstTouch = !_handCtrl.IsItemTouch();
+                    FirstTouch = !handCtrl.IsItemTouch();
                 }
                 yield return wait;
             }
@@ -748,7 +749,7 @@ namespace KK_SensibleH
         public void DoFirstTouchProc()
         {
             var voiceId = new List<int>();
-            foreach (var item in _handCtrl.useItems)
+            foreach (var item in handCtrl.useItems)
             {
                 if (item != null)
                 {
@@ -772,7 +773,7 @@ namespace KK_SensibleH
 
         public void SetTouchAvailability()
         {
-            foreach (var anim in _handCtrl.dicMES.Values)
+            foreach (var anim in handCtrl.dicMES.Values)
             {
                 for (var i = 0; i < anim.isTouchAreas.Length; i++)
                 {
@@ -922,12 +923,16 @@ namespace KK_SensibleH
                     //clothesState[i] = 0;
                 }
                 // KKS H Clone has messed up coord index? Coord plugin interference?
-
                 chara.ChangeCoordinateTypeAndReload((ChaFileDefine.CoordinateType)target.Value[target.Value.Count - 2]);
-
-                saveData.coordinates[0] = target.Value[target.Value.Count - 2];
-                saveData.isDresses[0] = false;
-                Game.Instance.actScene.actCtrl.SetDesire(0, saveData, 200);
+                if (saveData.coordinates.Length > 0)
+                {
+                    saveData.coordinates[0] = target.Value[target.Value.Count - 2];
+                }
+                if (saveData.isDresses.Length > 0)
+                {
+                    saveData.isDresses[0] = false;
+                    Game.Instance.actScene.actCtrl.SetDesire(0, saveData, 200);
+                }
         
             }
             _redressTargets.Clear();

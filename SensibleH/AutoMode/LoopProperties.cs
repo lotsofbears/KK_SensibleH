@@ -39,7 +39,7 @@ namespace KK_SensibleH.AutoMode
                 }
                 else
                 {
-                    return _handCtrl.IsKissAction();
+                    return handCtrl.IsKissAction();
                 }
             }
         }

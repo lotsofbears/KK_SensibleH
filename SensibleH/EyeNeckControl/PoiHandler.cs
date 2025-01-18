@@ -95,7 +95,7 @@ namespace KK_SensibleH.EyeNeckControl
                         var itemList = new List<int>();
                         for (var i = 0; i < 3; i++)
                         {
-                            if (_handCtrl.useAreaItems[i] != null)
+                            if (handCtrl.useAreaItems[i] != null)
                                 itemList.Add(i);
                         }
                         var count = itemList.Count;
@@ -117,19 +117,19 @@ namespace KK_SensibleH.EyeNeckControl
                 //    }
                 //    break;
                 //case HFlag.EMode.sonyu:
-                //    if (_handCtrl.actionUseItem != -1)
+                //    if (handCtrl.actionUseItem != -1)
                 //    {
                 //        var itemList = new List<int>();
                 //        for (var i = 0; i < 3; i++)
                 //        {
-                //            if (_handCtrl.useAreaItems[i] != null)
+                //            if (handCtrl.useAreaItems[i] != null)
                 //                itemList.Add(i);
                 //        }
                 //        transform = GetPoi((HandCtrl.AibuColliderKind)Random.Range(0, itemList.Count) + 2, Target.Myself);
                 //        //List<Transform> lstTransform = new List<Transform>();
-                //        //if (_handCtrl.useAreaItems[0] != null)
+                //        //if (handCtrl.useAreaItems[0] != null)
                 //        //    lstTransform.Add(customAccNipL.transform);
-                //        //if (_handCtrl.useAreaItems[1] != null)
+                //        //if (handCtrl.useAreaItems[1] != null)
                 //        //    lstTransform.Add(customAccNipR.transform);
                 //        //if (lstTransform.Count > 0)
                 //        //    transform = lstTransform.ElementAt(Random.Range(0, lstTransform.Count));

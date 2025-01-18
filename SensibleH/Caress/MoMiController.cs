@@ -88,7 +88,7 @@ namespace KK_SensibleH.Caress
         private Dictionary<int, ActiveItem> _items = [];
         internal bool IsTouchCrossFade => _touchAnim;
         private bool IsCrossFadeOver => _wait < Time.time;
-        private bool IsKiss => _handCtrl.IsKissAction(); 
+        private bool IsKiss => handCtrl.IsKissAction(); 
         private void Awake()
         {
             Instance = this;
@@ -96,6 +96,7 @@ namespace KK_SensibleH.Caress
             {
                 _circles.Add(new MoMiCircles());
             }
+            // Would require to alter a bit to run properly outside of vr.
             if (SensibleHController.IsVR)
             {
                 this.gameObject.AddComponent<Kiss>();
@@ -202,7 +203,7 @@ namespace KK_SensibleH.Caress
         {
             if (Instance != null)
             {
-                Instance.JudgeProc(_handCtrl.useAreaItems[(int)colliderKind - 2].idUse);
+                Instance.JudgeProc(handCtrl.useAreaItems[(int)colliderKind - 2].idUse);
             }
         }
         private void StopItemCo(int area)
@@ -244,8 +245,8 @@ namespace KK_SensibleH.Caress
             if (_moMiCo)
             {
                 _touchAnim = IsTouch && !IsCrossFadeOver;
-                _drag = _handCtrl.ctrl == HandCtrl.Ctrl.drag;
-                if (Input.GetMouseButtonDown(0) || (_handCtrl.actionUseItem == -1 && !_handCtrl.IsKissAction()))
+                _drag = handCtrl.ctrl == HandCtrl.Ctrl.drag;
+                if (Input.GetMouseButtonDown(0) || (handCtrl.actionUseItem == -1 && !handCtrl.IsKissAction()))
                 { 
                     Halt();
                 }
@@ -267,7 +268,7 @@ namespace KK_SensibleH.Caress
                     }
                 }
             }
-            else if (GameCursor.isLock && (_handCtrl.actionUseItem != -1 || _handCtrl.IsKissAction()))
+            else if (GameCursor.isLock && (handCtrl.actionUseItem != -1 || handCtrl.IsKissAction()))
             {
                 StartMoMi();
             }
@@ -296,7 +297,7 @@ namespace KK_SensibleH.Caress
                     yield return new WaitForSeconds(1f);
                 }
 
-                if (!IsKiss && _handCtrl.actionUseItem == -1)
+                if (!IsKiss && handCtrl.actionUseItem == -1)
                 {
                     Halt();
                     yield break;
@@ -327,7 +328,7 @@ namespace KK_SensibleH.Caress
                 }
             }
 
-            foreach (var item in _handCtrl.useItems)
+            foreach (var item in handCtrl.useItems)
             {
                 if (item != null)
                     _items.Add(
@@ -679,7 +680,7 @@ namespace KK_SensibleH.Caress
             //}
             //else
             //{
-            //    var area = _handCtrl.useItems[idUse].kindTouch;
+            //    var area = handCtrl.useItems[idUse].kindTouch;
             //    return area != HandCtrl.AibuColliderKind.kokan && area != HandCtrl.AibuColliderKind.anal;
             //}
         }
@@ -698,7 +699,7 @@ namespace KK_SensibleH.Caress
                 if (!fakeIt)
                 {
                     FakePrefix[item] = String.Empty;
-                    _handCtrl.JudgeProc();
+                    handCtrl.JudgeProc();
                     FakePrefix[item] = null;
                 }
                 FakePostfix[item] = String.Empty;
@@ -789,8 +790,8 @@ namespace KK_SensibleH.Caress
             HFlag.ClickKind click;
             float waitTime;
 
-            var itemObj = _handCtrl.useItems[target].idObj;
-            var activeArea = _handCtrl.useItems[target].kindTouch;
+            var itemObj = handCtrl.useItems[target].idObj;
+            var activeArea = handCtrl.useItems[target].kindTouch;
             // //SensibleH.Logger.LogDebug($"CaressAreaReaction area[{activeArea}], item[{itemObj}]");
             if (activeArea == HandCtrl.AibuColliderKind.muneL || activeArea == HandCtrl.AibuColliderKind.muneR)
             {
