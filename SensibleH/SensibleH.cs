@@ -33,12 +33,10 @@ namespace KK_SensibleH
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<PluginState> Enabled { get; set; }
-        public static ConfigEntry<bool> OnlyInVR { get; set; }
         public static ConfigEntry<AutoModeKind> AutoMode { get; set; }
         public static ConfigEntry<AutoPoseType> AutoPickPose{ get; set; }
         public static ConfigEntry<bool> AutoRestartAction { get; set; }
         public static ConfigEntry<EdgeType> Edge { get; set; }
-        public static ConfigEntry<bool> MomiMomi { get; set; }
         public static ConfigEntry<bool> EyeNeckControl { get; set; }
 #if DEBUG
         public static ConfigEntry<bool> HoldPubicHair { get; set; }
@@ -92,14 +90,14 @@ namespace KK_SensibleH
         //internal static RunSquirt RunSquirtsDelegate;
         public enum AutoModeKind
         {
-            Disabled,
-            PromptStart,
-            PromptStartFinish,
-            Automatic
+            Disable,
+            UserStart,
+            UserStartFinish,
+            Auto
         }
         public enum AutoPoseType
         {
-            Disabled,
+            Disable,
             OnlyService,
             OnlyIntercourse,
             FemdomOnly,
@@ -107,16 +105,16 @@ namespace KK_SensibleH
         }
         public enum EdgeType
         {
-            Disabled,
+            Disable,
             Outside,
             Inside,
             Both
         }
         public enum PluginState
         {
-            Disabled,
-            OnlyInVr,
-            Always,
+            Disable,
+            VrOnly,
+            Enable,
         }
 
 
@@ -128,7 +126,7 @@ namespace KK_SensibleH
             Enabled = Config.Bind(
                 section: "",
                 key: "Enable",
-                defaultValue: PluginState.OnlyInVr,
+                defaultValue: PluginState.VrOnly,
                 new ConfigDescription(
                     "The changes take place after the scene change")
                 );
@@ -136,14 +134,14 @@ namespace KK_SensibleH
 
             AutoMode = Config.Bind(
                 section: "AutoMode",
-                key: "State",
-                defaultValue: AutoModeKind.PromptStartFinish,
+                key: "AutoState",
+                defaultValue: AutoModeKind.UserStartFinish,
                 new ConfigDescription(
-                "Minimizes the need for inputs from the player during H\n" +
-                //"Disabled - Waits for setting to change any moment.\n" +
-                "PromptStart - to start click on any interactable element of the lower half of the screen(except leaving H) or touch/kiss\n" +
-                "PromptStartFinish - same as above to continue after climax\n" +
-                "Automatic - will start/finish action, change position and restart action automatically",
+                "Automate Service/Intercourse\n" +
+                "Prompt Start - Disabled by default at the beginning, to start click on any interactable element of the lower half of the screen(except leaving H) or touch/kiss\n" +
+                "Prompt Start Finish - Also gets disabled after climax, to continue same as above\n" +
+                "Auto - Automatic managment of action, its restart and position/mode change",
+
                 //"Warning. All proactive functions have mild disrespect for persistent user input, bad things (that will be solved only by the reboot of the game) may happen " +
                 //"for those who seek two pilots in one seat." 
                 null,
@@ -153,10 +151,10 @@ namespace KK_SensibleH
 
             AutoPickPose = Config.Bind(
                 section: "AutoMode",
-                key: "Position change",
+                key: "AutoPosition",
                 defaultValue: AutoPoseType.AllPositions,
                 new ConfigDescription(
-                "Change position after climax",
+                "Allow to change position after climax",
                 //"FemdomOnly - Choses only position where the girl is dominant. By default it's only one (game's default) cowgirl position. With modified AnimationLoader manifest comes much more.\n" +
                 //"AllPositions - random non caress animation.\n" +
                 //"If both AutoPositionChange and AutoRestart are enabled, position change takes a bit of precedence.",
@@ -167,10 +165,10 @@ namespace KK_SensibleH
 
             AutoRestartAction = Config.Bind(
                 section: "AutoMode",
-                key: "Restart",
+                key: "AutoRestart",
                 defaultValue: true,
                 new ConfigDescription(
-                "Restart after climax",
+                "More chances to restart same position after climax",
                 null,
                 new ConfigurationManagerAttributes { Order = 7 }
                 ));
@@ -178,7 +176,7 @@ namespace KK_SensibleH
 
             Edge = Config.Bind(
                 section: "AutoMode",
-                key: "Edge",
+                key: "AutoEdge",
                 defaultValue: EdgeType.Outside,
                 new ConfigDescription(
                 "Pull out/stop for a moment for whatever reason",
@@ -189,9 +187,9 @@ namespace KK_SensibleH
 
             ActionFrequency = Config.Bind(
                 section: "AutoMode",
-                key: "Change frequency",
+                key: "AutoFrequency",
                 defaultValue: 1f,
-                new ConfigDescription("The lesser the value the smaller the pause between actions",
+                new ConfigDescription("Frequency of actions performed by AutoMode\nSmaller -> More frequent",
                 new AcceptableValueRange<float>(0.1f, 2f),
                 new ConfigurationManagerAttributes { Order = 8 }
                 )); 
@@ -199,9 +197,9 @@ namespace KK_SensibleH
 
             EdgeFrequency = Config.Bind(
                 section: "AutoMode",
-                key: "Edge frequency",
+                key: "AutoEdgeFrequency",
                 defaultValue: 1f,
-                new ConfigDescription("The lesser the value the smaller the pause between actions",
+                new ConfigDescription("AutoEdge's frequency of activation\nSmaller -> More frequent",
                 new AcceptableValueRange<float>(0.1f, 2f),
                 new ConfigurationManagerAttributes { Order = 5 }
                 ));
@@ -219,9 +217,9 @@ namespace KK_SensibleH
 
             EyeNeckControl = Config.Bind(
                 section: "Tweaks",
-                key: "Eye/neck control",
+                key: "EyeNeck control",
                 defaultValue: true,
-                "Allow plugin to introduce alternative control of eyes and neck."
+                "Allow plugin to introduce alternative control of eyes and neck"
                 );
 
 #if DEBUG
@@ -229,7 +227,7 @@ namespace KK_SensibleH
                 section: "Tweaks",
                 key: "HoldPubicHair",
                 defaultValue: true,
-                "Hold the scale of pubic hair accessory attached to the crouch."
+                "Hold the scale of pubic hair accessory attached to the crouch"
                 );
 #endif
 
@@ -238,7 +236,7 @@ namespace KK_SensibleH
                 key: "Auto ADV",
                 defaultValue: true,
                 new ConfigDescription(
-                    "Enables auto mode in any text scenario by default if there is no heroine present.",
+                    "Enables auto mode in any text scenario by default if there is no heroine present",
                     null,
                     new ConfigurationManagerAttributes { Order = -9 }
                 ));
@@ -246,10 +244,10 @@ namespace KK_SensibleH
 
             DisablePeskySounds = Config.Bind(
                 section: "Tweaks",
-                key: "Disable button click SFX",
+                key: "Button click SFX",
                 defaultValue: true,
                 new ConfigDescription(
-                "",
+                "Disable them",
                 null,
                 new ConfigurationManagerAttributes { Order = -10 }
                 ));
@@ -260,22 +258,22 @@ namespace KK_SensibleH
                 key: "Excitement slowdown",
                 defaultValue: 4,
                 new ConfigDescription(
-                    "Decreases the speed of excitement gauge increase by value times.",
+                    "How much slower excitement gauge fills",
                     new AcceptableValueRange<int>(1, 10))
                 );
 
 #if KKS
             ProlongObi = Config.Bind(
                 section: "Tweaks",
-                key: "Fluids stay longer",
+                key: "Cum stays longer",
                 defaultValue: true,
-                "Increases the time when ejaculation fluid is present."
+                "Don't clean cum until pose change"
                 );
 #endif
 
             FrenchKiss = Config.Bind(
                 section: "Kiss",
-                key: "Tongue",
+                key: "Stick out tongue",
                 defaultValue: Kiss.FrenchType.Auto,
                 new ConfigDescription(
                 "Stick out tongue during kiss.",
@@ -286,10 +284,10 @@ namespace KK_SensibleH
 
             KissEyesLimit = Config.Bind(
                 section: "Kiss",
-                key: "Eyes",
+                key: "Close eyes",
                 defaultValue: 50,
-                new ConfigDescription("Maximum openness of the eyes during kissing.\n" +
-                "Set to 0 to keep eyes closed during kiss",
+                new ConfigDescription("The ceiling of the eyes' openness during kiss.\n" +
+                "0 - close, 100 - fully open",
                 new AcceptableValueRange<int>(0, 100),
                 new ConfigurationManagerAttributes { Order = 9, ShowRangeAsPercent = false }
                 ));

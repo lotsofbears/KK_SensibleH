@@ -37,7 +37,7 @@ namespace KK_SensibleH
         internal static bool IsParty => _party;
         private static readonly bool _party = BepInEx.Paths.ProcessName.Equals(KoikatuAPI.GameProcessNameSteam, StringComparison.Ordinal);
 #endif
-        internal static bool IsEnabled => SensibleH.Enabled.Value == PluginState.Always || (IsVR && SensibleH.Enabled.Value == PluginState.OnlyInVr);
+        internal static bool IsEnabled => SensibleH.Enabled.Value == PluginState.Enable || (IsVR && SensibleH.Enabled.Value == PluginState.VrOnly);
         internal static bool IsVR => _vr;
         private static bool _vr;
         //#if KK
@@ -946,7 +946,7 @@ namespace KK_SensibleH
         public void EndItAll()
         {
             //SensibleH.Logger.LogDebug($"EndItAll");
-            if (SensibleH.Enabled.Value == PluginState.Always || (_vr && SensibleH.Enabled.Value == PluginState.OnlyInVr))
+            if (SensibleH.Enabled.Value == PluginState.Enable || (_vr && SensibleH.Enabled.Value == PluginState.VrOnly))
             {
                 if (SceneApi.GetLoadSceneName().Equals("Action"))
                 {

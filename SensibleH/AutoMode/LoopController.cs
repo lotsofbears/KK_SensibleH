@@ -284,17 +284,17 @@ namespace KK_SensibleH.AutoMode
                     ChangeSpeed(request: Speed.Slow);
                 }
             }
-            else if (_busy && SensibleH.AutoMode.Value == AutoModeKind.Automatic)
+            else if (_busy && SensibleH.AutoMode.Value == AutoModeKind.Auto)
             {
                 _busy = false;
-                if (SensibleH.AutoMode.Value == AutoModeKind.Automatic && IsHoushi)
+                if (SensibleH.AutoMode.Value == AutoModeKind.Auto && IsHoushi)
                     SetHoushiAutoMode(true);
             }
-            else if (SensibleH.AutoMode.Value != AutoModeKind.Disabled && !_busy)
+            else if (SensibleH.AutoMode.Value != AutoModeKind.Disable && !_busy)
             {
                 if (IsActionLoop)
                 {
-                    if (SensibleH.Edge.Value != EdgeType.Disabled  && _nextEdge < _actionTimer)
+                    if (SensibleH.Edge.Value != EdgeType.Disable  && _nextEdge < _actionTimer)
                     {
                         if (hFlag.gaugeFemale > 90f || hFlag.gaugeMale > _climaxAt || Random.value < 0.5f)// 0.5f)
                         {
@@ -359,7 +359,7 @@ namespace KK_SensibleH.AutoMode
             StopAllCoroutines();
             _nextEdge = GetNextTimer(6f * SensibleH.EdgeFrequency.Value);
             _edgeActive = false;
-            if (SensibleH.AutoMode.Value != AutoModeKind.Automatic)
+            if (SensibleH.AutoMode.Value != AutoModeKind.Auto)
             {
                 _busy = true;
                 //_userInput = false;
@@ -380,7 +380,7 @@ namespace KK_SensibleH.AutoMode
             switch (mode)
             {
                 case HFlag.EMode.houshi:
-                    if (SensibleH.AutoMode.Value == AutoModeKind.Automatic)
+                    if (SensibleH.AutoMode.Value == AutoModeKind.Auto)
                     {
                         _sprite.houshi.tglRely.isOn = true;
                     }
@@ -390,7 +390,7 @@ namespace KK_SensibleH.AutoMode
                     }
                     break;
                 case HFlag.EMode.houshi3P:
-                    if (SensibleH.AutoMode.Value == AutoModeKind.Automatic)
+                    if (SensibleH.AutoMode.Value == AutoModeKind.Auto)
                     {
                         _sprite.houshi3P.tglRely.isOn = true;
                     }
@@ -426,7 +426,7 @@ namespace KK_SensibleH.AutoMode
             switch (mode)
             {
                 case HFlag.EMode.houshi3PMMF:
-                    if (SensibleH.AutoMode.Value == AutoModeKind.Automatic)
+                    if (SensibleH.AutoMode.Value == AutoModeKind.Auto)
                     {
                         _sprite.houshi3PDark.tglRely.isOn = true;
                     }
@@ -579,13 +579,13 @@ namespace KK_SensibleH.AutoMode
                     SensibleH.Logger.LogInfo($"Loop:Action:Pick:Restart");
 #endif
                     _restart = true;
-                    if (SensibleH.AutoPickPose.Value == AutoPoseType.Disabled || Random.value < 0.3f)
+                    if (SensibleH.AutoPickPose.Value == AutoPoseType.Disable || Random.value < 0.3f)
                     {
                         RestartAction();
                         return;
                     }
                 }
-                if (SensibleH.AutoPickPose.Value != AutoPoseType.Disabled 
+                if (SensibleH.AutoPickPose.Value != AutoPoseType.Disable
                     && (IsIdleOutside || IsEndOutside || IsHoushiOutside))
                 {
 #if DEBUG
@@ -930,7 +930,7 @@ namespace KK_SensibleH.AutoMode
                         _hadClimax = false;
                         _busy = false;
                     }
-                    else if (SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish && (IsEndLoop || IsIdleInside || IsIdleOutside))
+                    else if (SensibleH.AutoMode.Value == AutoModeKind.UserStartFinish && (IsEndLoop || IsIdleInside || IsIdleOutside))
                     {
                         _busy = false;
                         //SensibleH.Logger.LogInfo("Loop:UserInput:PostClimax");
@@ -938,7 +938,7 @@ namespace KK_SensibleH.AutoMode
                 }
                 else
                 {
-                    if (SensibleH.AutoMode.Value == AutoModeKind.PromptStart || SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish)
+                    if (SensibleH.AutoMode.Value == AutoModeKind.UserStart || SensibleH.AutoMode.Value == AutoModeKind.UserStartFinish)
                     {
                         _busy = false;
                         //_userInput = true;
@@ -1151,7 +1151,7 @@ namespace KK_SensibleH.AutoMode
         {
             //SensibleH.Logger.LogInfo($"Loop:Orgasm:F");
             PickHStats(1);
-            if (SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish)
+            if (SensibleH.AutoMode.Value == AutoModeKind.UserStartFinish)
             {
                 _busy = true;
             }
@@ -1166,7 +1166,7 @@ namespace KK_SensibleH.AutoMode
         public void OnOrgasmM()
         {
             //SensibleH.Logger.LogInfo($"Loop:Orgasm:M");
-            if (SensibleH.AutoMode.Value == AutoModeKind.PromptStartFinish)
+            if (SensibleH.AutoMode.Value == AutoModeKind.UserStartFinish)
             {
                 _busy = true;
             }
@@ -1187,7 +1187,14 @@ namespace KK_SensibleH.AutoMode
                 case HFlag.EMode.houshi3P:
                     _sprite.houshi3P.tglRely.Set(state);
                     break;
+                case HFlag.EMode.houshi3PMMF:
+                    SetHoushiAutoModeDark(state);
+                    break;
             }
+        }
+        private void SetHoushiAutoModeDark(bool state)
+        {
+            _sprite.houshi3PDark.tglRely.Set(state);
         }
         public void OnDestroy()
         {
