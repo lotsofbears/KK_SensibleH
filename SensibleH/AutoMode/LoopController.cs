@@ -42,6 +42,7 @@ namespace KK_SensibleH.AutoMode
         private int _actionTimer;
         private int _nextSpeedChange;
         private int _nextLoopChange;
+        private int _actionPickTimer;
         private int _nextEdge;
         private int _climaxAt = Random.Range(75, 99);
         private bool _wasAnalPlay;
@@ -64,12 +65,14 @@ namespace KK_SensibleH.AutoMode
             fakeAnimButton.AddComponent<HSprite.AnimationInfoComponent>();
             fakeAnimButton.SetActive(true);
             OnPositionChange();
+            UpdateSettings();
             SetCeiling();
             var type = AccessTools.TypeByName("KK_MaleBreath.MaleBreathController");
             if (type != null)
             {
                 PatchLoop.maleBreathDelegate = AccessTools.MethodDelegate<Func<int, bool>>(AccessTools.FirstMethod(type, m => m.Name.Equals("ButtonClick")));
             }
+            SensibleH.ActionFrequency.SettingChanged += (_, _1) => UpdateSettings();
         }
         private Coroutine _speedChangerCo;
         private Coroutine runAfterCoroutine;
@@ -79,10 +82,18 @@ namespace KK_SensibleH.AutoMode
         {
             get
             {
+#if DEBUG
                 var a = GetAvailableActions();
                 SensibleH.Logger.LogDebug($"Loop:IsActionable: count = {a.Count}");
                 return a.Count > 0;
+#else
+                return GetAvailableActions().Count > 0;
+#endif
             }
+        }
+        internal void UpdateSettings()
+        {
+            _actionPickTimer = Mathf.CeilToInt(10f * SensibleH.ActionFrequency.Value);    
         }
 
         private bool IsVoiceActive => _hVoiceCtrl.nowVoices[CurrentMain].state == HVoiceCtrl.VoiceKind.voice;
@@ -311,7 +322,7 @@ namespace KK_SensibleH.AutoMode
                 {
                     ChangeMotion();
                 }
-                if (timer % 10 == 0 && !IsVoiceActive && IsActionable)
+                if (timer % _actionPickTimer == 0 && !IsVoiceActive && IsActionable)
                 {
                     PickAction();
                 }
@@ -560,32 +571,36 @@ namespace KK_SensibleH.AutoMode
 
         private void PickAction()
         {
-            if (SensibleH.AutoRestartAction.Value && _hadClimax && !_restart)
+            if (_hadClimax)
             {
-#if DEBUG
-                SensibleH.Logger.LogInfo($"Loop:Action:Pick:Restart");
-#endif
-                _restart = true;
-                if (SensibleH.AutoPickPose.Value == AutoPoseType.Disabled || Random.value < 0.3f)
+                if (SensibleH.AutoRestartAction.Value && !_restart)
                 {
-                    RestartAction();
+#if DEBUG
+                    SensibleH.Logger.LogInfo($"Loop:Action:Pick:Restart");
+#endif
+                    _restart = true;
+                    if (SensibleH.AutoPickPose.Value == AutoPoseType.Disabled || Random.value < 0.3f)
+                    {
+                        RestartAction();
+                        return;
+                    }
+                }
+                if (SensibleH.AutoPickPose.Value != AutoPoseType.Disabled 
+                    && (IsIdleOutside || IsEndOutside || IsHoushiOutside))
+                {
+#if DEBUG
+                    SensibleH.Logger.LogInfo($"Loop:Action:Pick:Animation");
+#endif
+                    PickNextAnimation();
                     return;
                 }
             }
-            if (SensibleH.AutoPickPose.Value != AutoPoseType.Disabled 
-                && _hadClimax && (IsIdleOutside || IsEndOutside || IsHoushiOutside))
-            {
-#if DEBUG
-                SensibleH.Logger.LogInfo($"Loop:Action:Pick:Animation");
-#endif
-                PickNextAnimation();
-            }
-            else if (IsActionLoop && hFlag.gaugeMale > _climaxAt)
+            if (hFlag.gaugeMale > _climaxAt && IsActionLoop)
             {
 #if DEBUG
                 SensibleH.Logger.LogInfo($"Loop:Action:Pick:Climax");
 #endif
-                if (IsOrgasmLoop)
+                if (IsSonyu && IsOrgasmLoop)
                 {
                     ChangeLoop(request: Loop.Strong);
                 }
@@ -597,7 +612,7 @@ namespace KK_SensibleH.AutoMode
                 else
                     ClickButton();
             }
-            else if (IsEndInside || IsIdleInside || IsIdleOutside || IsHoushiOutside)
+            else if (IsEndInside || IsIdleInside || IsIdleOutside || (IsHoushi && IsHoushiOutside))
             {
 #if DEBUG
                 SensibleH.Logger.LogInfo($"Loop:Action:Pick:Desperate");
