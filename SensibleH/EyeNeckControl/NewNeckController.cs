@@ -434,6 +434,13 @@ namespace KK_SensibleH.EyeNeckControl
             }
 
         }
+        internal void OnKissStart()
+        {
+            Halt();
+#if DEBUG
+            SensibleH.Logger.LogDebug($"Neck:Main:KissStart");
+#endif
+        }
         internal void OnKissVrStart()
         {
             MoveNeckInit();
@@ -441,7 +448,9 @@ namespace KK_SensibleH.EyeNeckControl
             FemalePoI[0] = _specialNeckMove.AuxCam;
             SetNeck(17, quick: true);
             _specialNeckMove.OnKissVrSetAuxCam();
-            //SensibleH.Logger.LogDebug($"Neck:Main:VR:KissStart:{FemalePoI[0]}");
+#if DEBUG
+            SensibleH.Logger.LogDebug($"Neck:Main:KissStartVR:{FemalePoI[_main]}");
+#endif
         }
         internal void OnKissVrEnd()
         {

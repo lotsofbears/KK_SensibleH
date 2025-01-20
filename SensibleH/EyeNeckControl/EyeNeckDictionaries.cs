@@ -858,7 +858,6 @@ namespace KK_SensibleH.EyeNeckControl
                     "khs_f_113", // reverse cowgirl 4
                     "khs_f_81", // reverse cowgirl splits
                     "khs_f_97", // nelson
-                    "khs_f_n26", // lying behind
                     "khs_f_106", // straddle back
                     "khs_f_132", // straddle back 2
                     "khs_f_108", // seiza rear
@@ -907,6 +906,8 @@ namespace KK_SensibleH.EyeNeckControl
             {
                 HFlag.EMode.sonyu,
                 new List<string> {
+                    "khs_f_n26", // lying behind
+
                     "khs_f_76", // cowgirl hug
                     "khs_f_104", // doggy face down
                     "khs_f_116", // missionary holding hands

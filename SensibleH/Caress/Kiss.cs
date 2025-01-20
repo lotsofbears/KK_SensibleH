@@ -81,7 +81,6 @@ namespace KK_SensibleH.Caress
         private Vector3 initTangBonePos;
         private Quaternion initTangBoneRot;
         private Harmony _activePatch;
-        private Coroutine _beroKissCo;
         internal static bool _frenchKiss;
         private class BlendValue
         {
@@ -187,7 +186,7 @@ namespace KK_SensibleH.Caress
         {
             if (kissAction && _kissPhase == Phase.Disengaging)
             {
-                StopCoroutine(_beroKissCo);
+                StopAllCoroutines();
                 kissAction = false;
             }
             if (!kissAction)
@@ -195,7 +194,6 @@ namespace KK_SensibleH.Caress
                 _actionType = colliderKind;
                 if (colliderKind == HandCtrl.AibuColliderKind.mouth)
                 {
-                    _proximity = false;
                     if (FrenchKiss.Value == FrenchType.Always || (FrenchKiss.Value == FrenchType.Auto
                         && Random.value < 0.7f && (hFlag.gaugeFemale > 70f || hFlag.lstHeroine[0].HExperience > SaveData.Heroine.HExperienceKind.不慣れ)))
                     {
@@ -207,7 +205,16 @@ namespace KK_SensibleH.Caress
                         _frenchKiss = false;
                     }
                     CullIto();
-                    _beroKissCo = StartCoroutine(BeroKiss());
+                    StartCoroutine(BeroKiss());
+                    if (SensibleHController.IsVR)
+                    {
+                    _proximity = false;
+                        StartCoroutine(UpdateCo());
+                    }
+                    else
+                    {
+                        _proximity = true;
+                    }
 
                 }
                 else
@@ -215,7 +222,7 @@ namespace KK_SensibleH.Caress
                     CullIto();
                     _proximity = true;
                     //_frenchKiss = true;
-                    _beroKissCo = StartCoroutine(BeroLick());
+                    StartCoroutine(BeroLick());
                 }
                 _thread.UpdateAttachmentPoint(colliderKind, _frenchKiss);
             }
@@ -273,19 +280,30 @@ namespace KK_SensibleH.Caress
                 }
             }
         }
-        private void Update()
+        //private void Update()
+        //{
+        //    // Because we want coroutine after update but proximity check in update or end of frame.
+        //    // And spawning an extra coroutine just to check proximity looks a bit too ugly.
+            
+        //}
+        private IEnumerator UpdateCo()
         {
-            // Because we want coroutine after update but proximity check in update or end of frame.
-            // And spawning an extra coroutine just to check proximity looks a bit too ugly.
-            if (kissAction && !_proximity && Vector3.Distance(VR.Camera.Head.position, _eyes.position) < 0.12f)
+            while (true)
             {
-                _proximity = true;
+                if (Vector3.Distance(_thread.Camera.position, _eyes.position) < 0.12f)
+                {
+                    _proximity = true;
+                    yield break;
+                }
+                yield return null;
             }
-
         }
+
         private IEnumerator BeroKiss()
         {
-            //SensibleH.Logger.LogDebug($"Kiss:BeroKiss[Start:French = {FrenchKiss.Value}]");
+#if DEBUG
+            SensibleH.Logger.LogDebug($"Kiss:BeroKiss[Start:French = {FrenchKiss.Value}]");
+#endif
             if (_activePatch == null)
             {
                 // Extra check if we don't go through the "Disengage" phase, and start the new kiss immediately.
@@ -421,13 +439,12 @@ namespace KK_SensibleH.Caress
         }
         private IEnumerator BeroLick()
         {
-            //SensibleH.Logger.LogDebug($"BeroLick[Start]");
-            if (_activePatch == null)
-            {
-                // Extra check if we don't go through the "Disengage" phase, and start the new kiss immediately.
-                _activePatch = Harmony.CreateAndPatchAll(typeof(PatchEyes));
-                //SensibleH.Logger.LogDebug($"BeroKiss[Patch]{_activePatch}");
-            }
+#if DEBUG
+            SensibleH.Logger.LogDebug($"BeroLick[Start]");
+#endif
+            // Extra check if we don't go through the "Disengage" phase, and start the new kiss immediately.
+            _activePatch ??= Harmony.CreateAndPatchAll(typeof(PatchEyes));
+
             //_female.ChangeEyesBlinkFlag(false);
             //_female.ChangeEyesPtn(0);
             //_female.ChangeEyebrowPtn(0);

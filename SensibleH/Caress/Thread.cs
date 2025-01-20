@@ -51,6 +51,7 @@ namespace KK_SensibleH.Caress
 
         internal bool IsItoActive => siruAmount != 0f;
 
+        internal Transform Camera => _camera;
         private Transform _camera;
 
         /// <summary>

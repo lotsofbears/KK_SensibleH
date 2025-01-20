@@ -97,10 +97,10 @@ namespace KK_SensibleH.Caress
                 _circles.Add(new MoMiCircles());
             }
             // Would require to alter a bit to run properly outside of vr.
-            if (SensibleHController.IsVR)
-            {
+            //if (SensibleHController.IsVR)
+            //{
                 this.gameObject.AddComponent<Kiss>();
-            }
+            //}
 #if DEBUG
             if (SensibleH.HoldPubicHair.Value)
             {

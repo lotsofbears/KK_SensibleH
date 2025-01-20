@@ -15,12 +15,8 @@ using KK_SensibleH.Patches.StaticPatches;
 using KK_SensibleH.AutoMode;
 using VRGIN.Helpers;
 using KK_SensibleH.Caress;
-using VRGIN.Core;
-using RootMotion.FinalIK;
-using static Illusion.Utils;
 using KKAPI.Utilities;
-using System.IO;
-using static Illusion.Component.ShortcutKey;
+using KK_SensibleH.Patches;
 namespace KK_SensibleH
 {
     /// <summary>
@@ -390,15 +386,6 @@ namespace KK_SensibleH
                 //}
 
 
-
-                var meshes = _chaControl[0].GetComponentsInChildren<Collider>();
-                for (var i = 0; i < meshes.Length; i++)
-                {
-                    if (meshes[i] != null)
-                    {
-                        GameObject.Destroy(meshes[i].gameObject);
-                    }
-                }
                 //foreach (var mesh in meshes)
                 //{
                 //    //SensibleH.Logger.LogDebug($"{mesh.name},{mesh.gameObject.layer}");
@@ -497,6 +484,10 @@ namespace KK_SensibleH
                     if (IsVR)
                     {
                         _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHandCtrlVR)));
+                    }
+                    else
+                    {
+                        _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHNoVR)));
                     }
                 }
             }
@@ -768,6 +759,19 @@ namespace KK_SensibleH
             if (hFlag != null)
             {
                 headManipulators[0]._neckController.LookAtPoI(item);
+            }
+        }
+
+        // Hook for Cyu outside of vr.
+        public void OnHandCtrlAction(HandCtrl.AibuColliderKind colliderKind)
+        {
+            if (!_vr && Kiss.Instance != null)
+            {
+                if (colliderKind == HandCtrl.AibuColliderKind.mouth)
+                {
+                    headManipulators[0]._neckController.OnKissStart();
+                    Kiss.Instance.Cyu(colliderKind);
+                }
             }
         }
 
