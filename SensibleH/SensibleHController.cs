@@ -736,6 +736,13 @@ namespace KK_SensibleH
         {
             hFlag.rateClickGauge = 2f / GaugeSpeed.Value;
             hFlag.rateDragGauge = 0.02f / GaugeSpeed.Value;
+
+            mode = hFlag.mode switch
+            {
+                HFlag.EMode.houshi or HFlag.EMode.houshi3P or HFlag.EMode.houshi3PMMF => HFlag.EMode.houshi,
+                HFlag.EMode.sonyu or HFlag.EMode.sonyu3P or HFlag.EMode.sonyu3PMMF => HFlag.EMode.sonyu,
+                _ => hFlag.mode,
+            };
         }
         public void DoFirstTouchProc()
         {

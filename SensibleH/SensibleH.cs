@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using ADV.Commands.Base;
-using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -10,7 +7,6 @@ using KK_SensibleH.Caress;
 using KKAPI.MainGame;
 using UnityEngine;
 using static KK_SensibleH.Caress.Kiss;
-using UniRx;
 using KKAPI;
 using KKAPI.Utilities;
 
@@ -29,7 +25,7 @@ namespace KK_SensibleH
     {
         public const string GUID = "kk.sensible.h";
         public const string Name = "KK_SensibleH";
-        public const string Version = "1.2.1";
+        public const string Version = "1.2.3";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<PluginState> Enabled { get; set; }
@@ -63,7 +59,7 @@ namespace KK_SensibleH
         internal static HMotionEyeNeckFemale _eyeneckFemale;
         internal static HMotionEyeNeckFemale _eyeneckFemale1;
         internal static HFlag hFlag;
-        internal static HFlag.EMode mode;
+        internal static HFlag.EMode mode {  get; set; }
         internal static List<ChaControl> lstFemale;
         internal static ChaControl male;
         internal static HVoiceCtrl _hVoiceCtrl;
@@ -94,13 +90,13 @@ namespace KK_SensibleH
             UserStart,
             UserStartFinish,
             Auto
-        }
-        public enum AutoPoseType
-        {
-            Disable,
-            OnlyService,
-            OnlyIntercourse,
-            FemdomOnly,
+    }
+    public enum AutoPoseType
+    {
+        Disable,
+        OnlyService,
+        OnlyIntercourse,
+        FemdomOnly,
             AllPositions
         }
         public enum EdgeType
