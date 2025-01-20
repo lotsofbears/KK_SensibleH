@@ -14,7 +14,7 @@ namespace KK_SensibleH.Patches.StaticPatches
     internal class PatchLoop
     {
         internal static Func<int, bool> maleBreathDelegate;
-        enum ClickType
+        internal enum ClickType
         {
             Insert,
             Insert_novoice,
@@ -79,6 +79,9 @@ namespace KK_SensibleH.Patches.StaticPatches
             if (__instance.flags.finish != HFlag.FinishKind.none)
             {
                 LoopController.Instance.OnPreClimax();
+#if DEBUG
+                SensibleH.Logger.LogDebug($"LoopProc:flag = {__instance.flags.finish}");
+#endif
             }
         }
 
@@ -86,7 +89,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnPullClick))]
         public static void HandleOnPullClick()
         {
-            maleBreathDelegate?.Invoke((int)ClickType.Pull_novoice);
+            //maleBreathDelegate?.Invoke((int)ClickType.Pull_novoice);
             LoopController.Instance.OnSonyuClick(pullOut: true);
         }
 
@@ -94,7 +97,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertNoVoiceClick))]
         public static void OnInsertNoVoiceClickPostfix()
         {
-            maleBreathDelegate?.Invoke((int)ClickType.Insert_novoice);
+            //maleBreathDelegate?.Invoke((int)ClickType.Insert_novoice);
             LoopController.Instance.OnSonyuClick(pullOut: false);
         }
 
@@ -102,7 +105,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HSprite), nameof(HSprite.OnInsertAnalNoVoiceClick))]
         public static void OnInsertAnalNoVoiceClickPostfix()
         {
-            maleBreathDelegate?.Invoke((int)ClickType.InsertAnal_novoice);
+            //maleBreathDelegate?.Invoke((int)ClickType.InsertAnal_novoice);
             LoopController.Instance.DoAnalClick();
         }
 
@@ -140,6 +143,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             LoopController.Instance.OnOrgasmM();
         }
+
         /// <summary>
         /// The value when orgasm animation plays, shuffled up by the plugin.
         /// </summary>
