@@ -10,6 +10,9 @@ A Plugin for Koikatu and Koikatsu Sunshine aimed mostly to enhance the [VR](http
 2. Download the latest [release](https://github.com/lotsofbears/KK_SensibleH/releases)
 3. Extract downloaded .zip file to your game folder (where the BepInEx folder and the game .exe are)
 
+## Incompatibilities
+* Certain versions of modified assembly files (Assembly-CSharp.dll) in Koikatu_Data\Managed. Will cause random things to break, accompanied by many red errors in console at the game start.
+
 ## Overview
 Most of the functions are bound to the H Scene and integrated in [KK(S)_VR](https://github.com/IllusionMods/KKS_VR) version 2.0+.
 Those functions are:
