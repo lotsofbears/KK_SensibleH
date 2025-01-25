@@ -81,7 +81,7 @@ namespace KK_SensibleH
         internal static bool[] IsNeckSet = new bool[2];
         internal static Dictionary<string, int> LstHeroine;
         //internal static float[] NeckChangeRate = { 1f, 1f };
-        internal static AnimatorStateInfo sLoopInfo;
+        internal static AnimatorStateInfo sLoopInfo { get; private set; }
         //internal delegate bool RunSquirt(bool softSE, FakeType trigger, bool sound, MonoBehaviour handCtrl, bool setTouchCooldown);
         //internal static RunSquirt RunSquirtsDelegate;
         public enum AutoModeKind

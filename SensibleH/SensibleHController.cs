@@ -467,11 +467,7 @@ namespace KK_SensibleH
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchLoop)));
                     _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(TestH)));
 #if KK
-                    if (IsParty)
-                    {
-                        _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHParty)));
-                    }
-                    else
+                    if (!IsParty)
                     {
                         _persistentPatches.Add(Harmony.CreateAndPatchAll(typeof(PatchHNoParty)));
                     }
@@ -536,6 +532,7 @@ namespace KK_SensibleH
         }
         private void StartH()
         {
+            AccessTools.TypeByName("HurricaneVR.Framework.Components.Creators.HVRPhysicsLeverCreator");
             StopAllCoroutines();
             if (_hEnd || hFlag == null) return;
             if (_moMiController == null)

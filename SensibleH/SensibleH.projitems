@@ -28,7 +28,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\[obsolete]PatchHandCtrlKiss.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\DynamicPatches\[obsolete]PatchKoikatuVR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\PatchHNoVR.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\PatchHParty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\H\PatchHNoParty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\HandCtrl\PatchClickAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\StaticPatches\HandCtrl\PatchDragAction.cs" />
