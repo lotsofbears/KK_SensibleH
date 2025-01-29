@@ -86,17 +86,16 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPrefix, HarmonyPatch(typeof(GameAssist), nameof(GameAssist.DecreaseTalkTime))]
 #else
         /// <summary>
-        /// We set ~10 times more talk attempts.
+        /// We set extra talk attempts.
         /// </summary>
         [HarmonyPrefix, HarmonyPatch(typeof(Communication), nameof(Communication.DecreaseTalkTime))]
 #endif
         public static void DecreaseTalkTimePrefix(ref int _value)
         {
-            if (UnityEngine.Random.value < 0.9f)
+            if ((1f / SensibleH.ConfigTalkTime.Value) < UnityEngine.Random.value)
             {
                 _value = 0;
             }
-
         }
 
         /// <summary>

@@ -79,7 +79,17 @@ namespace KK_SensibleH
 
         internal void Proc()
         {
-            _neckController.Proc();
+            if (SensibleH.EyeNeckControl.Value)
+            {
+                _neckController.Proc();
+            }
+            else
+            {
+                if (_neckController.IsActive)
+                {
+                    _neckController.Halt();
+                }
+            }
             _voiceController.Proc();
         }
         internal void PlayVoice(int voiceId)

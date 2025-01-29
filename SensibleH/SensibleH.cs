@@ -43,19 +43,30 @@ namespace KK_SensibleH
         public static ConfigEntry<bool> ProlongObi { get; set; }
 #endif
         public static ConfigEntry<float> ActionFrequency { get; set; }
-        public static ConfigEntry<bool> AutoADV { get; set; }
         public static ConfigEntry<float> EdgeFrequency { get; set; }
-        public static ConfigEntry<float> NeckLimit { get; set; }
-        public static ConfigEntry<int> GaugeSpeed { get; set; }
         public static ConfigEntry<FrenchType> FrenchKiss { get; set; }
+
+        #region Tweaks
+
+        public static ConfigEntry<bool> AutoADV { get; set; }
+        public static ConfigEntry<float> NeckLimit { get; set; }
         public static ConfigEntry<int> KissEyesLimit { get; set; }
         public static ConfigEntry<bool> AddReverb { get; set; }
         public static ConfigEntry<float> AskCondom { get; set; }
+        public static ConfigEntry<int> ConfigTalkTime { get; set; }
+
+        #endregion
+
+        #region Gauge
+
+        public static ConfigEntry<int> GaugeSpeed { get; set; }
         public static ConfigEntry<float> ConfigBiasF { get; set; }
         public static ConfigEntry<float> ConfigBiasM { get; set; }
         public static ConfigEntry<int> ConfigMaleOrgCount { get; set; }
         public static ConfigEntry<int> ConfigFemaleOrgCount { get; set; }
         public static ConfigEntry<bool> ConfigFemaleOrgProgression { get; set; }
+
+        #endregion
 
 
         public static bool MoveNeckGlobal;
@@ -208,31 +219,12 @@ namespace KK_SensibleH
                 ));
 
 
-            NeckLimit = Config.Bind(
-                section: "Tweaks",
-                key: "Neck limit",
-                defaultValue: 1f,
-                new ConfigDescription("Adjust the limits of neck movements, 1.0 being the default value.\n" +
-                "Changes take place on scene reload or new position.",
-                new AcceptableValueRange<float>(0.5f, 1.5f))
-                );
-
-
             EyeNeckControl = Config.Bind(
                 section: "Tweaks",
                 key: "EyeNeck control",
                 defaultValue: true,
                 "Allow plugin to introduce alternative control of eyes and neck"
                 );
-
-#if DEBUG
-            HoldPubicHair = Config.Bind(
-                section: "Tweaks",
-                key: "HoldPubicHair",
-                defaultValue: true,
-                "Hold the scale of pubic hair accessory attached to the crouch"
-                );
-#endif
 
             AutoADV = Config.Bind(
                 section: "Tweaks",
@@ -244,27 +236,6 @@ namespace KK_SensibleH
                     new ConfigurationManagerAttributes { Order = -9 }
                 ));
 
-
-            DisablePeskySounds = Config.Bind(
-                section: "Tweaks",
-                key: "Button click SFX",
-                defaultValue: true,
-                new ConfigDescription(
-                "Disable them",
-                null,
-                new ConfigurationManagerAttributes { Order = -10 }
-                ));
-
-
-
-#if KKS
-            ProlongObi = Config.Bind(
-                section: "Tweaks",
-                key: "Cum stays longer",
-                defaultValue: true,
-                "Don't clean cum until pose change"
-                );
-#endif
 
             FrenchKiss = Config.Bind(
                 section: "Kiss",
@@ -288,14 +259,47 @@ namespace KK_SensibleH
                 ));
 
 
+            #region Tweaks
+
+
+#if KKS
+            ProlongObi = Config.Bind(
+                section: "Tweaks",
+                key: "Cum stays longer",
+                defaultValue: true,
+                "Don't clean cum until pose change"
+                );
+#endif
+
+
+#if DEBUG
+            HoldPubicHair = Config.Bind(
+                section: "Tweaks",
+                key: "HoldPubicHair",
+                defaultValue: true,
+                "Hold the scale of pubic hair accessory attached to the crouch"
+                );
+#endif
+
+
             AddReverb = Config.Bind(
                 section: "Tweaks",
                 key: "Reverb",
                 defaultValue: true,
                 new ConfigDescription("Add reverb SFX to some maps",
                 null,
-                new ConfigurationManagerAttributes { Order = -20 }
+                new ConfigurationManagerAttributes { Order = -10 }
                 ));
+
+
+            NeckLimit = Config.Bind(
+                section: "Tweaks",
+                key: "Neck limit",
+                defaultValue: 1f,
+                new ConfigDescription("Adjust the limits of neck movements, 1.0 being the default value.\n" +
+                "Changes take place on scene reload or new position.",
+                new AcceptableValueRange<float>(0.5f, 1.5f))
+                );
 
 
             AskCondom = Config.Bind(
@@ -304,8 +308,32 @@ namespace KK_SensibleH
                 defaultValue: 0f,
                 new ConfigDescription("Chance to ask for condom regardless of things",
                 new AcceptableValueRange<float>(0, 1f),
+                new ConfigurationManagerAttributes { Order = -15, ShowRangeAsPercent = false }
+                ));
+
+
+            DisablePeskySounds = Config.Bind(
+                section: "Tweaks",
+                key: "Button click SFX",
+                defaultValue: true,
+                new ConfigDescription(
+                "Disable them",
+                null,
+                new ConfigurationManagerAttributes { Order = -10 }
+                ));
+
+
+            ConfigTalkTime = Config.Bind(
+                section: "Tweaks",
+                key: "Extra talk",
+                defaultValue: 1,
+                new ConfigDescription("Extra attempts in Talk Scene",
+                new AcceptableValueRange<int>(1, 20),
                 new ConfigurationManagerAttributes { Order = -20, ShowRangeAsPercent = false }
                 ));
+
+
+            #endregion
 
             #region Gauge
 
@@ -325,7 +353,7 @@ namespace KK_SensibleH
                 key: "Bias female",
                 defaultValue: 1f,
                 new ConfigDescription("Influence female bias manually\nDriven by H Experience, main game stats if present and orgasm count",
-                new AcceptableValueRange<float>(0.5f, 2f),
+                new AcceptableValueRange<float>(0.1f, 3f),
                 new ConfigurationManagerAttributes { Order = 19 }
                 )); 
             
@@ -335,7 +363,7 @@ namespace KK_SensibleH
                 key: "Bias male",
                 defaultValue: 1f,
                 new ConfigDescription("Influence male bias manually\nDriven by partner's H Experience and orgasm count",
-                new AcceptableValueRange<float>(0.5f, 2f),
+                new AcceptableValueRange<float>(0.1f, 3f),
                 new ConfigurationManagerAttributes { Order = 18 }
                 ));
 
@@ -345,9 +373,9 @@ namespace KK_SensibleH
                 key: "Male ceiling",
                 defaultValue: 5,
                 new ConfigDescription(
-                   "Number of orgasms per day that male is reasonably capable of\nSet 0 to disable",
+                   "Number of orgasms per day that male is capable of\nSet 0 to disable",
                     new AcceptableValueRange<int>(0, 10),
-                new ConfigurationManagerAttributes { Order = 17 })
+                new ConfigurationManagerAttributes { Order = 16 })
                 );
 
 
@@ -356,15 +384,15 @@ namespace KK_SensibleH
                 key: "Female ceiling",
                 defaultValue: 5,
                 new ConfigDescription(
-                   "Number of orgasms per day that female is reasonably capable of\nIs overridden by high HExp in FreeH and HExp + heroine stats in main game\nSet 0 to disable",
+                   "Number of orgasms per day that female is capable of\nCan be overridden by high H Experience in FreeH and H Experience + heroine stats in main game\nSet 0 to disable",
                     new AcceptableValueRange<int>(0, 10),
-                new ConfigurationManagerAttributes { Order = 16 })
+                new ConfigurationManagerAttributes { Order = 17 })
                 );
 
 
             ConfigFemaleOrgProgression = Config.Bind(
                 section: "Gauge",
-                key: "Excitement progression",
+                key: "Geometric progression",
                 defaultValue: true,
                 new ConfigDescription(
                    "Use geometric progression instead of arithmetic to increase acceleration of female gauge when applicable",
@@ -372,7 +400,9 @@ namespace KK_SensibleH
                 new ConfigurationManagerAttributes { Order = 15 }
                 ));
 
+
             #endregion
+
 
 #if DEBUG
             Cfg_TestKey = Config.Bind(

@@ -205,7 +205,8 @@ namespace KK_SensibleH.Patches.StaticPatches
                         {
                             continue;
                         }
-                        else if (code.opcode == OpCodes.Brfalse || code.opcode == OpCodes.Brfalse_S)
+                        // Different assemblies.
+                        else if (code.opcode == OpCodes.Brfalse || code.opcode == OpCodes.Brtrue)
                         {
                             yield return new CodeInstruction(OpCodes.Call, AccessTools.FirstMethod(typeof(PatchHandCtrl), m => m.Name.Equals(nameof(PatchHandCtrl.IsUseItemPostfix))));
                             done = true;
@@ -229,7 +230,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                 {
                     if (!found)
                     {
-                        if (code.opcode == OpCodes.Bne_Un || code.opcode == OpCodes.Stloc_3)
+                        if (code.opcode == OpCodes.Stloc_3)
                         {
                             found = true;
                         }

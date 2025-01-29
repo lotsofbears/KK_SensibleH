@@ -20,7 +20,7 @@
     <DebugType>none</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin\KK\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;KK</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;KK;DEBUG_IL;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

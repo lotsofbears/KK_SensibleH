@@ -37,7 +37,8 @@ namespace KK_SensibleH.EyeNeckControl
         private float lookBeforeVoiceTimer = 2f;
         private float _eyeCamSaturation;
 
-        internal bool _neckActive;
+        internal bool IsActive => _neckActive;
+        private bool _neckActive;
         //private bool lookPoi;
         //private bool lookAway;
         private bool _neckBusy;
@@ -475,7 +476,7 @@ namespace KK_SensibleH.EyeNeckControl
         /// </summary>
         internal bool LookAtPoI(int item = -1)
         {
-            if (IsNeckMovable && !handCtrl.IsKissAction() && _poiHandler.SetFemalePoI(item))
+            if (SensibleH.EyeNeckControl.Value && IsNeckMovable && !handCtrl.IsKissAction() && _poiHandler.SetFemalePoI(item))
             {
                 //SensibleH.Logger.LogDebug($"Neck:Main:LookAtPoi");
                 _neckAfterEvent = true;
@@ -496,7 +497,7 @@ namespace KK_SensibleH.EyeNeckControl
         }
         public void LookAway()
         {
-            if (IsNeckMovable && !handCtrl.IsKissAction())
+            if (SensibleH.EyeNeckControl.Value && IsNeckMovable && !handCtrl.IsKissAction())
             {
                 //SensibleH.Logger.LogDebug($"Neck:Main:LookAway");
                 _neckAfterEvent = true;
@@ -523,7 +524,7 @@ namespace KK_SensibleH.EyeNeckControl
         internal void LookAtCam(bool forced = false)
         {
             //SensibleH.Logger.LogDebug($"LookAtCam {new StackTrace()}");
-            if ((!LoopProperties.IsKissLoop && IsNeckMovable) || forced)
+            if (SensibleH.EyeNeckControl.Value && ((!LoopProperties.IsKissLoop && IsNeckMovable) || forced))
             {
                 if (!_neckBusy && _poseType == PoseType.Front && FamiliarityCheck(0.75f))
                 {
@@ -640,11 +641,8 @@ namespace KK_SensibleH.EyeNeckControl
         }
         private void SetNeck(int id, bool quick = false)
         {
-            var speedOfChange = 3f;
-            if (quick)
-            {
-                speedOfChange = 1f;
-            }
+            var speedOfChange = quick ? 1f : 3f;
+            
             _chara.neckLookCtrl.neckLookScript.changeTypeLeapTime = speedOfChange;
             _chara.neckLookCtrl.neckLookScript.changeTypeTimer = speedOfChange;
             EyeNeckPtn[_main] = id;
