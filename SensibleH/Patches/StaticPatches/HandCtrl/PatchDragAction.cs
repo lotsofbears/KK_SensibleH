@@ -139,58 +139,39 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.DragAction))]
         public static IEnumerable<CodeInstruction> DragActionConstantTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            var targets = new Dictionary<int, PatchHandCtrl.CodeInfo>()
-            {
-                {
-                    0, new PatchHandCtrl.CodeInfo {
-                        firstOpcode = OpCodes.Call,
-                        firstOperand = "Range",
-                        secondOpcode = OpCodes.Stfld,
-                        secondOperand = "voicePlayActionLoop"
-                    }
-                },
-                {
-                    1, new PatchHandCtrl.CodeInfo {
-                        firstOpcode = OpCodes.Ldfld,
-                        firstOperand = "voicePlayActionMove",
-                        secondOpcode = OpCodes.Ble_Un,
-                        secondOperand = ""
-                    }
-                }
-            };
-            var counter = 0;
-            var tarCount = 0;
+            var found = false;
             var done = false;
             foreach (var code in instructions)
             {
                 if (!done)
                 {
-                    if (counter == 0 && code.opcode == targets[tarCount].firstOpcode
-                        && code.operand.ToString().Contains(targets[tarCount].firstOperand))
+                    if (!found)
                     {
-                        counter++;
-                    }
-                    else if (counter == 1 && code.opcode == targets[tarCount].secondOpcode
-                        && code.operand.ToString().Contains(targets[tarCount].secondOperand))
-                    {
-                        counter++;
-                    }
-                    else if (counter == 2)
-                    {
-                        if (code.opcode == OpCodes.Brtrue)
+                        if (code.opcode == OpCodes.Stfld && code.operand.ToString().Contains("voicePlayActionLoop"))
                         {
-                            counter = 0;
-                            tarCount++;
-                            if (tarCount == 2)
-                            {
-                                done = true;
-                            }
+                            found = true;
                         }
-                        yield return new CodeInstruction(OpCodes.Nop);
-                        continue;
                     }
                     else
-                        counter = 0;
+                    {
+                        if (code.opcode == OpCodes.Brtrue || code.opcode == OpCodes.Brtrue_S)
+                        {
+#if DEBUG
+                            SensibleH.Logger.LogDebug($"HandCtrl.DragAction:{code.opcode},{code.operand}");
+#endif
+                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(SensibleHController), nameof(SensibleHController.IsAppropriateMode)));
+                            done = true;
+                        }
+                        else
+                        {
+#if DEBUG
+                            SensibleH.Logger.LogDebug($"HandCtrl.DragAction:{code.opcode},{code.operand}");
+#endif
+                            yield return new CodeInstruction(OpCodes.Nop);
+                            continue;
+                        }
+                    }
+
                 }
                 yield return code;
             }

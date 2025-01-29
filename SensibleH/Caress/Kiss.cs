@@ -144,6 +144,7 @@ namespace KK_SensibleH.Caress
         }
         private void CullIto()
         {
+            _thread.Prepare();
             if (_thread.IsItoActive)
             {
                 _thread.Cull();

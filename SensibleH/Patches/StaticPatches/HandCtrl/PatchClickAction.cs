@@ -80,47 +80,39 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.ClickAction))]
         public static IEnumerable<CodeInstruction> ClickActionConstantTranspiler(IEnumerable<CodeInstruction> instructions)
         {
-            var targets = new Dictionary<int, PatchHandCtrl.CodeInfo>()
-            {
-                {
-                    0, new PatchHandCtrl.CodeInfo {
-                        firstOpcode = OpCodes.Call,
-                        firstOperand = "Range",
-                        secondOpcode = OpCodes.Stfld,
-                        secondOperand = "voicePlayClickLoop"
-                    }
-                }
-            };
-            var counter = 0;
+            var found = false;
             var done = false;
             foreach (var code in instructions)
             {
                 if (!done)
                 {
-                    if (counter == 0 && code.opcode == targets[0].firstOpcode
-                        && code.operand.ToString().Contains(targets[0].firstOperand))
+                    if (!found)
                     {
-                        counter++;
-                    }
-                    else if (counter == 1)
-                    {
-                        if (code.opcode == targets[0].secondOpcode
-                        && code.operand.ToString().Contains(targets[0].secondOperand))
+                        if (code.opcode == OpCodes.Stfld && code.operand.ToString().Contains("voicePlayClickLoop"))
                         {
-                            counter++;
+                            found = true;
                         }
-                        else
-                            counter = 0;
                     }
-                    else if (counter == 2)
+                    else
                     {
-                        if (code.opcode == OpCodes.Brtrue)
+                        if (code.opcode == OpCodes.Brtrue || code.opcode == OpCodes.Brtrue_S)
                         {
+#if DEBUG
+                            SensibleH.Logger.LogDebug($"HandCtrl.ClickAction:{code.opcode},{code.operand}");
+#endif
+                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(SensibleHController), nameof(SensibleHController.IsAppropriateMode)));
                             done = true;
                         }
-                        yield return new CodeInstruction(OpCodes.Nop);
-                        continue;
+                        else
+                        {
+#if DEBUG
+                            SensibleH.Logger.LogDebug($"HandCtrl.ClickAction:{code.opcode},{code.operand}");
+#endif
+                            yield return new CodeInstruction(OpCodes.Nop);
+                            continue;
+                        }
                     }
+                    
                 }
                 yield return code;
             }

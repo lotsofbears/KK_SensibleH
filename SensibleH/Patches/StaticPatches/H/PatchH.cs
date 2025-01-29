@@ -130,11 +130,14 @@ namespace KK_SensibleH.Patches.StaticPatches
         {
             if (__instance.flags.voice.playVoices[_main] != -1)
             {
+#if DEBUG
                 if (__instance.hand.actionUseItem != -1 && __instance.flags.gaugeFemale > PatchLoop.FemaleUpThere
                     && UnityEngine.Random.value < 0.5f)
                 {
+                    SensibleH.Logger.LogInfo($"HVoiceCtrl.VoiceProc:Substitute voice {__instance.flags.voice.playVoices[_main]} to 141");
                     __instance.flags.voice.playVoices[_main] = 141;
                 }
+#endif
                 SensibleHController.Instance.OnVoiceProc(_main);
             }
         }

@@ -199,22 +199,16 @@ namespace KK_SensibleH.Patches.StaticPatches
             if (FirstTouch)
             {
                 //SensibleH.Logger.LogDebug($"FinishAction:FirstTouch:{__instance.actionUseItem != -1}");
-                if (__instance.flags.mode == HFlag.EMode.aibu)
+                if (mode == HFlag.EMode.aibu)
                 {
                     __instance.flags.voice.timeAibu.timeIdle = 0.75f;
                 }
-                else
+                else if (mode != HFlag.EMode.houshi)
                 {
                     SensibleHController.Instance.DoFirstTouchProc();
                 }
                 FirstTouch = false;
             }
-            // Obsolete due to CyuVR.
-            //if (__instance.IsKissAction() && __instance.flags.mode != HFlag.EMode.aibu
-            //    && __instance.voice.nowVoices[0].state != HVoiceCtrl.VoiceKind.voice)
-            //{
-            //    __instance.flags.voice.playVoices[0] = 102;
-            //}
         }
     }
 }

@@ -28,11 +28,11 @@ namespace KK_SensibleH
         public const string Version = "1.2.3";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
-        public static ConfigEntry<PluginState> Enabled { get; set; }
-        public static ConfigEntry<AutoModeKind> AutoMode { get; set; }
-        public static ConfigEntry<AutoPoseType> AutoPickPose{ get; set; }
-        public static ConfigEntry<bool> AutoRestartAction { get; set; }
-        public static ConfigEntry<EdgeType> Edge { get; set; }
+        public static ConfigEntry<PluginState> ConfigEnabled { get; set; }
+        public static ConfigEntry<AutoModeKind> ConfigAutoMode { get; set; }
+        public static ConfigEntry<AutoPoseType> ConfigAutoPickPose { get; set; }
+        public static ConfigEntry<float> ConfigAutoRestart { get; set; }
+        public static ConfigEntry<EdgeType> ConfigEdge { get; set; }
         public static ConfigEntry<bool> EyeNeckControl { get; set; }
 #if DEBUG
         public static ConfigEntry<bool> HoldPubicHair { get; set; }
@@ -50,6 +50,14 @@ namespace KK_SensibleH
         public static ConfigEntry<FrenchType> FrenchKiss { get; set; }
         public static ConfigEntry<int> KissEyesLimit { get; set; }
         public static ConfigEntry<bool> AddReverb { get; set; }
+        public static ConfigEntry<float> AskCondom { get; set; }
+        public static ConfigEntry<float> ConfigBiasF { get; set; }
+        public static ConfigEntry<float> ConfigBiasM { get; set; }
+        public static ConfigEntry<int> ConfigMaleOrgCount { get; set; }
+        public static ConfigEntry<int> ConfigFemaleOrgCount { get; set; }
+        public static ConfigEntry<bool> ConfigFemaleOrgProgression { get; set; }
+
+
         public static bool MoveNeckGlobal;
         public static int[] EyeNeckPtn = { -1, -1, -1 };
 
@@ -119,16 +127,16 @@ namespace KK_SensibleH
             Logger = base.Logger;
 
 
-            Enabled = Config.Bind(
+            ConfigEnabled = Config.Bind(
                 section: "",
                 key: "Enable",
                 defaultValue: PluginState.VrOnly,
                 new ConfigDescription(
-                    "The changes take place after the scene change")
+                    "Changes take place immediately")
                 );
 
 
-            AutoMode = Config.Bind(
+            ConfigAutoMode = Config.Bind(
                 section: "AutoMode",
                 key: "AutoState",
                 defaultValue: AutoModeKind.UserStartFinish,
@@ -145,7 +153,7 @@ namespace KK_SensibleH
                 ));
 
 
-            AutoPickPose = Config.Bind(
+            ConfigAutoPickPose = Config.Bind(
                 section: "AutoMode",
                 key: "AutoPosition",
                 defaultValue: AutoPoseType.AllPositions,
@@ -159,21 +167,10 @@ namespace KK_SensibleH
                 ));
 
 
-            AutoRestartAction = Config.Bind(
-                section: "AutoMode",
-                key: "AutoRestart",
-                defaultValue: true,
-                new ConfigDescription(
-                "More chances to restart same position after climax",
-                null,
-                new ConfigurationManagerAttributes { Order = 7 }
-                ));
-
-
-            Edge = Config.Bind(
+            ConfigEdge = Config.Bind(
                 section: "AutoMode",
                 key: "AutoEdge",
-                defaultValue: EdgeType.Outside,
+                defaultValue: EdgeType.Disable,
                 new ConfigDescription(
                 "Pull out/stop for a moment for whatever reason",
                 null,
@@ -188,7 +185,17 @@ namespace KK_SensibleH
                 new ConfigDescription("Frequency of actions performed by AutoMode\nSmaller -> More frequent",
                 new AcceptableValueRange<float>(0.1f, 2f),
                 new ConfigurationManagerAttributes { Order = 8 }
-                )); 
+                ));
+
+
+            ConfigAutoRestart = Config.Bind(
+                section: "AutoMode",
+                key: "RestartChance",
+                defaultValue: 0.3f,
+                new ConfigDescription("Chance to restart action after climax before opting for position change. Will happen regardless if AutoMode enabled but AutoPosition disabled",
+                new AcceptableValueRange<float>(0f, 1f),
+                new ConfigurationManagerAttributes { Order = -20 }
+                ));
 
 
             EdgeFrequency = Config.Bind(
@@ -249,14 +256,6 @@ namespace KK_SensibleH
                 ));
 
 
-            GaugeSpeed = Config.Bind(
-                section: "Tweaks",
-                key: "Excitement slowdown",
-                defaultValue: 4,
-                new ConfigDescription(
-                    "How much slower excitement gauge fills",
-                    new AcceptableValueRange<int>(1, 10))
-                );
 
 #if KKS
             ProlongObi = Config.Bind(
@@ -297,6 +296,84 @@ namespace KK_SensibleH
                 null,
                 new ConfigurationManagerAttributes { Order = -20 }
                 ));
+
+
+            AskCondom = Config.Bind(
+                section: "Tweaks",
+                key: "Ask condom",
+                defaultValue: 0f,
+                new ConfigDescription("Chance to ask for condom regardless of things",
+                new AcceptableValueRange<float>(0, 1f),
+                new ConfigurationManagerAttributes { Order = -20, ShowRangeAsPercent = false }
+                ));
+
+            #region Gauge
+
+            GaugeSpeed = Config.Bind(
+                section: "Gauge",
+                key: "Excitement slowdown",
+                defaultValue: 4,
+                new ConfigDescription(
+                    "Slow down excitement gauge by this amount of times",
+                    new AcceptableValueRange<int>(1, 10),
+                new ConfigurationManagerAttributes { Order = 20 })
+                );
+
+
+            ConfigBiasF = Config.Bind(
+                section: "Gauge",
+                key: "Bias female",
+                defaultValue: 1f,
+                new ConfigDescription("Influence female bias manually\nDriven by H Experience, main game stats if present and orgasm count",
+                new AcceptableValueRange<float>(0.5f, 2f),
+                new ConfigurationManagerAttributes { Order = 19 }
+                )); 
+            
+            
+            ConfigBiasM = Config.Bind(
+                section: "Gauge",
+                key: "Bias male",
+                defaultValue: 1f,
+                new ConfigDescription("Influence male bias manually\nDriven by partner's H Experience and orgasm count",
+                new AcceptableValueRange<float>(0.5f, 2f),
+                new ConfigurationManagerAttributes { Order = 18 }
+                ));
+
+
+            ConfigMaleOrgCount = Config.Bind(
+                section: "Gauge",
+                key: "Male ceiling",
+                defaultValue: 5,
+                new ConfigDescription(
+                   "Number of orgasms per day that male is reasonably capable of\nSet 0 to disable",
+                    new AcceptableValueRange<int>(0, 10),
+                new ConfigurationManagerAttributes { Order = 17 })
+                );
+
+
+            ConfigFemaleOrgCount = Config.Bind(
+                section: "Gauge",
+                key: "Female ceiling",
+                defaultValue: 5,
+                new ConfigDescription(
+                   "Number of orgasms per day that female is reasonably capable of\nIs overridden by high HExp in FreeH and HExp + heroine stats in main game\nSet 0 to disable",
+                    new AcceptableValueRange<int>(0, 10),
+                new ConfigurationManagerAttributes { Order = 16 })
+                );
+
+
+            ConfigFemaleOrgProgression = Config.Bind(
+                section: "Gauge",
+                key: "Excitement progression",
+                defaultValue: true,
+                new ConfigDescription(
+                   "Use geometric progression instead of arithmetic to increase acceleration of female gauge when applicable",
+                    null,
+                new ConfigurationManagerAttributes { Order = 15 }
+                ));
+
+            #endregion
+
 #if DEBUG
             Cfg_TestKey = Config.Bind(
                 section: "SensibleH",

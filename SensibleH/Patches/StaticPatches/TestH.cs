@@ -105,7 +105,7 @@ namespace KK_SensibleH.Patches.StaticPatches
         [HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetItem))]
         public static void HandCtrlSetItemPostfix(int _arrayArea)
         {
-            if (_arrayArea < 3 && UnityEngine.Random.value < 0.67f)
+            if (_arrayArea < 3 && SensibleH.EyeNeckControl.Value && UnityEngine.Random.value < 0.67f)
             {
                 SensibleHController.Instance.OnTouch(_arrayArea);
             }

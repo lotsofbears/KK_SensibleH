@@ -37,7 +37,7 @@ namespace KK_SensibleH
         internal static bool IsParty => _party;
         private static readonly bool _party = BepInEx.Paths.ProcessName.Equals(KoikatuAPI.GameProcessNameSteam, StringComparison.Ordinal);
 #endif
-        internal static bool IsEnabled => SensibleH.Enabled.Value == PluginState.Enable || (IsVR && SensibleH.Enabled.Value == PluginState.VrOnly);
+        internal static bool IsEnabled => SensibleH.ConfigEnabled.Value == PluginState.Enable || (IsVR && SensibleH.ConfigEnabled.Value == PluginState.VrOnly);
         internal static bool IsVR => _vr;
         private static bool _vr;
         //#if KK
@@ -446,7 +446,7 @@ namespace KK_SensibleH
             Instance = this;
             _vr = SteamVRDetector.IsRunning;
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += OnActiveSceneChanged;
-            SensibleH.Enabled.SettingChanged += (sender, e) => TryEnable();
+            SensibleH.ConfigEnabled.SettingChanged += (sender, e) => TryEnable();
             TryEnable();
         }
 
@@ -559,14 +559,18 @@ namespace KK_SensibleH
             }
 
             // Gameplay Enhancements by ManlyMarco attempts to change this too, but the value changed is irrelevant in practice.
-            if (hFlag.isInsertOK[0])
+            if (Random.value < SensibleH.AskCondom.Value)
             {
-                hFlag.isInsertOK[0] = Random.value < 0.75f;
+                if (hFlag.isInsertOK[0])
+                {
+                    hFlag.isInsertOK[0] = Random.value < 0.75f;
+                }
+                if (hFlag.isAnalInsertOK)
+                {
+                    hFlag.isAnalInsertOK = Random.value < 0.75f;
+                }
             }
-            if (hFlag.isAnalInsertOK)
-            {
-                hFlag.isAnalInsertOK = Random.value < 0.75f;
-            }
+           
             UpdateSettings();
             StartCoroutine(OnceInAwhile());
         }
@@ -685,10 +689,10 @@ namespace KK_SensibleH
                     hExp *= 0.75f + (heroine.lewdness * 0.0025f);
                 }
             }
-            else
-            {
-                hExp *= 0.75f;
-            }
+            //else
+            //{
+            //    hExp *= 0.75f;
+            //}
             return hExp;
         }
         public void OnVoiceProc(int main)
@@ -758,9 +762,14 @@ namespace KK_SensibleH
 
             }
         }
+        public static bool IsAppropriateMode()
+        {
+            // Voice condition for aibu items. True to skip.
+            return LoopProperties.IsHoushi;
+        }
         public void OnTouch(int item = -1)
         {
-            if (hFlag != null)
+            if (hFlag != null && !LoopProperties.IsHoushi)
             {
                 headManipulators[0]._neckController.LookAtPoI(item);
             }
@@ -950,7 +959,7 @@ namespace KK_SensibleH
         public void EndItAll()
         {
             //SensibleH.Logger.LogDebug($"EndItAll");
-            if (SensibleH.Enabled.Value == PluginState.Enable || (_vr && SensibleH.Enabled.Value == PluginState.VrOnly))
+            if (SensibleH.ConfigEnabled.Value == PluginState.Enable || (_vr && SensibleH.ConfigEnabled.Value == PluginState.VrOnly))
             {
                 if (SceneApi.GetLoadSceneName().Equals("Action"))
                 {

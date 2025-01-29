@@ -132,16 +132,20 @@ namespace KK_SensibleH.Caress
 
             ito.material = orgMaterial[itoMatIndex];
             particleSystemRenderer.material = orgMaterial[siruMatIndex];
-        }
 
+            ito.gameObject.SetActive(false);
+        }
+        internal void Prepare()
+        {
+            // Small visual bug when it's active and until first use.
+            ito.gameObject.SetActive(true);
+        }
         internal void UpdateAttachmentPoint(HandCtrl.AibuColliderKind colliderKind, bool tongueOut)
         {
             if (AttachmentPoints.ContainsKey(colliderKind) && tongueOut)
             {
-                //SensibleH.Logger.LogDebug($"UpdateAttachmentPoint[{colliderKind}]");
                 var path = AttachmentPoints[colliderKind];
                 _attachment = _chara.objBodyBone.transform.Find(path);
-                //SensibleH.Logger.LogDebug($"UpdateAttachmentPoint[pathFound]");
                 _actionType = colliderKind;
                 _tongueOut = tongueOut;
                 //if (colliderKind != HandCtrl.AibuColliderKind.mouth)
@@ -150,7 +154,17 @@ namespace KK_SensibleH.Caress
                 //}
                 //else
                 //    _intermediateParent = null;
+#if DEBUG
+                SensibleH.Logger.LogDebug($"Thread:UpdateAttachmentPoint:kind = {colliderKind}, attach = {_attachment}");
+#endif
             }
+
+#if DEBUG
+            else
+            {
+                SensibleH.Logger.LogDebug($"Thread:UpdateAttachmentPoint:Not:kind = {colliderKind}, attach = {_attachment}");
+            }
+#endif
 
         }
 

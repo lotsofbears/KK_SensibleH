@@ -759,16 +759,15 @@ namespace KK_SensibleH.EyeNeckControl
             if (SensibleH.EyeNeckControl.Value)
             {
                 LookAtCam();
-            }
 #if KK
-            var dic = _hMotionEyeNeck.dicInfo;
+                var dic = _hMotionEyeNeck.dicInfo;
 #else
-            var dic = _hMotionEyeNeck.DicInfo;
+                var dic = _hMotionEyeNeck.DicInfo;
 #endif
-            foreach (var kvPair in dic.Values)
-            {
-                // Not sure if this one actually has any effect at all.
-                kvPair.rateNeck = 3f;
+                foreach (var kvPair in dic.Values)
+                {
+                    kvPair.rateNeck = 3f;
+                }
             }
             //SetDictionaries();
             //SetProximityDic(false);
