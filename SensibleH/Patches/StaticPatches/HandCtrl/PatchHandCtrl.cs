@@ -133,47 +133,133 @@ namespace KK_SensibleH.Patches.StaticPatches
             }
             return code.AsEnumerable();
         }
+//        /// <summary>
+//        /// We feed our fake array for active items check that involves restart of animation of an aibu item.
+//        /// And removing vector adjustment of an item.
+//        /// </summary>
+//        [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetDragStartLayer))]
+//        public static IEnumerable<CodeInstruction> SetDragStartLayerDynamicTranspiler(IEnumerable<CodeInstruction> instructions)
+//        {
+//            var code = new List<CodeInstruction>(instructions);
+//            var firstPart = false;
+//            var secondPart = 0;
+
+//            for (var i = 0; code.Count > 0; i++)
+//            {
+//                if (!firstPart && code[i].opcode == OpCodes.Ldarg_0)
+//                {
+//                    code[i + 1].opcode = OpCodes.Nop;
+//                    code[i + 3].opcode = OpCodes.Call;
+//                    code[i + 3].operand = AccessTools.FirstMethod(typeof(PatchHandCtrl), m => m.Name.Equals(nameof(PatchHandCtrl.IsUseItemPostfix)));
+//                    firstPart = true;
+//                }
+//                else if (secondPart > 0)
+//                {
+//#if KK
+//                    if (code[i].opcode == OpCodes.Stobj)
+//#else
+//					if (code[i].opcode == OpCodes.Stelem)
+//#endif
+//                    {
+//                        secondPart++;
+//                    }
+//                    code[i].opcode = OpCodes.Nop;
+//                    if (secondPart == 3)
+//                        break;
+//                }
+//                else if (code[i].opcode == OpCodes.Bne_Un)
+//                {
+//                    secondPart++;
+//                }
+
+//            }
+//            return code.AsEnumerable();
+//        }
+
         /// <summary>
         /// We feed our fake array for active items check that involves restart of animation of an aibu item.
         /// And removing vector adjustment of an item.
         /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetDragStartLayer))]
-        public static IEnumerable<CodeInstruction> SetDragStartLayerDynamicTranspiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> SetDragStartLayerTranspilerFirst(IEnumerable<CodeInstruction> instructions)
         {
-            var code = new List<CodeInstruction>(instructions);
-            var firstPart = false;
-            var secondPart = 0;
-
-            for (var i = 0; code.Count > 0; i++)
+            var done = false;
+            var found = false;
+            foreach (var code in instructions)
             {
-                if (!firstPart && code[i].opcode == OpCodes.Ldarg_0)
+                if (!done)
                 {
-                    code[i + 1].opcode = OpCodes.Nop;
-                    code[i + 3].opcode = OpCodes.Call;
-                    code[i + 3].operand = AccessTools.FirstMethod(typeof(PatchHandCtrl), m => m.Name.Equals(nameof(PatchHandCtrl.IsUseItemPostfix)));
-                    firstPart = true;
-                }
-                else if (secondPart > 0)
-                {
-#if KK
-                    if (code[i].opcode == OpCodes.Stobj)
-#else
-					if (code[i].opcode == OpCodes.Stelem)
-#endif
+                    if (!found)
                     {
-                        secondPart++;
+                        if (code.opcode == OpCodes.Ldarg_0)
+                        {
+                            found = true;
+                        }
                     }
-                    code[i].opcode = OpCodes.Nop;
-                    if (secondPart == 3)
-                        break;
-                }
-                else if (code[i].opcode == OpCodes.Bne_Un)
-                {
-                    secondPart++;
-                }
+                    else
+                    {
+#if DEBUG_IL
+                        SensibleH.Logger.LogDebug($"HandCtrl.SetDragStartLayer:First:{code.opcode},{code.operand}");
+#endif
+                        if (code.opcode == OpCodes.Ldfld || code.opcode == OpCodes.Ldelem_Ref)
+                        {
+                            continue;
+                        }
+                        else if (code.opcode == OpCodes.Brfalse || code.opcode == OpCodes.Brfalse_S)
+                        {
+                            yield return new CodeInstruction(OpCodes.Call, AccessTools.FirstMethod(typeof(PatchHandCtrl), m => m.Name.Equals(nameof(PatchHandCtrl.IsUseItemPostfix))));
+                            done = true;
+                        }
 
+                    }
+                    
+                }
+                yield return code;
             }
-            return code.AsEnumerable();
+        }
+        [HarmonyTranspiler, HarmonyPatch(typeof(HandCtrl), nameof(HandCtrl.SetDragStartLayer))]
+        public static IEnumerable<CodeInstruction> SetDragStartLayerTranspilerSecond(IEnumerable<CodeInstruction> instructions)
+        {
+            var done = false;
+            var counter = 0;
+            var found = false;
+            foreach (var code in instructions)
+            {
+                if (!done)
+                {
+                    if (!found)
+                    {
+                        if (code.opcode == OpCodes.Bne_Un || code.opcode == OpCodes.Stloc_3)
+                        {
+                            found = true;
+                        }
+                    }
+                    else
+                    {
+#if DEBUG_IL
+                        SensibleH.Logger.LogDebug($"HandCtrl.SetDragStartLayer:Second:Found:{code.opcode},{code.operand}");
+#endif
+                        if (code.opcode == OpCodes.Ldloc_0)
+                        {
+                            if (counter == 1)
+                            {
+                                done = true;
+                            }
+                            else
+                            {
+                                counter++;
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                }
+                
+                yield return code;
+            }
         }
 
         /// <summary>

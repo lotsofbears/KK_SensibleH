@@ -156,7 +156,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                     {
                         if (code.opcode == OpCodes.Brtrue || code.opcode == OpCodes.Brtrue_S)
                         {
-#if DEBUG
+#if DEBUG_IL
                             SensibleH.Logger.LogDebug($"HandCtrl.DragAction:{code.opcode},{code.operand}");
 #endif
                             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(SensibleHController), nameof(SensibleHController.IsAppropriateMode)));
@@ -164,7 +164,7 @@ namespace KK_SensibleH.Patches.StaticPatches
                         }
                         else
                         {
-#if DEBUG
+#if DEBUG_IL
                             SensibleH.Logger.LogDebug($"HandCtrl.DragAction:{code.opcode},{code.operand}");
 #endif
                             yield return new CodeInstruction(OpCodes.Nop);
