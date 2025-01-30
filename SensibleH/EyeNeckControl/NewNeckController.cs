@@ -78,7 +78,19 @@ namespace KK_SensibleH.EyeNeckControl
                 };
             }
         }
-        private int GetNeckFromCurrentAnimation => _hMotionEyeNeck.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] / 17 * 17;
+        //private int GetNeckFromCurrentAnimation => _hMotionEyeNeck.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] / 17 * 17;
+        private int GetNeckFromCurrentAnimation
+        {
+            get
+            {
+                // KKS doesn't have keys for all animations ffs.
+                if (_hMotionEyeNeck.dicEyeNeck.ContainsKey(hFlag.nowAnimStateName))
+                {
+                    return _hMotionEyeNeck.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] / 17 * 17;
+                }
+                return 0;
+            }
+        }
         private int GetCurrentNeck
         {
             get
@@ -113,7 +125,11 @@ namespace KK_SensibleH.EyeNeckControl
                     else
                         return hFlag.voice.eyenecks[_main] % 17;
                 }
-                return _hMotionEyeNeck.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] % 17;
+                if (_hMotionEyeNeck.dicEyeNeck.ContainsKey(hFlag.nowAnimStateName))
+                {
+                    return _hMotionEyeNeck.dicEyeNeck[hFlag.nowAnimStateName].idEyeNecks[(int)hFlag.lstHeroine[_main].HExperience] % 17;
+                }
+                return 0;
                 
             }
         }
