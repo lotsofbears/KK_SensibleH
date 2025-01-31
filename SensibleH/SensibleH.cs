@@ -54,6 +54,7 @@ namespace KK_SensibleH
         public static ConfigEntry<bool> AddReverb { get; set; }
         public static ConfigEntry<float> AskCondom { get; set; }
         public static ConfigEntry<int> ConfigTalkTime { get; set; }
+        public static ConfigEntry<bool> ConfigHelpBP { get; set; }
 
         #endregion
 
@@ -330,6 +331,17 @@ namespace KK_SensibleH
                 new ConfigDescription("Extra attempts in Talk Scene",
                 new AcceptableValueRange<int>(1, 20),
                 new ConfigurationManagerAttributes { Order = -20, ShowRangeAsPercent = false }
+                ));
+
+
+            ConfigHelpBP = Config.Bind(
+                section: "Tweaks",
+                key: "Help BP",
+                defaultValue: true,
+                new ConfigDescription(
+                "Add better penetration colliders to caress aitems",
+                null,
+                new ConfigurationManagerAttributes { Order = -25 }
                 ));
 
 

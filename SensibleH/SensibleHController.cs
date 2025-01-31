@@ -594,6 +594,10 @@ namespace KK_SensibleH
             headManipulators.Clear();
             FemalePoI = new GameObject[lstFemale.Count];
 
+            if (SensibleH.ConfigHelpBP.Value)
+            {
+                new BPHelper(lstFemale[0], handCtrl);
+            }
 
             var pipi = male.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cm_J_dan_top/cm_J_dan100_00");
             TestH.size = (pipi.localScale.x + pipi.localScale.y) * 0.5f;

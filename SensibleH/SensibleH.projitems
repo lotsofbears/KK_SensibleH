@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Caress\MoMiCircles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Caress\MoMiController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Caress\Thread.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BPHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\EyeNeckDictionaries.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\NewNeckController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EyeNeckControl\PoiHandler.cs" />
