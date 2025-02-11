@@ -7,7 +7,7 @@ using System.Text;
 using HarmonyLib;
 using UnityEngine;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     /// <summary>
     /// We throw away camera/effects related things that trigger GC like a clock on the kiss and present zero use in VR.

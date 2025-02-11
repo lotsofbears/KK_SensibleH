@@ -11,7 +11,6 @@ using Illusion.Extensions;
 using ActionGame;
 using System;
 using Manager;
-using KK_SensibleH.Patches.StaticPatches;
 using KK_SensibleH.AutoMode;
 using VRGIN.Helpers;
 using KK_SensibleH.Caress;
@@ -38,8 +37,13 @@ namespace KK_SensibleH
         private static readonly bool _party = BepInEx.Paths.ProcessName.Equals(KoikatuAPI.GameProcessNameSteam, StringComparison.Ordinal);
 #endif
         internal static bool IsEnabled => SensibleH.ConfigEnabled.Value == PluginState.Enable || (IsVR && SensibleH.ConfigEnabled.Value == PluginState.VrOnly);
-        internal static bool IsVR => _vr;
-        private static bool _vr;
+        internal static bool IsVR =>
+#if KKS
+            Valve.VR.
+#endif
+            SteamVR.active;
+
+        //private static bool _vr;
         //#if KK
         //        private Transform[] _ref = new Transform[22];
         //        enum Refs
@@ -444,7 +448,7 @@ namespace KK_SensibleH
         private void Start()
         {
             Instance = this;
-            _vr = SteamVRDetector.IsRunning;
+            //_vr = SteamVRDetector.IsRunning;
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += OnActiveSceneChanged;
             SensibleH.ConfigEnabled.SettingChanged += (sender, e) => TryEnable();
             TryEnable();
@@ -454,7 +458,7 @@ namespace KK_SensibleH
         {
             if (IsEnabled)
             {
-                StartH();
+                TryStartH();
                 if (_persistentPatches.Count == 0)
                 {
                     SensibleH.Logger.LogDebug($"Apply patches");
@@ -530,9 +534,11 @@ namespace KK_SensibleH
                 }
             }
         }
-        private void StartH()
+        private void TryStartH()
         {
-            AccessTools.TypeByName("HurricaneVR.Framework.Components.Creators.HVRPhysicsLeverCreator");
+#if DEBUG
+            SensibleH.Logger.LogDebug($"TryStartH:hEnd = {_hEnd}, hFlag = {hFlag}, loop = {_loopController}");
+#endif
             StopAllCoroutines();
             if (_hEnd || hFlag == null) return;
             if (_moMiController == null)
@@ -574,9 +580,12 @@ namespace KK_SensibleH
             UpdateSettings();
             StartCoroutine(OnceInAwhile());
         }
+
         protected override void OnStartH(MonoBehaviour proc, HFlag flag, bool vr)
         {
-            //SensibleH.Logger.LogDebug($"OnStartH");
+#if DEBUG
+            SensibleH.Logger.LogDebug($"OnStartH:IsEnabled = {IsEnabled}, IsVR = {IsVR}, enableSetting = {SensibleH.ConfigEnabled.Value}");
+#endif
             StopAllCoroutines();
             _hEnd = false;
             var traverse = Traverse.Create(proc);
@@ -596,16 +605,17 @@ namespace KK_SensibleH
 
             if (SensibleH.ConfigHelpBP.Value)
             {
-                new BPHelper(lstFemale[0], handCtrl);
+                new KK_SensibleH.BPHelper(lstFemale[0], handCtrl);
             }
 
             var pipi = male.objBodyBone.transform.Find("cf_n_height/cf_j_hips/cf_j_waist01/cf_j_waist02/cf_d_kokan/cm_J_dan_top/cm_J_dan100_00");
             TestH.size = (pipi.localScale.x + pipi.localScale.y) * 0.5f;
 
+            TryEnable();
+
             if (IsEnabled)
             {
                 DressDudeForAction();
-                StartH();
             }
         }
 
@@ -782,7 +792,7 @@ namespace KK_SensibleH
         // Hook for Cyu outside of vr.
         public void OnHandCtrlAction(HandCtrl.AibuColliderKind colliderKind)
         {
-            if (!_vr && Kiss.Instance != null)
+            if (!IsVR && Kiss.Instance != null)
             {
                 if (colliderKind == HandCtrl.AibuColliderKind.mouth)
                 {
@@ -963,7 +973,7 @@ namespace KK_SensibleH
         public void EndItAll()
         {
             //SensibleH.Logger.LogDebug($"EndItAll");
-            if (SensibleH.ConfigEnabled.Value == PluginState.Enable || (_vr && SensibleH.ConfigEnabled.Value == PluginState.VrOnly))
+            if (SensibleH.ConfigEnabled.Value == PluginState.Enable || (IsVR && SensibleH.ConfigEnabled.Value == PluginState.VrOnly))
             {
                 if (SceneApi.GetLoadSceneName().Equals("Action"))
                 {

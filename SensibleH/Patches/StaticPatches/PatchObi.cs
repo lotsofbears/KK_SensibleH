@@ -1,13 +1,13 @@
-﻿using HarmonyLib;
+﻿#if KKS
+using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection;
 using KKAPI;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
-#if KKS
     public static class PatchObi
     {
         #region Allows render of fluids on all animations.
@@ -129,5 +129,5 @@ namespace KK_SensibleH.Patches.StaticPatches
 
         #endregion
     }
-#endif
 }
+#endif

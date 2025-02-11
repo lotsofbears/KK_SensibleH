@@ -9,7 +9,7 @@ using System.Text;
 using System.Reflection;
 using KK_SensibleH.AutoMode;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     internal class PatchLoop
     {
@@ -155,6 +155,9 @@ namespace KK_SensibleH.Patches.StaticPatches
         private static bool RandomBinary() => UnityEngine.Random.value < 0.5f;
         public static bool Play70Voice(HandCtrl handCtrl)
         {
+#if DEBUG
+            SensibleH.Logger.LogDebug("Play70Voice");
+#endif
             handCtrl.flags.voice.SetSonyuWaitTime(true);
             return handCtrl.IsKissAction() || RandomBinary();
         }

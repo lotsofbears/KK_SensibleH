@@ -13,7 +13,7 @@ using ADV.Commands.Base;
 using NodeCanvas.Tasks.Actions;
 using KK_SensibleH.Patches.DynamicPatches;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     class PatchHandCtrl
     {

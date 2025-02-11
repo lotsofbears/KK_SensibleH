@@ -4,7 +4,7 @@ using System.Text;
 using HarmonyLib;
 using UnityEngine;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     internal class PatchHNoParty
     {

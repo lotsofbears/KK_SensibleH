@@ -10,7 +10,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 using static KK_SensibleH.SensibleH;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     public static class PatchH
     {
@@ -307,7 +307,6 @@ namespace KK_SensibleH.Patches.StaticPatches
             __instance.hand.SceneChangeItemEnable(true);
 #if KK
             if (SensibleHController.IsParty) return;
-            // For some reason even without accessing this part of the code we get an exception in Party.
             var male1 = Traverse.Create(__instance).Field("male1").GetValue<ChaControl>();
             if (male1 != null)
             {

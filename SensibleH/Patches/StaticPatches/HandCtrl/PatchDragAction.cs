@@ -7,7 +7,7 @@ using KK_SensibleH.Caress;
 using System.Linq;
 using static Studio.AnimeGroupList;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     class PatchDragAction
     {

@@ -14,7 +14,7 @@ using UnityEngine;
 using VRGIN.Core;
 using static Illusion.Utils;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     internal class TestH
     {

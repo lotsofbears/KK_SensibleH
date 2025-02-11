@@ -12,9 +12,9 @@ using System;
 using static KK_SensibleH.AutoMode.LoopProperties;
 using UnityEngine.Assertions.Must;
 using KK_SensibleH.Caress;
-using KK_SensibleH.Patches.StaticPatches;
+using KK_SensibleH.Patches;
 using static ChaCustom.CustomCheckWindow;
-using static KK_SensibleH.Patches.StaticPatches.PatchLoop;
+using static KK_SensibleH.Patches.PatchLoop;
 
 namespace KK_SensibleH.AutoMode
 {
@@ -33,7 +33,8 @@ namespace KK_SensibleH.AutoMode
         }
 
         private SensibleHController _master;
-        public static LoopController Instance;
+        public static LoopController Instance => _instance;
+        private static LoopController _instance;
         private Coroutine _edgeRoutine;
         private HSceneProc.AnimationListInfo nextAnimation;
         private List<HActionBase> _lstProc;
@@ -55,7 +56,7 @@ namespace KK_SensibleH.AutoMode
 
         internal void Initialize(MonoBehaviour _proc, SensibleHController master)
         {
-            Instance = this;
+            _instance = this;
             _master = master;
             var traverse = Traverse.Create(_proc);
             lstUseAnimInfo = traverse.Field("lstUseAnimInfo").GetValue<List<HSceneProc.AnimationListInfo>[]>();
@@ -77,6 +78,7 @@ namespace KK_SensibleH.AutoMode
             SensibleH.ConfigBiasF.SettingChanged += (_, _1) => GetBias();
             SensibleH.ConfigBiasM.SettingChanged += (_, _1) => GetBias();
             SensibleH.ConfigMaleOrgCount.SettingChanged += (_, _1) => GetBias();
+            SensibleH.Logger.LogDebug($"LoopController:Init:proc = {_proc}, sprite = {_sprite}, _lstProc = {_lstProc}, lstUseAnimInfo = {lstUseAnimInfo} ");
         }
         private void OnDestroy()
         {
@@ -118,6 +120,9 @@ namespace KK_SensibleH.AutoMode
         private static List<Button> GetAvailableActions(string name = "")
         {
             List<Button> menu;
+#if DEBUG
+            SensibleH.Logger.LogDebug($"GetAvailableActions:flag = {hFlag}, mode = {hFlag.mode}: sprite = {_sprite}");
+#endif
             switch (hFlag.mode)
             {
                 case HFlag.EMode.houshi:
@@ -139,6 +144,11 @@ namespace KK_SensibleH.AutoMode
                 default:
                     return new List<Button>();
             }
+
+#if DEBUG
+            SensibleH.Logger.LogDebug($"GetAvailableActions:past switch");
+#endif
+
             // StartsWith instead of Equal for Dark houshi.
             var choices = name == "" ? menu
                 .Where(button => button.isActiveAndEnabled && button.interactable
@@ -156,7 +166,7 @@ namespace KK_SensibleH.AutoMode
             {
                 HFlag.EMode.houshi3PMMF => _sprite.houshi3PDark.categoryActionButton.lstButton,
                 HFlag.EMode.sonyu3PMMF => _sprite.sonyu3PDark.categoryActionButton.lstButton,
-                _ => new List<Button>()
+                _ => []
             };
         }
         public List<HSceneProc.AnimationListInfo> GetAvailableAnimations(int id = -2)

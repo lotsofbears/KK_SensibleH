@@ -6,7 +6,7 @@ using System.Text;
 using UnityEngine;
 using static KK_SensibleH.SensibleH;
 
-namespace KK_SensibleH.Patches.StaticPatches
+namespace KK_SensibleH.Patches
 {
     class PatchEyeNeck
     {
