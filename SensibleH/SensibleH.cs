@@ -25,7 +25,7 @@ namespace KK_SensibleH
     {
         public const string GUID = "kk.sensible.h";
         public const string Name = "KK_SensibleH";
-        public const string Version = "1.2.5";
+        public const string Version = "1.2.6";
         public new static PluginInfo Info { get; private set; }
         public new static ManualLogSource Logger;
         public static ConfigEntry<PluginState> ConfigEnabled { get; set; }
