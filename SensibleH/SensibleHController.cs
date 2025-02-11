@@ -493,6 +493,7 @@ namespace KK_SensibleH
             }
             else if (_persistentPatches.Count > 0)
             {
+                StopAllCoroutines();
                 SensibleH.Logger.LogDebug($"Remove patches");
                 foreach (var patch in _persistentPatches)
                 {

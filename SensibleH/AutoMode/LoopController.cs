@@ -78,7 +78,6 @@ namespace KK_SensibleH.AutoMode
             SensibleH.ConfigBiasF.SettingChanged += (_, _1) => GetBias();
             SensibleH.ConfigBiasM.SettingChanged += (_, _1) => GetBias();
             SensibleH.ConfigMaleOrgCount.SettingChanged += (_, _1) => GetBias();
-            SensibleH.Logger.LogDebug($"LoopController:Init:proc = {_proc}, sprite = {_sprite}, _lstProc = {_lstProc}, lstUseAnimInfo = {lstUseAnimInfo} ");
         }
         private void OnDestroy()
         {
@@ -120,9 +119,6 @@ namespace KK_SensibleH.AutoMode
         private static List<Button> GetAvailableActions(string name = "")
         {
             List<Button> menu;
-#if DEBUG
-            SensibleH.Logger.LogDebug($"GetAvailableActions:flag = {hFlag}, mode = {hFlag.mode}: sprite = {_sprite}");
-#endif
             switch (hFlag.mode)
             {
                 case HFlag.EMode.houshi:
@@ -144,10 +140,6 @@ namespace KK_SensibleH.AutoMode
                 default:
                     return new List<Button>();
             }
-
-#if DEBUG
-            SensibleH.Logger.LogDebug($"GetAvailableActions:past switch");
-#endif
 
             // StartsWith instead of Equal for Dark houshi.
             var choices = name == "" ? menu
